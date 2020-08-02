@@ -1,4 +1,4 @@
-package voxswirl.app;
+package voxswirl;
 
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
@@ -13,19 +13,19 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import squidpony.FakeLanguageGen;
+import squidpony.squidmath.CrossHash;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.ModelMaker;
 import voxswirl.physical.Tools3D;
 import voxswirl.visual.Colorizer;
 import voxswirl.visual.SplatRenderer;
-import squidpony.FakeLanguageGen;
-import squidpony.squidmath.CrossHash;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-public class SplatTest extends ApplicationAdapter {
+public class SplatVisualizer extends ApplicationAdapter {
     public static final int SCREEN_WIDTH = 512;//640;
     public static final int SCREEN_HEIGHT = 512;//720;
     public static final int VIRTUAL_WIDTH = SCREEN_WIDTH;
@@ -51,25 +51,11 @@ public class SplatTest extends ApplicationAdapter {
         screenView.getCamera().position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
-//        colorizer = Colorizer.arbitraryColorizer(Coloring.AURORA);
-//        colorizer = Colorizer.arbitraryColorizer(Coloring.DB16);
-//        colorizer = Colorizer.arbitraryColorizer(Coloring.GB_GREEN);
-//        colorizer = Colorizer.arbitraryColorizer(Coloring.DB32);
-//        colorizer = Colorizer.arbitraryColorizer(Coloring.BLK36);
-//        colorizer = Colorizer.arbitraryBonusColorizer(Coloring.UNSEVEN);
-//        colorizer = Colorizer.arbitraryBonusColorizer(Coloring.CW_PALETTE);
-//        colorizer = Colorizer.arbitraryBonusColorizer(Coloring.JAPANESE_WOODBLOCK);
-//        colorizer = Colorizer.arbitraryBonusColorizer(Coloring.FLESURRECT);
-//        colorizer = Colorizer.arbitraryBonusColorizer(Coloring.GB_GREEN);
-//        colorizer = Colorizer.FlesurrectColorizer;
-//        colorizer = Colorizer.AzurestarColorizer;
-//        colorizer = Colorizer.SplayColorizer;
         
 //        colorizer = Colorizer.ManosColorizer;
         colorizer = Colorizer.ManossusColorizer;
         renderer = new SplatRenderer(80).colorizer(colorizer);
-        renderer.dither = true;
-//        renderer.alternate = Colorizer.ManossusColorizer;
+//        renderer.dither = true;
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
         maker = new ModelMaker(-1L, colorizer);
         try {
@@ -130,7 +116,7 @@ public class SplatTest extends ApplicationAdapter {
         config.setIdleFPS(10);
         config.useVsync(false);
         config.setResizable(true);
-        final SplatTest app = new SplatTest();
+        final SplatVisualizer app = new SplatVisualizer();
         config.setWindowListener(new Lwjgl3WindowAdapter() {
             @Override
             public void filesDropped(String[] files) {
@@ -156,9 +142,6 @@ public class SplatTest extends ApplicationAdapter {
                         break;
                     case Input.Keys.D: // dither
                         renderer.dither = !renderer.dither;
-                        break;
-                    case Input.Keys.U: // useAlternate
-                        renderer.useAlternate = !renderer.useAlternate;
                         break;
                     case Input.Keys.F: // fringe, affects outline/edge
                         renderer.outline = !renderer.outline;

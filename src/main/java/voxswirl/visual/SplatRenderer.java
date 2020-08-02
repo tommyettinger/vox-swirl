@@ -11,8 +11,8 @@ public class SplatRenderer {
     public int[][] depths, voxels;
     public int[][] shadeX, shadeZ;
     public int[][] working, render, outlines;
-    public Colorizer color = Colorizer.ManosColorizer, alternate = Colorizer.FullGrayColorizer;
-    public boolean dither = false, outline = true, useAlternate = false;
+    public Colorizer color = Colorizer.ManosColorizer;
+    public boolean dither = false, outline = true;
 
     public SplatRenderer (final int size) {
         final int w = size * 4 + 4, h = size * 5 + 4;
@@ -42,8 +42,22 @@ public class SplatRenderer {
                 yy = Math.max(0, (zPos * 3 + size + size - xPos - yPos) - 1),
                 depth = (xPos + yPos) * 2 + zPos * 3;
 
+//        for (int x = 0, ax = xx; x < 6 && ax < working.length; x++, ax++) {
+//            for (int y = 0, ay = yy; y < 6 && ay < working[0].length; y++, ay++) {
+//                if(((x == 0 || x == 5) && (y == 0 || y == 5))
+//                        || ((x == 1 || x == 4) && (y == 0 || y == 5))
+//                        || ((y == 1 || y == 4) && (x == 0 || x == 5)))
+//                    continue;
+//                working[ax][ay] = color.medium(voxel);
+//                depths[ax][ay] = depth;
+//                outlines[ax][ay] = color.dark(voxel);
+//                voxels[ax][ay] = xPos | yPos << 10 | zPos << 20; 
+//            }
+//        }
+
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
+                //if((x == 0 || x == 3) && (y == 0 || y == 3)) continue;
                 working[ax][ay] = color.medium(voxel);
                 depths[ax][ay] = depth;
                 outlines[ax][ay] = color.dark(voxel);
@@ -102,23 +116,23 @@ public class SplatRenderer {
                 for (int y = 1; y < ySize; y++) {
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
-                        if (outlines[x - 1][y] == 0 && outlines[x][y - 1] == 0) {
-                            pixmap.drawPixel(x - 1, y    , o);
-                            pixmap.drawPixel(x    , y - 1, o);
-                            pixmap.drawPixel(x    , y    , o);
-                        } else if (outlines[x + 1][y] == 0 && outlines[x][y - 1] == 0) {
-                            pixmap.drawPixel(x + 1, y    , o);
-                            pixmap.drawPixel(x    , y - 1, o);
-                            pixmap.drawPixel(x    , y    , o); 
-                        } else if (outlines[x - 1][y] == 0 && outlines[x][y + 1] == 0) {
-                            pixmap.drawPixel(x - 1, y    , o);
-                            pixmap.drawPixel(x    , y + 1, o);
-                            pixmap.drawPixel(x    , y    , o);
-                        } else if (outlines[x + 1][y] == 0 && outlines[x][y + 1] == 0) {
-                            pixmap.drawPixel(x + 1, y    , o);
-                            pixmap.drawPixel(x    , y + 1, o);
-                            pixmap.drawPixel(x    , y    , o);
-                        } else {
+//                        if (outlines[x - 1][y] == 0 && outlines[x][y - 1] == 0) {
+//                            pixmap.drawPixel(x - 1, y    , o);
+//                            pixmap.drawPixel(x    , y - 1, o);
+//                            pixmap.drawPixel(x    , y    , o);
+//                        } else if (outlines[x + 1][y] == 0 && outlines[x][y - 1] == 0) {
+//                            pixmap.drawPixel(x + 1, y    , o);
+//                            pixmap.drawPixel(x    , y - 1, o);
+//                            pixmap.drawPixel(x    , y    , o); 
+//                        } else if (outlines[x - 1][y] == 0 && outlines[x][y + 1] == 0) {
+//                            pixmap.drawPixel(x - 1, y    , o);
+//                            pixmap.drawPixel(x    , y + 1, o);
+//                            pixmap.drawPixel(x    , y    , o);
+//                        } else if (outlines[x + 1][y] == 0 && outlines[x][y + 1] == 0) {
+//                            pixmap.drawPixel(x + 1, y    , o);
+//                            pixmap.drawPixel(x    , y + 1, o);
+//                            pixmap.drawPixel(x    , y    , o);
+//                        } else {
                             if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
                                 pixmap.drawPixel(x - 1, y    , o);
                             }
@@ -131,7 +145,7 @@ public class SplatRenderer {
                             if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
                                 pixmap.drawPixel(x    , y + 1, o);
                             }
-                        }
+//                        }
                     }
                 }
             }
@@ -141,6 +155,8 @@ public class SplatRenderer {
             color.reducer.reduceFloydSteinberg(pixmap);
 //            color.reducer.reduceKnollRoberts(pixmap);
 //            color.reducer.reduceSierraLite(pixmap);
+//            color.reducer.reduceJimenez(pixmap);
+
         }
 
         ArrayTools.fill(render, (byte) 0);
@@ -235,6 +251,7 @@ public class SplatRenderer {
             color.reducer.reduceFloydSteinberg(pixmapHalf);
 //            color.reducer.reduceKnollRoberts(pixmapHalf);
 //            color.reducer.reduceSierraLite(pixmapHalf);
+//            color.reducer.reduceJimenez(pixmapHalf);
         }
 
         ArrayTools.fill(render, (byte) 0);
