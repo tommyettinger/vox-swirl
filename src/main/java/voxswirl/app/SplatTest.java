@@ -65,9 +65,10 @@ public class SplatTest extends ApplicationAdapter {
 //        colorizer = Colorizer.AzurestarColorizer;
 //        colorizer = Colorizer.SplayColorizer;
         
-        colorizer = Colorizer.ManosColorizer;
-//        colorizer = Colorizer.ManossusColorizer;
+//        colorizer = Colorizer.ManosColorizer;
+        colorizer = Colorizer.ManossusColorizer;
         renderer = new SplatRenderer(80).colorizer(colorizer);
+        renderer.dither = true;
 //        renderer.alternate = Colorizer.ManossusColorizer;
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
         maker = new ModelMaker(-1L, colorizer);
@@ -206,7 +207,7 @@ public class SplatTest extends ApplicationAdapter {
         try {
             //// loads a file by its full path, which we get via drag+drop
             voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream(name)));
-//            renderer.colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
+            renderer.colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
         } catch (FileNotFoundException e) {
             voxels = maker.shipSmoothColorized();
             renderer.colorizer(colorizer);
