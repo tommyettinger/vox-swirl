@@ -4,12 +4,16 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.github.tommyettinger.anim8.AnimatedGif;
+import com.github.tommyettinger.anim8.Dithered;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.ModelMaker;
@@ -38,6 +42,7 @@ public class VoxSwirl extends ApplicationAdapter {
     private String name;
     private String[] inputs;
     private PixmapIO.PNG png;
+    private AnimatedGif gif;
     public VoxSwirl(String[] args){
         if(args != null && args.length > 0)
             inputs = args;
@@ -51,16 +56,25 @@ public class VoxSwirl extends ApplicationAdapter {
     public void create() {
         if(inputs == null) Gdx.app.exit();
         png = new PixmapIO.PNG();
+        gif = new AnimatedGif();
+        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.DIFFUSION);
         renderer = new SplatRenderer(80);
-//        renderer.dither = true;
+        renderer.dither = false;
         maker = new ModelMaker(-1L, colorizer);
         for(String s : inputs)
         {
             load(s);
             try {
+                Array<Pixmap> pm = new Array<>(32);
                 for (int i = 0; i < 32; i++) {
-                    png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), renderer.drawSplats(voxels, i * 0x1p-5f));
+                    renderer.drawSplats(voxels, i * 0x1p-5f);
+                    Pixmap p = new Pixmap(renderer.pixmap.getWidth(), renderer.pixmap.getHeight(), renderer.pixmap.getFormat());
+                    p.drawPixmap(renderer.pixmap, 0, 0);
+                    pm.add(p);
+                    png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
                 }
+                gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
+                
 //                png.write(Gdx.files.local("out/" + name + '/' + name + "_SW" + ".png"), renderer.drawSplats(voxels));
 //                Tools3D.clockwiseInPlace(voxels);
 //                png.write(Gdx.files.local("out/" + name + '/' + name + "_NW" + ".png"), renderer.drawSplats(voxels));

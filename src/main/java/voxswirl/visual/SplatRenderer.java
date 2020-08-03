@@ -62,23 +62,23 @@ public class SplatRenderer {
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 - 1)),
                 yy = (int)(0.5f + Math.max(0, (zPos * 3 + size + size - xPos - yPos) - 1)),
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
+        boolean drawn = false;
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
-                //if((x == 0 || x == 3) && (y == 0 || y == 3)) continue;
-                working[ax][ay] = color.medium(voxel);
-                depths[ax][ay] = depth;
-                outlines[ax][ay] = color.dark(voxel);
-                voxels[ax][ay] = vx | vy << 10 | vz << 20; 
+                if (depth >= depths[ax][ay]) {
+                    drawn = true;
+                    //if((x == 0 || x == 3) && (y == 0 || y == 3)) continue;
+                    working[ax][ay] = color.medium(voxel);
+                    depths[ax][ay] = depth;
+                    outlines[ax][ay] = color.dark(voxel);
+                    voxels[ax][ay] = vx | vy << 10 | vz << 20;
+                }
             }
         }
-        shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)] = Math.max(shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)], (int)(0.5f + zPos));
-        shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)] = Math.max(shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)], (int)(0.5f + xPos));
-        //shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)] = Math.max(shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)], (int)(0.5f + zPos));
-        //shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)] = Math.max(shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)], (int)(0.5f + xPos));
-        //shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)] = Math.max(shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)], (int)(0.5f + zPos));
-        //shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)] = Math.max(shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)], (int)(0.5f + xPos));
-        //shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)] = Math.max(shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)], (int)(0.5f + zPos));
-        //shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)] = Math.max(shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)], (int)(0.5f + xPos));
+        if(drawn) {
+            shadeZ[(int) (0.5f + xPos)][(int) (0.5f + yPos)] = Math.max(shadeZ[(int) (0.5f + xPos)][(int) (0.5f + yPos)], (int) (0.5f + zPos));
+            shadeX[(int) (0.5f + yPos)][(int) (0.5f + zPos)] = Math.max(shadeX[(int) (0.5f + yPos)][(int) (0.5f + zPos)], (int) (0.5f + xPos));
+        }
     }
     
     public SplatRenderer clear() {
