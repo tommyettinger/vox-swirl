@@ -2,6 +2,7 @@ package voxswirl.visual;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import squidpony.ArrayTools;
+import squidpony.squidmath.NumberTools;
 
 /**
  * Created by Tommy Ettinger on 12/16/2018.
@@ -41,20 +42,6 @@ public class SplatRenderer {
                 xx = Math.max(0, (size + yPos - xPos) * 2 - 1),
                 yy = Math.max(0, (zPos * 3 + size + size - xPos - yPos) - 1),
                 depth = (xPos + yPos) * 2 + zPos * 3;
-
-//        for (int x = 0, ax = xx; x < 6 && ax < working.length; x++, ax++) {
-//            for (int y = 0, ay = yy; y < 6 && ay < working[0].length; y++, ay++) {
-//                if(((x == 0 || x == 5) && (y == 0 || y == 5))
-//                        || ((x == 1 || x == 4) && (y == 0 || y == 5))
-//                        || ((y == 1 || y == 4) && (x == 0 || x == 5)))
-//                    continue;
-//                working[ax][ay] = color.medium(voxel);
-//                depths[ax][ay] = depth;
-//                outlines[ax][ay] = color.dark(voxel);
-//                voxels[ax][ay] = xPos | yPos << 10 | zPos << 20; 
-//            }
-//        }
-
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
                 //if((x == 0 || x == 3) && (y == 0 || y == 3)) continue;
@@ -66,6 +53,24 @@ public class SplatRenderer {
         }
         shadeZ[xPos][yPos] = Math.max(shadeZ[xPos][yPos], zPos);
         shadeX[yPos][zPos] = Math.max(shadeX[yPos][zPos], xPos);
+    }
+    
+    public void splatTurned(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
+        final int size = shadeZ.length,
+                xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 - 1)),
+                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size + size - xPos - yPos) - 1)),
+                depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
+        for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
+            for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
+                //if((x == 0 || x == 3) && (y == 0 || y == 3)) continue;
+                working[ax][ay] = color.medium(voxel);
+                depths[ax][ay] = depth;
+                outlines[ax][ay] = color.dark(voxel);
+                voxels[ax][ay] = vx | vy << 10 | vz << 20; 
+            }
+        }
+        shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)] = Math.max(shadeZ[(int)(0.5f + xPos)][(int)(0.5f + yPos)], (int)(0.5f + zPos));
+        shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)] = Math.max(shadeX[(int)(0.5f + yPos)][(int)(0.5f + zPos)], (int)(0.5f + xPos));
     }
     
     public SplatRenderer clear() {
@@ -278,6 +283,30 @@ public class SplatRenderer {
                     final byte v = colors[x][y][z];
                     if(v != 0)
                         splat(x, y, z, v);
+                }
+            }
+        }
+        return blit();
+    }
+
+    public Pixmap drawSplats(byte[][][] colors, float angleTurns) {
+        // To move one x+ in voxels is x + 2, y - 1 in pixels.
+        // To move one x- in voxels is x - 2, y + 1 in pixels.
+        // To move one y+ in voxels is x - 2, y - 1 in pixels.
+        // To move one y- in voxels is x + 2, y + 1 in pixels.
+        // To move one z+ in voxels is y + 3 in pixels.
+        // To move one z- in voxels is y - 3 in pixels.
+        final int size = colors.length;
+        final float hs = size * 0.5f;
+        for (int z = 0; z < size; z++) {
+            for (int x = 0; x < size; x++) {
+                for (int y = 0; y < size; y++) {
+                    final byte v = colors[x][y][z];
+                    if(v != 0)
+                    {
+                        final float c = NumberTools.cos_(angleTurns), s = NumberTools.sin_(angleTurns);
+                        splatTurned((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
+                    }
                 }
             }
         }

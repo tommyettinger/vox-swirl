@@ -13,7 +13,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.ModelMaker;
-import voxswirl.physical.Tools3D;
 import voxswirl.visual.Colorizer;
 import voxswirl.visual.SplatRenderer;
 
@@ -59,13 +58,16 @@ public class VoxSwirl extends ApplicationAdapter {
         {
             load(s);
             try {
-                png.write(Gdx.files.local("out/" + name + '/' + name + "_SW" + ".png"), renderer.drawSplats(voxels));
-                Tools3D.clockwiseInPlace(voxels);
-                png.write(Gdx.files.local("out/" + name + '/' + name + "_NW" + ".png"), renderer.drawSplats(voxels));
-                Tools3D.clockwiseInPlace(voxels);
-                png.write(Gdx.files.local("out/" + name + '/' + name + "_NE" + ".png"), renderer.drawSplats(voxels));
-                Tools3D.clockwiseInPlace(voxels);
-                png.write(Gdx.files.local("out/" + name + '/' + name + "_SE" + ".png"), renderer.drawSplats(voxels));
+                for (int i = 0; i < 32; i++) {
+                    png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), renderer.drawSplats(voxels, i * 0x1p-5f));
+                }
+//                png.write(Gdx.files.local("out/" + name + '/' + name + "_SW" + ".png"), renderer.drawSplats(voxels));
+//                Tools3D.clockwiseInPlace(voxels);
+//                png.write(Gdx.files.local("out/" + name + '/' + name + "_NW" + ".png"), renderer.drawSplats(voxels));
+//                Tools3D.clockwiseInPlace(voxels);
+//                png.write(Gdx.files.local("out/" + name + '/' + name + "_NE" + ".png"), renderer.drawSplats(voxels));
+//                Tools3D.clockwiseInPlace(voxels);
+//                png.write(Gdx.files.local("out/" + name + '/' + name + "_SE" + ".png"), renderer.drawSplats(voxels));
             } catch (IOException e) {
                 e.printStackTrace();
             }
