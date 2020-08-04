@@ -55,11 +55,12 @@ public class VoxSwirl extends ApplicationAdapter {
         {
             load(s);
             try {
+                Pixmap pixmap;
                 Array<Pixmap> pm = new Array<>(32);
                 for (int i = 0; i < 32; i++) {
-                    renderer.drawSplats(voxels, i * 0x1p-5f);
-                    Pixmap p = new Pixmap(renderer.pixmap.getWidth(), renderer.pixmap.getHeight(), renderer.pixmap.getFormat());
-                    p.drawPixmap(renderer.pixmap, 0, 0);
+                    pixmap = renderer.drawSplatsHalf(voxels, i * 0x1p-5f);
+                    Pixmap p = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), pixmap.getFormat());
+                    p.drawPixmap(pixmap, 0, 0);
                     pm.add(p);
                     png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
                 }

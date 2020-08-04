@@ -162,6 +162,7 @@
         <resources>
             <resource>
                 <directory>assets</directory>
+                <excludes><exclude>**/out/**</exclude></excludes>
             </resource>
         </resources>
         <testSourceDirectory>src/test/java</testSourceDirectory>

@@ -92,100 +92,7 @@ public class SplatRenderer {
         ArrayTools.fill(shadeZ, -1);
         return this;
     }
-    
-    public Pixmap blit() {
-        final int threshold = 9;
-        pixmap.setColor(0);
-        pixmap.fill();
-        int xSize = Math.min(pixmap.getWidth(), working.length) - 1, ySize = Math.min(pixmap.getHeight(), working[0].length) - 1, depth;
-        for (int x = 0; x <= xSize; x++) {
-            System.arraycopy(working[x], 0, render[x], 0, ySize);
-        }
-        //for (int x = 0; x < xSize; x++) {
-        //    for (int y = 0; y < ySize; y++) {
-        //        render[x][y] = Coloring.darken(working[x][y], 0.1f);
-        //    }
-        //}
-        int v, vx, vy, vz;
-        for (int sx = 0; sx <= xSize; sx++) {
-            for (int sy = 0; sy <= ySize; sy++) {
-                if((v = voxels[sx][sy]) != -1) {
-                    vx = v & 0x3FF;
-                    vy = v >>> 10 & 0x3FF;
-                    vz = v >>> 20 & 0x3FF;
-                    if (shadeX[vy][vz] != vx)
-                        render[sx][sy] = Coloring.darken(render[sx][sy], 0.15f);
-                    if (shadeZ[vx][vy] == vz)
-                        render[sx][sy] = Coloring.lighten(render[sx][sy], 0.2f);
-                }
-            }
-        }
 
-        for (int x = 0; x <= xSize; x++) {
-            for (int y = 0; y <= ySize; y++) {
-                if (render[x][y] != 0) {
-                    pixmap.drawPixel(x, y, render[x][y]);
-                }
-            }
-        }
-        if (outline) {
-            int o;
-            for (int x = 1; x < xSize; x++) {
-                for (int y = 1; y < ySize; y++) {
-                    if ((o = outlines[x][y]) != 0) {
-                        depth = depths[x][y];
-//                        if (outlines[x - 1][y] == 0 && outlines[x][y - 1] == 0) {
-//                            pixmap.drawPixel(x - 1, y    , o);
-//                            pixmap.drawPixel(x    , y - 1, o);
-//                            pixmap.drawPixel(x    , y    , o);
-//                        } else if (outlines[x + 1][y] == 0 && outlines[x][y - 1] == 0) {
-//                            pixmap.drawPixel(x + 1, y    , o);
-//                            pixmap.drawPixel(x    , y - 1, o);
-//                            pixmap.drawPixel(x    , y    , o); 
-//                        } else if (outlines[x - 1][y] == 0 && outlines[x][y + 1] == 0) {
-//                            pixmap.drawPixel(x - 1, y    , o);
-//                            pixmap.drawPixel(x    , y + 1, o);
-//                            pixmap.drawPixel(x    , y    , o);
-//                        } else if (outlines[x + 1][y] == 0 && outlines[x][y + 1] == 0) {
-//                            pixmap.drawPixel(x + 1, y    , o);
-//                            pixmap.drawPixel(x    , y + 1, o);
-//                            pixmap.drawPixel(x    , y    , o);
-//                        } else {
-                            if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
-                                pixmap.drawPixel(x - 1, y    , o);
-                            }
-                            if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
-                                pixmap.drawPixel(x + 1, y    , o);
-                            }
-                            if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
-                                pixmap.drawPixel(x    , y - 1, o);
-                            }
-                            if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
-                                pixmap.drawPixel(x    , y + 1, o);
-                            }
-//                        }
-                    }
-                }
-            }
-        }
-        if(dither) {
-            color.reducer.setDitherStrength(0.3125f);
-            color.reducer.reduceFloydSteinberg(pixmap);
-//            color.reducer.reduceKnollRoberts(pixmap);
-//            color.reducer.reduceSierraLite(pixmap);
-//            color.reducer.reduceJimenez(pixmap);
-
-        }
-
-        ArrayTools.fill(render, (byte) 0);
-        ArrayTools.fill(working, (byte) 0);
-        ArrayTools.fill(depths, 0);
-        ArrayTools.fill(outlines, (byte) 0);
-        ArrayTools.fill(voxels, -1);
-        ArrayTools.fill(shadeX, -1);
-        ArrayTools.fill(shadeZ, -1);
-        return pixmap;
-    }
     public Pixmap blit(float turns) {
         final int threshold = 9;
         pixmap.setColor(0);
@@ -194,11 +101,7 @@ public class SplatRenderer {
         for (int x = 0; x <= xSize; x++) {
             System.arraycopy(working[x], 0, render[x], 0, ySize);
         }
-        //for (int x = 0; x < xSize; x++) {
-        //    for (int y = 0; y < ySize; y++) {
-        //        render[x][y] = Coloring.darken(working[x][y], 0.1f);
-        //    }
-        //}
+
         int v, vx, vy, vz, fx, fy;
         float hs = size * 0.5f, c = NumberTools.cos_(turns), s = NumberTools.sin_(turns);
         for (int sx = 0; sx <= xSize; sx++) {
@@ -283,7 +186,7 @@ public class SplatRenderer {
         return pixmap;
     }
 
-    public Pixmap blitHalf() {
+    public Pixmap blitHalf(float turns) {
         final int threshold = 8;
         pixmapHalf.setColor(0);
         pixmapHalf.fill();
@@ -291,26 +194,26 @@ public class SplatRenderer {
         for (int x = 0; x <= xSize; x++) {
             System.arraycopy(working[x], 0, render[x], 0, ySize);
         }
-        int v, vx, vy, vz;
+        int v, vx, vy, vz, fx, fy;
+        float hs = size * 0.5f, c = NumberTools.cos_(turns), s = NumberTools.sin_(turns);
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
-                if((v = voxels[sx][sy]) != -1)
-                {
+                if((v = voxels[sx][sy]) != -1) {
                     vx = v & 0x3FF;
                     vy = v >>> 10 & 0x3FF;
                     vz = v >>> 20 & 0x3FF;
-                    if (shadeX[vy][vz] != vx)
+                    fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 6.5f);
+                    fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 6.5f);
+                    if (Math.abs(shadeX[fy][vz] - fx) > 1)
                         render[sx][sy] = Coloring.darken(render[sx][sy], 0.15f);
-                    if (shadeZ[vx][vy] == vz)
+                    if (shadeZ[fx][fy] == vz)
                         render[sx][sy] = Coloring.lighten(render[sx][sy], 0.2f);
                 }
             }
         }
 
         for (int x = 0; x <= xSize; x++) {
-//            final int choice = (x & 2) >>> 1 | (x & 1) << 1;
             for (int y = 0; y <= ySize; y++) {
-//                if((y & 3) != choice) continue;
                 if (render[x][y] != 0) {
                     pixmapHalf.drawPixel(x >>> 1, y >>> 1, render[x][y]);
                 }
@@ -318,31 +221,12 @@ public class SplatRenderer {
         }
         if (outline) {
             int o;
-            for (int x = 1; x < xSize; x++) {
-//                final int choice = (x & 2) >>> 1 | (x & 1) << 1;
+            for (int x = 1; x < xSize; x++) { 
                 final int hx = x >>> 1;
                 for (int y = 1; y < ySize; y++) {
-//                    if((y & 3) != choice) continue;
                     int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
-//                        if (outlines[x - 1][y] == 0 && outlines[x][y - 1] == 0) {
-//                            pixmapHalf.drawPixel(hx - 1, hy    , o);
-//                            pixmapHalf.drawPixel(hx    , hy - 1, o);
-//                            pixmapHalf.drawPixel(hx    , hy    , o);
-//                        } else if (outlines[x + 1][y] == 0 && outlines[x][y - 1] == 0) {
-//                            pixmapHalf.drawPixel(hx + 1, hy    , o);
-//                            pixmapHalf.drawPixel(hx    , hy - 1, o);
-//                            pixmapHalf.drawPixel(hx    , hy    , o); 
-//                        } else if (outlines[x - 1][y] == 0 && outlines[x][y + 1] == 0) {
-//                            pixmapHalf.drawPixel(hx - 1, hy    , o);
-//                            pixmapHalf.drawPixel(hx    , hy + 1, o);
-//                            pixmapHalf.drawPixel(hx    , hy    , o);
-//                        } else if (outlines[x + 1][y] == 0 && outlines[x][y + 1] == 0) {
-//                            pixmapHalf.drawPixel(hx + 1, hy    , o);
-//                            pixmapHalf.drawPixel(hx    , hy + 1, o);
-//                            pixmapHalf.drawPixel(hx    , hy    , o);
-//                        } else {
                         if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
                             pixmapHalf.drawPixel(hx - 1, hy    , o);
                         }
@@ -355,7 +239,6 @@ public class SplatRenderer {
                         if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
                             pixmapHalf.drawPixel(hx    , hy + 1, o);
                         }
-//                        }
                     }
                 }
             }
@@ -376,26 +259,6 @@ public class SplatRenderer {
         ArrayTools.fill(shadeX, -1);
         ArrayTools.fill(shadeZ, -1);
         return pixmapHalf;
-    }
-
-    public Pixmap drawSplats(byte[][][] colors) {
-        // To move one x+ in voxels is x + 2, y - 1 in pixels.
-        // To move one x- in voxels is x - 2, y + 1 in pixels.
-        // To move one y+ in voxels is x - 2, y - 1 in pixels.
-        // To move one y- in voxels is x + 2, y + 1 in pixels.
-        // To move one z+ in voxels is y + 3 in pixels.
-        // To move one z- in voxels is y - 3 in pixels.
-        final int size = colors.length;
-        for (int z = 0; z < size; z++) {
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    final byte v = colors[x][y][z];
-                    if(v != 0)
-                        splat(x, y, z, v);
-                }
-            }
-        }
-        return blit();
     }
 
     public Pixmap drawSplats(byte[][][] colors, float angleTurns) {
@@ -422,18 +285,28 @@ public class SplatRenderer {
         return blit(angleTurns);
     }
 
-    public Pixmap drawSplatsHalf(byte[][][] colors) { 
+    public Pixmap drawSplatsHalf(byte[][][] colors, float angleTurns) {
+        // To move one x+ in voxels is x + 2, y - 1 in pixels.
+        // To move one x- in voxels is x - 2, y + 1 in pixels.
+        // To move one y+ in voxels is x - 2, y - 1 in pixels.
+        // To move one y- in voxels is x + 2, y + 1 in pixels.
+        // To move one z+ in voxels is y + 3 in pixels.
+        // To move one z- in voxels is y - 3 in pixels.
         final int size = colors.length;
+        final float hs = size * 0.5f;
         for (int z = 0; z < size; z++) {
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {
                     final byte v = colors[x][y][z];
                     if(v != 0)
-                        splat(x, y, z, v);
+                    {
+                        final float c = NumberTools.cos_(angleTurns), s = NumberTools.sin_(angleTurns);
+                        splatTurned((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
+                    }
                 }
             }
         }
-        return blitHalf();
+        return blitHalf(angleTurns);
     }
 
 }
