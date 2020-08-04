@@ -146,7 +146,6 @@ sql/
 ClientBin/
 [Ss]tyle[Cc]op.*
 ~$*
-*~
 *.dbmdl
 *.[Pp]ublish.xml
 *.pfx
@@ -242,3 +241,7 @@ GeneratedPalette.txt
 GeneratedPalette.png
 voxOutput/
 /assets/out/
+/out/
+
+*.zip
+/package/*.jar

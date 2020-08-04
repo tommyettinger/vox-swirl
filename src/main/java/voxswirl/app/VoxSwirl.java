@@ -6,12 +6,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.viewport.Viewport;
 import com.github.tommyettinger.anim8.AnimatedGif;
 import com.github.tommyettinger.anim8.Dithered;
 import voxswirl.io.LittleEndianDataInputStream;
@@ -20,6 +15,7 @@ import voxswirl.physical.ModelMaker;
 import voxswirl.visual.Colorizer;
 import voxswirl.visual.SplatRenderer;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,18 +23,9 @@ import java.io.IOException;
 public class VoxSwirl extends ApplicationAdapter {
     public static final int SCREEN_WIDTH = 512;//640;
     public static final int SCREEN_HEIGHT = 512;//720;
-    public static final int VIRTUAL_WIDTH = SCREEN_WIDTH;
-    public static final int VIRTUAL_HEIGHT = SCREEN_HEIGHT;
-    protected SpriteBatch batch;
-    protected Viewport worldView;
-    protected Viewport screenView;
-    protected BitmapFont font;
-    protected FrameBuffer buffer;
-    protected Texture screenTexture, pmTexture;
     protected ModelMaker maker;
     private SplatRenderer renderer;
     private byte[][][] voxels;
-    private Colorizer colorizer;
     private String name;
     private String[] inputs;
     private PixmapIO.PNG png;
@@ -49,7 +36,10 @@ public class VoxSwirl extends ApplicationAdapter {
         else 
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
-            inputs = new String[]{"D:/Tree.vox"};
+//            inputs = new String[]{"D:/Tree.vox"};
+            inputs = new String[]{"D:/Eye_Tyrant.vox"};
+            if(!new File(inputs[0]).exists()) 
+                System.exit(0);
         }
     }
     @Override
@@ -60,7 +50,7 @@ public class VoxSwirl extends ApplicationAdapter {
         gif.setDitherAlgorithm(Dithered.DitherAlgorithm.DIFFUSION);
         renderer = new SplatRenderer(80);
         renderer.dither = false;
-        maker = new ModelMaker(-1L, colorizer);
+        maker = new ModelMaker(-1L, Colorizer.ManosColorizer);
         for(String s : inputs)
         {
             load(s);
@@ -122,7 +112,7 @@ public class VoxSwirl extends ApplicationAdapter {
             
         } catch (FileNotFoundException e) {
             voxels = maker.shipSmoothColorized();
-            renderer.colorizer(colorizer);
+            renderer.colorizer(Colorizer.ManosColorizer);
         }
     }
 }

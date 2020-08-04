@@ -76,8 +76,8 @@ public class SplatRenderer {
             }
         }
         if(drawn) {
-            shadeZ[(int) (0.5f + xPos)][(int) (0.5f + yPos)] = Math.max(shadeZ[(int) (0.5f + xPos)][(int) (0.5f + yPos)], (int) (0.5f + zPos));
-            shadeX[(int) (0.5f + yPos)][(int) (0.5f + zPos)] = Math.max(shadeX[(int) (0.5f + yPos)][(int) (0.5f + zPos)], (int) (0.5f + xPos));
+            shadeZ[(int) (6.5f + xPos)][(int) (6.5f + yPos)] = Math.max(shadeZ[(int) (6.5f + xPos)][(int) (6.5f + yPos)], (int) (6.5f + zPos));
+            shadeX[(int) (6.5f + yPos)][(int) (6.5f + zPos)] = Math.max(shadeX[(int) (6.5f + yPos)][(int) (6.5f + zPos)], (int) (6.5f + xPos));
         }
     }
     
@@ -207,8 +207,8 @@ public class SplatRenderer {
                     vx = v & 0x3FF;
                     vy = v >>> 10 & 0x3FF;
                     vz = v >>> 20 & 0x3FF;
-                    fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 0.5f);
-                    fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 0.5f);
+                    fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 6.5f);
+                    fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 6.5f);
                     if (Math.abs(shadeX[fy][vz] - fx) > 1)
                         render[sx][sy] = Coloring.darken(render[sx][sy], 0.15f);
                     if (shadeZ[fx][fy] == vz)

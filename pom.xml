@@ -159,6 +159,11 @@
     </profiles>
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>assets</directory>
+            </resource>
+        </resources>
         <testSourceDirectory>src/test/java</testSourceDirectory>
         <testResources>
             <testResource>
@@ -228,6 +233,31 @@
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <!-- Run shade goal on package phase -->
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <finalName>voxswirl</finalName>
+                            <transformers>
+                                <!-- add Main-Class to manifest file -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>voxswirl.app.VoxSwirl</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
