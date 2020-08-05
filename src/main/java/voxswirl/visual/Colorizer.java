@@ -1,7 +1,6 @@
 package voxswirl.visual;
 
 import com.badlogic.gdx.math.MathUtils;
-import squidpony.squidmath.IRNG;
 import com.github.tommyettinger.anim8.PaletteReducer;
 
 /**
@@ -144,18 +143,10 @@ public abstract class Colorizer {
      */
     public abstract int dimmer(int brightness, byte voxel);
     
-    public int randomColor(IRNG random){
-        return reducer.paletteArray[reducer.paletteMapping[random.next(15)]];
-    }
-    
-    public byte randomColorIndex(IRNG random){
-        return reducer.paletteMapping[random.next(15)];
-    }
-
     /**
      * Gets a PaletteReducer that contains the RGBA8888 int colors that the byte indices these deals with correspond to.
-     * This PaletteReducer can be queried for random colors with {@link #randomColor(IRNG)} (for an int
-     * color) or {@link #randomColorIndex(IRNG)} (for a byte this can use again).
+     * This PaletteReducer can be queried for random colors with {@link PaletteReducer#randomColor(java.util.Random)}
+     * (for an int color) or {@link PaletteReducer#randomColorIndex(java.util.Random)} (for a byte this can use again).
      *
      * @return the PaletteReducer this uses to store the corresponding RGBA8888 colors for the palette
      */

@@ -1,8 +1,10 @@
 package voxswirl.visual;
 
 import com.badlogic.gdx.graphics.Pixmap;
-import squidpony.ArrayTools;
-import squidpony.squidmath.NumberTools;
+
+import static voxswirl.meta.TrigTools.cos_;
+import static voxswirl.meta.TrigTools.sin_;
+import static voxswirl.meta.ArrayTools.fill;
 
 /**
  * Renders {@code byte[][][]} voxel models to {@link Pixmap}s with arbitrary yaw rotation.
@@ -25,9 +27,9 @@ public class SplatRenderer {
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
-        voxels = ArrayTools.fill(-1, w, h);
-        shadeX = ArrayTools.fill(-1, size + 5 << 1, size + 5 << 1);
-        shadeZ = ArrayTools.fill(-1, size + 5 << 1, size + 5 << 1);
+        voxels = fill(-1, w, h);
+        shadeX = fill(-1, size + 5 << 1, size + 5 << 1);
+        shadeZ = fill(-1, size + 5 << 1, size + 5 << 1);
     }
 
     public Colorizer colorizer () {
@@ -84,12 +86,12 @@ public class SplatRenderer {
     public SplatRenderer clear() {
         pixmap.setColor(0);
         pixmap.fill();
-        ArrayTools.fill(working, (byte) 0);
-        ArrayTools.fill(depths, 0);
-        ArrayTools.fill(outlines, (byte) 0);
-        ArrayTools.fill(voxels, -1);
-        ArrayTools.fill(shadeX, -1);
-        ArrayTools.fill(shadeZ, -1);
+        fill(working, (byte) 0);
+        fill(depths, 0);
+        fill(outlines, (byte) 0);
+        fill(voxels, -1);
+        fill(shadeX, -1);
+        fill(shadeZ, -1);
         return this;
     }
 
@@ -103,7 +105,7 @@ public class SplatRenderer {
         }
 
         int v, vx, vy, vz, fx, fy;
-        float hs = (size) * 0.5f, c = NumberTools.cos_(turns), s = NumberTools.sin_(turns);
+        float hs = (size) * 0.5f, c = cos_(turns), s = sin_(turns);
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
                 if((v = voxels[sx][sy]) != -1) {
@@ -176,13 +178,13 @@ public class SplatRenderer {
 
         }
 
-        ArrayTools.fill(render, (byte) 0);
-        ArrayTools.fill(working, (byte) 0);
-        ArrayTools.fill(depths, 0);
-        ArrayTools.fill(outlines, (byte) 0);
-        ArrayTools.fill(voxels, -1);
-        ArrayTools.fill(shadeX, -1);
-        ArrayTools.fill(shadeZ, -1);
+        fill(render, (byte) 0);
+        fill(working, (byte) 0);
+        fill(depths, 0);
+        fill(outlines, (byte) 0);
+        fill(voxels, -1);
+        fill(shadeX, -1);
+        fill(shadeZ, -1);
         return pixmap;
     }
 
@@ -195,7 +197,7 @@ public class SplatRenderer {
             System.arraycopy(working[x], 0, render[x], 0, ySize);
         }
         int v, vx, vy, vz, fx, fy;
-        float hs = (size) * 0.5f, c = NumberTools.cos_(turns), s = NumberTools.sin_(turns);
+        float hs = (size) * 0.5f, c = cos_(turns), s = sin_(turns);
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
                 if((v = voxels[sx][sy]) != -1) {
@@ -251,13 +253,13 @@ public class SplatRenderer {
 //            color.reducer.reduceJimenez(pixmapHalf);
         }
 
-        ArrayTools.fill(render, (byte) 0);
-        ArrayTools.fill(working, (byte) 0);
-        ArrayTools.fill(depths, 0);
-        ArrayTools.fill(outlines, (byte) 0);
-        ArrayTools.fill(voxels, -1);
-        ArrayTools.fill(shadeX, -1);
-        ArrayTools.fill(shadeZ, -1);
+        fill(render, (byte) 0);
+        fill(working, (byte) 0);
+        fill(depths, 0);
+        fill(outlines, (byte) 0);
+        fill(voxels, -1);
+        fill(shadeX, -1);
+        fill(shadeZ, -1);
         return pixmapHalf;
     }
 
@@ -276,7 +278,7 @@ public class SplatRenderer {
                     final byte v = colors[x][y][z];
                     if(v != 0)
                     {
-                        final float c = NumberTools.cos_(angleTurns), s = NumberTools.sin_(angleTurns);
+                        final float c = cos_(angleTurns), s = sin_(angleTurns);
                         splatTurned((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
                     }
                 }
@@ -300,7 +302,7 @@ public class SplatRenderer {
                     final byte v = colors[x][y][z];
                     if(v != 0)
                     {
-                        final float c = NumberTools.cos_(angleTurns), s = NumberTools.sin_(angleTurns);
+                        final float c = cos_(angleTurns), s = sin_(angleTurns);
                         splatTurned((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
                     }
                 }

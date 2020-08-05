@@ -75,11 +75,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.squidpony</groupId>
-            <artifactId>squidlib-util</artifactId>
-            <version>${squidlib.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.tommyettinger</groupId>
             <artifactId>anim8-gdx</artifactId>
             <version>${anim8.version}</version>
@@ -254,6 +249,68 @@
                                     <mainClass>voxswirl.app.VoxSwirl</mainClass>
                                 </transformer>
                             </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl:natives-linux-arm32</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-glfw:natives-linux-arm32</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-openal:natives-linux-arm32</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-opengl:natives-linux-arm32</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-jemalloc:natives-linux-arm32</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl:natives-linux-arm64</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-glfw:natives-linux-arm64</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-openal:natives-linux-arm64</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-opengl:natives-linux-arm64</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-jemalloc:natives-linux-arm64</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

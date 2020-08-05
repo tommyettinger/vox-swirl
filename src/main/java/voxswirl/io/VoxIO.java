@@ -1,6 +1,6 @@
 package voxswirl.io;
 
-import voxswirl.annotation.GwtIncompatible;
+import voxswirl.meta.GwtIncompatible;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
