@@ -25,9 +25,9 @@ public class SplatRenderer {
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
-        voxels   = new int[w][h];
-        shadeX = ArrayTools.fill(-1, size<<2, size<<2);
-        shadeZ = ArrayTools.fill(-1, size<<2, size<<2);
+        voxels = ArrayTools.fill(-1, w, h);
+        shadeX = ArrayTools.fill(-1, size + 5 << 1, size + 5 << 1);
+        shadeZ = ArrayTools.fill(-1, size + 5 << 1, size + 5 << 1);
     }
 
     public Colorizer colorizer () {
@@ -59,8 +59,8 @@ public class SplatRenderer {
     
     public void splatTurned(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
         final int 
-                xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 - 1)),
-                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size + size - xPos - yPos) - 1)),
+                xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
+                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size + size - xPos - yPos) + 1)),
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
         boolean drawn = false;
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
@@ -76,8 +76,8 @@ public class SplatRenderer {
             }
         }
         if(drawn) {
-            shadeZ[(int) (6.5f + xPos)][(int) (6.5f + yPos)] = Math.max(shadeZ[(int) (6.5f + xPos)][(int) (6.5f + yPos)], (int) (6.5f + zPos));
-            shadeX[(int) (6.5f + yPos)][(int) (6.5f + zPos)] = Math.max(shadeX[(int) (6.5f + yPos)][(int) (6.5f + zPos)], (int) (6.5f + xPos));
+            shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)] = Math.max(shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)], (int) (4.500f + zPos));
+            shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)] = Math.max(shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)], (int) (4.500f + xPos));
         }
     }
     
@@ -103,16 +103,16 @@ public class SplatRenderer {
         }
 
         int v, vx, vy, vz, fx, fy;
-        float hs = size * 0.5f, c = NumberTools.cos_(turns), s = NumberTools.sin_(turns);
+        float hs = (size) * 0.5f, c = NumberTools.cos_(turns), s = NumberTools.sin_(turns);
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
                 if((v = voxels[sx][sy]) != -1) {
                     vx = v & 0x3FF;
                     vy = v >>> 10 & 0x3FF;
                     vz = v >>> 20 & 0x3FF;
-                    fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 6.5f);
-                    fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 6.5f);
-                    if (Math.abs(shadeX[fy][vz] - fx) > 1)
+                    fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 4.500f);
+                    fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
+                    if (Math.abs(shadeX[fy][(int)(vz + 4.500f)] - fx) > 1)
                         render[sx][sy] = Coloring.darken(render[sx][sy], 0.15f);
                     if (shadeZ[fx][fy] == vz)
                         render[sx][sy] = Coloring.lighten(render[sx][sy], 0.2f);
@@ -195,16 +195,16 @@ public class SplatRenderer {
             System.arraycopy(working[x], 0, render[x], 0, ySize);
         }
         int v, vx, vy, vz, fx, fy;
-        float hs = size * 0.5f, c = NumberTools.cos_(turns), s = NumberTools.sin_(turns);
+        float hs = (size) * 0.5f, c = NumberTools.cos_(turns), s = NumberTools.sin_(turns);
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
                 if((v = voxels[sx][sy]) != -1) {
                     vx = v & 0x3FF;
                     vy = v >>> 10 & 0x3FF;
                     vz = v >>> 20 & 0x3FF;
-                    fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 6.5f);
-                    fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 6.5f);
-                    if (Math.abs(shadeX[fy][vz] - fx) > 1)
+                    fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 4.500f);
+                    fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
+                    if (Math.abs(shadeX[fy][(int)(vz + 4.500f)] - fx) > 1)
                         render[sx][sy] = Coloring.darken(render[sx][sy], 0.15f);
                     if (shadeZ[fx][fy] == vz)
                         render[sx][sy] = Coloring.lighten(render[sx][sy], 0.2f);
@@ -269,7 +269,7 @@ public class SplatRenderer {
         // To move one z+ in voxels is y + 3 in pixels.
         // To move one z- in voxels is y - 3 in pixels.
         final int size = colors.length;
-        final float hs = size * 0.5f;
+        final float hs = (size) * 0.5f;
         for (int z = 0; z < size; z++) {
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {
@@ -293,7 +293,7 @@ public class SplatRenderer {
         // To move one z+ in voxels is y + 3 in pixels.
         // To move one z- in voxels is y - 3 in pixels.
         final int size = colors.length;
-        final float hs = size * 0.5f;
+        final float hs = (size) * 0.5f;
         for (int z = 0; z < size; z++) {
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {

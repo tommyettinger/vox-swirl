@@ -7,10 +7,10 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import squidpony.FakeLanguageGen;
@@ -33,7 +33,6 @@ public class SplatVisualizer extends ApplicationAdapter {
     protected SpriteBatch batch;
     protected Viewport worldView;
     protected Viewport screenView;
-    protected BitmapFont font;
     protected FrameBuffer buffer;
     protected Texture screenTexture, pmTexture;
     protected ModelMaker maker;
@@ -43,7 +42,6 @@ public class SplatVisualizer extends ApplicationAdapter {
     
     @Override
     public void create() {
-        font = new BitmapFont(Gdx.files.internal("font.fnt"));
         batch = new SpriteBatch();
         worldView = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         screenView = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
@@ -54,17 +52,17 @@ public class SplatVisualizer extends ApplicationAdapter {
         
 //        colorizer = Colorizer.ManosColorizer;
         colorizer = Colorizer.ManossusColorizer;
-        renderer = new SplatRenderer(80).colorizer(colorizer);
-//        renderer.dither = true;
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
         maker = new ModelMaker(-1L, colorizer);
-        try {
-            voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream("vox/Tree.vox")));
-        } catch (Exception e) {
-            e.printStackTrace();
-            voxels = maker.shipSmoothColorized();
-        }
-//        voxels = maker.shipSmoothColorized();
+        voxels = maker.shipSmoothColorized();
+//        try {
+//            voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream("vox/Tree.vox")));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            voxels = maker.shipSmoothColorized();
+//        }
+        renderer = new SplatRenderer(voxels.length).colorizer(colorizer);
+//        renderer.dither = true;
         Gdx.input.setInputProcessor(inputProcessor());
     }
 
@@ -84,7 +82,7 @@ public class SplatVisualizer extends ApplicationAdapter {
         worldView.update(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         batch.setProjectionMatrix(screenView.getCamera().combined);
         batch.begin();
-        pmTexture.draw(renderer.drawSplats(voxels, 0f), 0, 0);
+        pmTexture.draw(renderer.drawSplats(voxels, (TimeUtils.millis() & 2047) * 0x1p-11f), 0, 0);
         batch.draw(pmTexture,
                 0,
                 0);
@@ -190,7 +188,11 @@ public class SplatVisualizer extends ApplicationAdapter {
         try {
             //// loads a file by its full path, which we get via drag+drop
             voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream(name)));
-            renderer.colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
+            if(voxels == null) {
+                voxels = maker.shipSmoothColorized();
+                return;
+            }
+            renderer = new SplatRenderer(voxels.length).colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
         } catch (FileNotFoundException e) {
             voxels = maker.shipSmoothColorized();
             renderer.colorizer(colorizer);

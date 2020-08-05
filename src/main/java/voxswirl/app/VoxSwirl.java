@@ -65,14 +65,6 @@ public class VoxSwirl extends ApplicationAdapter {
                     png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
                 }
                 gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
-                
-//                png.write(Gdx.files.local("out/" + name + '/' + name + "_SW" + ".png"), renderer.drawSplats(voxels));
-//                Tools3D.clockwiseInPlace(voxels);
-//                png.write(Gdx.files.local("out/" + name + '/' + name + "_NW" + ".png"), renderer.drawSplats(voxels));
-//                Tools3D.clockwiseInPlace(voxels);
-//                png.write(Gdx.files.local("out/" + name + '/' + name + "_NE" + ".png"), renderer.drawSplats(voxels));
-//                Tools3D.clockwiseInPlace(voxels);
-//                png.write(Gdx.files.local("out/" + name + '/' + name + "_SE" + ".png"), renderer.drawSplats(voxels));
             } catch (IOException e) {
                 e.printStackTrace();
             }
