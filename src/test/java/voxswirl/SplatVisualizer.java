@@ -9,15 +9,11 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import squidpony.FakeLanguageGen;
-import squidpony.squidmath.CrossHash;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
-import voxswirl.physical.ModelMaker;
 import voxswirl.physical.Tools3D;
 import voxswirl.visual.Colorizer;
 import voxswirl.visual.SplatRenderer;
@@ -35,7 +31,6 @@ public class SplatVisualizer extends ApplicationAdapter {
     protected Viewport screenView;
     protected FrameBuffer buffer;
     protected Texture screenTexture, pmTexture;
-    protected ModelMaker maker;
     private SplatRenderer renderer;
     private byte[][][] voxels;
     private Colorizer colorizer;
@@ -53,14 +48,14 @@ public class SplatVisualizer extends ApplicationAdapter {
 //        colorizer = Colorizer.ManosColorizer;
         colorizer = Colorizer.ManossusColorizer;
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
-        maker = new ModelMaker(-1L, colorizer);
-        voxels = maker.shipSmoothColorized();
-//        try {
-//            voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream("vox/Tree.vox")));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            voxels = maker.shipSmoothColorized();
-//        }
+        try {
+            voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream("vox/Tree.vox")));
+            if(voxels == null)
+                voxels = new byte[][][]{{{1}}};
+        } catch (Exception e) {
+            e.printStackTrace();
+            voxels = new byte[][][]{{{1}}};
+        }
         renderer = new SplatRenderer(voxels.length).colorizer(colorizer);
 //        renderer.dither = true;
         Gdx.input.setInputProcessor(inputProcessor());
@@ -121,9 +116,6 @@ public class SplatVisualizer extends ApplicationAdapter {
                 if (files != null && files.length > 0) {
                     if (files[0].endsWith(".vox"))
                         app.load(files[0]);
-//                    else if (files[0].endsWith(".hex"))
-//                        app.loadPalette(files[0]);
-                    app.maker.rng.setState(CrossHash.hash64(files[0]));
                 }
             }
         });
@@ -135,9 +127,6 @@ public class SplatVisualizer extends ApplicationAdapter {
             @Override
             public boolean keyDown(int keycode) {
                 switch (keycode) {
-                    case Input.Keys.P:
-                        Tools3D.deepCopyInto(maker.shipSmoothColorized(), voxels);
-                        break;
                     case Input.Keys.D: // dither
                         renderer.dither = !renderer.dither;
                         break;
@@ -148,33 +137,6 @@ public class SplatVisualizer extends ApplicationAdapter {
 //                        System.out.println("(0x7F) before: " + Tools3D.count(seq.data[1], 0x7F));
                         Tools3D.clockwiseInPlace(voxels);
 //                        System.out.println("(0xBF) after : " + Tools3D.count(seq.data[1], 0xBF));
-                        break;
-                    case Input.Keys.A: //  a-z, aurora and ziggurat colorizers
-                        if (UIUtils.shift())
-                        {
-                            renderer.colorizer(Colorizer.ZigguratColorizer);
-                            maker.setColorizer(Colorizer.ZigguratColorizer);
-                        }
-                        else
-                        {
-                            renderer.colorizer(Colorizer.AuroraColorizer);
-                            maker.setColorizer(Colorizer.AuroraColorizer);
-                        }
-                        break;
-                    case Input.Keys.S: // smaller palette, 64 colors
-                        if (UIUtils.shift())
-                        {
-                            renderer.colorizer(Colorizer.AzurestarColorizer);
-                            maker.setColorizer(Colorizer.AzurestarColorizer);
-                        }
-                        else 
-                        {
-                            renderer.colorizer(Colorizer.ManosColorizer);
-                            maker.setColorizer(Colorizer.ManosColorizer);
-                        }
-                        break;
-                    case Input.Keys.W: // write
-                        VoxIO.writeVOX(FakeLanguageGen.MALAY.word(Tools3D.hash64(voxels), true) + ".vox", voxels, maker.getColorizer().getReducer().paletteArray);
                         break;
                     case Input.Keys.ESCAPE:
                         Gdx.app.exit();
@@ -189,12 +151,12 @@ public class SplatVisualizer extends ApplicationAdapter {
             //// loads a file by its full path, which we get via drag+drop
             voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream(name)));
             if(voxels == null) {
-                voxels = maker.shipSmoothColorized();
+                voxels = new byte[][][]{{{1}}};
                 return;
             }
             renderer = new SplatRenderer(voxels.length).colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
         } catch (FileNotFoundException e) {
-            voxels = maker.shipSmoothColorized();
+            voxels = new byte[][][]{{{1}}};
             renderer.colorizer(colorizer);
         }
     }

@@ -11,7 +11,6 @@ import com.github.tommyettinger.anim8.AnimatedGif;
 import com.github.tommyettinger.anim8.Dithered;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
-import voxswirl.physical.ModelMaker;
 import voxswirl.visual.Colorizer;
 import voxswirl.visual.SplatRenderer;
 
@@ -23,7 +22,6 @@ import java.io.IOException;
 public class VoxSwirl extends ApplicationAdapter {
     public static final int SCREEN_WIDTH = 512;//640;
     public static final int SCREEN_HEIGHT = 512;//720;
-    protected ModelMaker maker;
     private SplatRenderer renderer;
     private byte[][][] voxels;
     private String name;
@@ -50,7 +48,6 @@ public class VoxSwirl extends ApplicationAdapter {
         gif.setDitherAlgorithm(Dithered.DitherAlgorithm.DIFFUSION);
         renderer = new SplatRenderer(80);
         renderer.dither = false;
-        maker = new ModelMaker(-1L, Colorizer.ManosColorizer);
         for(String s : inputs)
         {
             load(s);
@@ -93,18 +90,16 @@ public class VoxSwirl extends ApplicationAdapter {
             //// loads a file by its full path, which we get via drag+drop
             voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream(name)));
             if(voxels == null) {
-                voxels = maker.shipSmoothColorized();
+                voxels = new byte[][][]{{{1}}};
                 return;
             }
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
             renderer = new SplatRenderer(voxels.length);
             renderer.colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
-            //Tools3D.clockwiseInPlace(voxels);
-            //VoxIO.writeVOX(name + ".vox", voxels, maker.getColorizer().getReducer().paletteArray);
             
         } catch (FileNotFoundException e) {
-            voxels = maker.shipSmoothColorized();
+            voxels = new byte[][][]{{{1}}};
             renderer.colorizer(Colorizer.ManosColorizer);
         }
     }

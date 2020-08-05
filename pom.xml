@@ -52,11 +52,11 @@
             <name>Sonatype Nexus Snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
-	    <repository>
-		    <id>jitpack.io</id>
-           <name>JitPack.io</name>
-		    <url>https://jitpack.io</url>
-	    </repository>
+<!--	    <repository>-->
+<!--		    <id>jitpack.io</id>-->
+<!--           <name>JitPack.io</name>-->
+<!--		    <url>https://jitpack.io</url>-->
+<!--	    </repository>-->
 	</repositories>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -75,7 +75,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.SquidPony.SquidLib</groupId>
+            <groupId>com.squidpony</groupId>
             <artifactId>squidlib-util</artifactId>
             <version>${squidlib.version}</version>
         </dependency>

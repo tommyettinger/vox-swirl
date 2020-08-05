@@ -1,6 +1,6 @@
 package voxswirl.io;
 
-import squidpony.annotation.GwtIncompatible;
+import voxswirl.annotation.GwtIncompatible;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
