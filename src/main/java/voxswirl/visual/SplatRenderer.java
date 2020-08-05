@@ -5,7 +5,7 @@ import squidpony.ArrayTools;
 import squidpony.squidmath.NumberTools;
 
 /**
- * Created by Tommy Ettinger on 12/16/2018.
+ * Renders {@code byte[][][]} voxel models to {@link Pixmap}s with arbitrary yaw rotation.
  */
 public class SplatRenderer {
     public Pixmap pixmap, pixmapHalf;

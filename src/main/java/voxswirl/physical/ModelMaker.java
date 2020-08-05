@@ -1,22 +1,30 @@
 package voxswirl.physical;
 
 import com.badlogic.gdx.Gdx;
+import squidpony.squidmath.DiverRNG;
+import squidpony.squidmath.FastNoise;
+import squidpony.squidmath.HastyPointHash;
+import squidpony.squidmath.NumberTools;
+import squidpony.squidmath.SilkRNG;
 import voxswirl.io.VoxIO;
-import squidpony.squidmath.*;
 import voxswirl.visual.Colorizer;
 
 import java.io.InputStream;
 
-import static squidpony.squidmath.SilkRNG.determineBounded;
-import static squidpony.squidmath.SilkRNG.determineInt;
-import static squidpony.squidmath.MathExtras.clamp;
-import static squidpony.squidmath.IntPointHash.hash32;
-import static squidpony.squidmath.IntPointHash.hashAll;
+import static com.badlogic.gdx.math.MathUtils.clamp;
+import static squidpony.squidmath.HastyPointHash.hashAll;
+
 /**
  * Created by Tommy Ettinger on 11/4/2017.
  */
 public class ModelMaker {
     public SilkRNG rng;
+
+    public static int determineBounded(long state, int bound) {
+        return (int)((long)bound * (((state = ((state = (state * 7146057691288625177L ^ -7046029254386353131L) * -4126379630918251389L) ^ state >>> 27) * -5840758589994634535L) ^ state >>> 25) & 4294967295L) >> 32);
+    }
+
+
     private byte[][][] ship, shipLarge;
     private int xSize, ySize, zSize;
 
@@ -119,89 +127,6 @@ public class ModelMaker {
     }
 
 
-
-
-    /**
-     * Gets a bounded int point hash of a 2D point (x and y are both ints) and a state/seed as an int. This point
-     * hash has just about the best speed of any algorithms tested, and though its quality is almost certainly bad for
-     * traditional uses of hashing (such as hash tables), it's sufficiently random to act as a positional RNG.
-     * <p>
-     * This uses a technique related to the one used by Martin Roberts for his golden-ratio-based sub-random sequences,
-     * where each axis is multiplied by a different constant, and the choice of constants depends on the number of axes
-     * but is always related to a generalized form of golden ratios, repeatedly dividing 1.0 by the generalized ratio.
-     * See <a href="http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/">Roberts' article</a>
-     * for some more information on how he uses this, but we do things differently because we want random-seeming
-     * results instead of separated sub-random results.
-     * <p>
-     * Should be very similar to {@link squidpony.squidmath.IntPointHash#hashAll(int, int, int)}, but gets a hash
-     * between 0 and a bound, instead of any 32-bit int.
-     * @param x x position; any int
-     * @param y y position; any int
-     * @param s the state; any int
-     * @param bound outer exclusive bound; may be negative
-     * @return an int between 0 (inclusive) and bound (exclusive) dependent on the position and state
-     */
-    public static int hashBounded(int x, int y, int s, int bound) {
-        s ^= x * 0x1827F5 ^ y * 0x123C21;
-        return (int) (bound * (((s = (s ^ (s << 19 | s >>> 13) ^ (s << 6 | s >>> 26) ^ 0xD1B54A35) * 0x125493) ^ s >>> 15) & 0xFFFFFFFFL) >> 32);
-    }
-
-
-    /**
-     * Gets a bounded int point hash of a 3D point (x, y, and z are all ints) and a state/seed as an int. This point
-     * hash has just about the best speed of any algorithms tested, and though its quality is almost certainly bad for
-     * traditional uses of hashing (such as hash tables), it's sufficiently random to act as a positional RNG.
-     * <p>
-     * This uses a technique related to the one used by Martin Roberts for his golden-ratio-based sub-random sequences,
-     * where each axis is multiplied by a different constant, and the choice of constants depends on the number of axes
-     * but is always related to a generalized form of golden ratios, repeatedly dividing 1.0 by the generalized ratio.
-     * See <a href="http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/">Roberts' article</a>
-     * for some more information on how he uses this, but we do things differently because we want random-seeming
-     * results instead of separated sub-random results.
-     * <p>
-     * Should be very similar to {@link squidpony.squidmath.IntPointHash#hashAll(int, int, int, int)}, but gets a
-     * hash between 0 and a bound, instead of any 32-bit int.
-     * @param x x position; any int
-     * @param y y position; any int
-     * @param z z position; any int
-     * @param s the state; any int
-     * @param bound outer exclusive bound; may be negative
-     * @return an int between 0 (inclusive) and bound (exclusive) dependent on the position and state
-     */
-    public static int hashBounded(int x, int y, int z, int s, int bound)
-    {
-        s ^= x * 0x1A36A9 ^ y * 0x157931 ^ z * 0x119725;
-        return (int) (bound * (((s = (s ^ (s << 19 | s >>> 13) ^ (s << 6 | s >>> 26) ^ 0xD1B54A35) * 0x125493) ^ s >>> 15) & 0xFFFFFFFFL) >> 32);
-    }
-
-    /**
-     * Gets a bounded int point hash of a 4D point (x, y, z, and w are all ints) and a state/seed as an int. This point
-     * hash has just about the best speed of any algorithms tested, and though its quality is almost certainly bad for
-     * traditional uses of hashing (such as hash tables), it's sufficiently random to act as a positional RNG.
-     * <p>
-     * This uses a technique related to the one used by Martin Roberts for his golden-ratio-based sub-random sequences,
-     * where each axis is multiplied by a different constant, and the choice of constants depends on the number of axes
-     * but is always related to a generalized form of golden ratios, repeatedly dividing 1.0 by the generalized ratio.
-     * See <a href="http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/">Roberts' article</a>
-     * for some more information on how he uses this, but we do things differently because we want random-seeming
-     * results instead of separated sub-random results.
-     * <p>
-     * Should be very similar to {@link squidpony.squidmath.IntPointHash#hashAll(int, int, int, int, int)}, but
-     * gets a hash between 0 and a bound, instead of any 32-bit int.
-     * @param x x position; any int
-     * @param y y position; any int
-     * @param z z position; any int
-     * @param w w position, often time; any int
-     * @param s the state; any int
-     * @param bound outer exclusive bound; may be negative
-     * @return an int between 0 (inclusive) and bound (exclusive) dependent on the position and state
-     */
-    public static int hashBounded(int x, int y, int z, int w, int s, int bound)
-    {
-        s ^= x * 0x1B69E1 ^ y * 0x177C0B ^ z * 0x141E5D ^ w * 0x113C31;
-        return (int) (bound * (((s = (s ^ (s << 19 | s >>> 13) ^ (s << 6 | s >>> 26) ^ 0xD1B54A35) * 0x125493) ^ s >>> 15) & 0xFFFFFFFFL) >> 32);
-    }
-    
     public byte[][][] combine(byte[][][] start, byte[][][]... additional)
     {
         final int xSize = start.length, ySize = start[0].length, zSize = start[0][0].length;
@@ -260,7 +185,7 @@ public class ModelMaker {
     {
         byte[][][] voxels = new byte[12][12][8];
         int ctr;
-        int current;
+        long current;
         final byte mainColor = colorizer.randomColorIndex(rng),
                 highlightColor = colorizer.colorize(colorizer.randomColorIndex(rng), ~rng.next(1) * (-rng.next(1) | 1)),
             eyeDark = colorizer.reduce(255), eyeBright = colorizer.reduce(-1);
@@ -368,7 +293,8 @@ public class ModelMaker {
         byte[][][] nextShip = new byte[xSize][ySize][zSize];
         final int halfY = ySize >> 1, smallYSize = ySize - 1;
         int color;
-        int seed = rng.nextInt(), current, paint;
+        long bigSeed = rng.nextLong(), current, paint;
+        int seed = (int)bigSeed;
         final byte mainColor = colorizer.darken(colorizer.getReducer().paletteMapping[seed & 0x7FFF]), // bottom 15 bits
                 highlightColor = colorizer.brighten(colorizer.getReducer().paletteMapping[seed >>> 17]), // top 15 of 32 bits
                 cockpitColor = colorizer.darken(colorizer.reduce((0x20 + determineBounded(seed + 0x11111, 0x60) << 24)
@@ -389,10 +315,10 @@ public class ModelMaker {
                         xx = x + 1;
                         yy = y + 1;
                         zz = z / 3;
-                        current = hashAll(xx + (xx | zz) >> 3, (yy + (yy | zz)) / 3, zz, color, seed);
-                        paint = hashAll((xx + (xx | z)) / 7, (yy + (yy | z)) / 5, z, color, seed);
-                        if (color < 8) { // checks bottom 6 bits
-                            if((current >>> 6 & 0x7L) != 0)
+                        current = hashAll(xx + (xx | zz) >> 3, (yy + (yy | zz)) / 3, zz, color, bigSeed);
+                        paint = hashAll((xx + (xx | z)) / 7, (yy + (yy | z)) / 5, z, color, bigSeed);
+                        if (color < 8) { // checks bottom 3 bits
+                            if((current & 0x7L) != 0)
                                 nextShip[x][smallYSize - y][z] = nextShip[x][y][z] =
                                         cockpitColor;
                             //Dimmer.AURORA_RAMPS[cockpitColor & 255][3 - (z + 6 >> 3) & 3];
@@ -417,123 +343,6 @@ public class ModelMaker {
         return Tools3D.largestPart(nextShip);
         //return nextShip;
         //return Tools3D.runCA(nextShip, 1);
-    }
-
-    /**
-     * Uses some simplex noise from {@link FastNoise} to make paint patterns and shapes more "flowing" and less
-     * haphazard in their placement. Still uses point hashes for a lot of its operations.
-     * @return a 12x12x8 3D byte array representing a spaceship
-     */
-    public byte[][][] shipNoiseColorized()
-    {
-        return shipNoiseColorized(ship);
-    }
-    /**
-     * Uses some simplex noise from {@link FastNoise} to make paint patterns and shapes more "flowing" and less
-     * haphazard in their placement. Still uses point hashes for a lot of its operations.
-     * @return a larger (40x40x30) 3D byte array representing a spaceship
-     */
-    public byte[][][] shipLargeNoiseColorized()
-    {
-        return Tools3D.largestPart(shipNoiseColorized(shipLarge));
-    }
-    /**
-     * Uses some simplex noise from {@link FastNoise} to make paint patterns and shapes more "flowing" and less
-     * haphazard in their placement. Still uses point hashes for a lot of its operations.
-     * @param ship one of the two ships loaded from resources here, probably, {@link #ship} and {@link #shipLarge}
-     * @return 3D byte array representing a spaceship
-     */
-    private byte[][][] shipNoiseColorized(byte[][][] ship)
-    {
-        xSize = ship.length;
-        ySize = ship[0].length;
-        zSize = ship[0][0].length;
-        byte[][][] nextShip = new byte[xSize][ySize][zSize];
-        final int halfY = ySize >> 1, smallYSize = ySize - 1;
-        int color;
-        int seed = rng.nextInt(), current = seed, paint = seed;
-        byte[] grays = colorizer.grayscale(), mains = colorizer.mainColors();
-        byte mainColor = colorizer.getReducer().paletteMapping[seed & 0x7FFF], // bottom 15 bits
-                highlightColor = colorizer.brighten(colorizer.getReducer().paletteMapping[seed >>> 17]), // top 15 bits
-                cockpitColor = colorizer.darken(colorizer.reduce((0x20 + determineBounded(seed ^ 0x11111, 0x60) << 24)
-                        | (0xA0 + determineBounded(seed ^ 0x22222, 0x60) << 16)
-                        | (0xC8 + determineBounded(seed ^ 0x33333, 0x38) << 8) | 0xFF)),
-                thrustColor = mains[determineBounded(seed ^ 0x44444, mains.length)],
-                lightColor = (byte) (colorizer.brighten(colorizer.getReducer().paletteMapping[(seed ^ seed >>> 4 ^ seed >>> 13) & 0x7FFF]) | colorizer.getShadeBit() | colorizer.getWaveBit());
-        thrustColor = (byte) (colorizer.brighten(thrustColor) | colorizer.getWaveBit() | colorizer.getShadeBit());
-        for (int i = 0; i < grays.length; i++) {
-            if(highlightColor == grays[i])
-            {
-                highlightColor = colorizer.getReducer().paletteMapping[determineInt(~seed) & 0x7FFF];
-                break;
-            }
-        }
-        final FastNoise noise = new FastNoise(seed ^ seed >>> 21 ^ seed << 6, 0x1.4p0f / xSize);
-        int xx, yy, zz;
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < halfY; y++) {
-                for (int z = 0; z < zSize; z++) {
-                    color = (ship[x][y][z] & 255);
-                    if (color != 0) {
-                        // this 4-input-plus-state hash is really a slight modification on LightRNG.determine(), but
-                        // it mixes the x, y, and z inputs more thoroughly than other techniques do, and we then use
-                        // different sections of the random bits for different purposes. This helps reduce the possible
-                        // issues from using rng.next(5) and rng.next(6) all over if the bits those use have a pattern.
-                        // In the original model, all voxels of the same color will be hashed with similar behavior but
-                        // any with different colors will get unrelated values.
-                        xx = x + 1;
-                        yy = y + 1;
-                        zz = z / 3;
-                        current = hashAll(xx + (xx | zz) >> 3, (yy + (yy | zz)) / 3, zz, color, seed)
-                                + (int) (noise.getSimplex(x * 0.5f, y * 0.75f, z * 0.666f) * 0x800000) + 0x800000;
-                        paint = hashAll((xx + (xx | z)) / 7, (yy + (yy | z)) / 5, z, color, seed + 0x12345);
-                        if (color < 8) {
-                            // checks sorta-top 3 bits
-                            if((current >>> 21 & 7) != 0)
-                                nextShip[x][smallYSize - y][z] = nextShip[x][y][z] = cockpitColor;
-                        } else {
-                            nextShip[x][smallYSize - y][z] = nextShip[x][y][z] =
-                                    // checks sorta-top 9 bits, different branch
-                                    ((current >>> 15 & 0x1FF) < color * 6)
-                                            ? 0
-                                            // checks 6 bits of paint
-                                            : ((paint & 0x3F) < 36) // is a random number from 0-63 less than 36? 
-                                            ? grays[(int)((noise.getSimplex(x * 0.125f, y * 0.2f, z * 0.24f) * 0.4f + 0.599f) * (grays.length - 1))]
-                                            : (noise.getSimplex(x * 0.04f, y * 0.07f, z * 0.09f) > 0.15f)
-                                            ? highlightColor
-                                            : mainColor;
-                        }
-                    }
-                }
-            }
-        }
-        paint ^= paint << 7 ^ paint >>> 23;
-        current ^= current << 5 ^ current >>> 19;
-        for (int y = 0; y < halfY; y++) {
-            for (int z = 0; z < zSize; z++) {
-                if(IntPointHash.hash64(z, y, paint) < 3)
-                {
-                    for (int x = xSize - 2; x >= 0; x--) {
-                        if(nextShip[x][y][z] != 0 && nextShip[x][y][z] != cockpitColor)
-                        {
-                            nextShip[x+1][smallYSize - y][z] = nextShip[x+1][y][z] = lightColor;
-                            break;
-                        }
-                    }
-                }
-                if(hash32(z * 3 >>> 2, y * 5 + (z >>> 1) >>> 3, current) < 15)
-                {
-                    for (int x = 1; x < xSize; x++) {
-                        if(nextShip[x][y][z] != 0 && nextShip[x][y][z] != cockpitColor)
-                        {
-                            nextShip[x-1][smallYSize - y][z] = nextShip[x-1][y][z] = thrustColor;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return nextShip;
     }
 
     /**
@@ -570,7 +379,8 @@ public class ModelMaker {
         byte[][][] nextShip = new byte[xSize][ySize][zSize];
         final int halfY = ySize >> 1, smallYSize = ySize - 1;
         int color;
-        int seed = rng.nextInt(), current = seed;
+        long bigSeed = rng.nextLong(), current = bigSeed;
+        int seed = (int)bigSeed;
         byte[] grays = colorizer.grayscale(), mains = colorizer.mainColors();
         byte mainColor = colorizer.getReducer().paletteMapping[seed & 0x7FFF], // bottom 15 bits
                 //highlightColor = colorizer.brighten(colorizer.getReducer().paletteMapping[seed >>> 17]), // top 15 bits
@@ -615,7 +425,7 @@ public class ModelMaker {
         current ^= current << 5 ^ current >>> 19;
         for (int y = 0; y < halfY; y++) {
             for (int x = xSize - 1; x > 0; x--) {
-                int antennaHash = IntPointHash.hash256(x, y, ~current);
+                int antennaHash = HastyPointHash.hash256(x, y, ~current);
                 if (antennaHash < 9) {
                     for (int z = zSize - 2; z >= 0; z--) {
                         if (nextShip[x][y][z] != 0 && nextShip[x][y][z] != cockpitColor) {
@@ -632,7 +442,7 @@ public class ModelMaker {
             }             
             for (int z = 1; z < zSize; z++) {
                 for (int x = 1; x < xSize; x++) {
-                    if (hash32(z * 3 >>> 2, y * 5 + (z >>> 1) >>> 3, current) < 15) {
+                    if (HastyPointHash.hash32(z * 3 >>> 2, y * 5 + (z >>> 1) >>> 3, current) < 15) {
                         if (nextShip[x][y][z] != 0 && nextShip[x][y][z] != cockpitColor) {
                             nextShip[x - 1][smallYSize - y][z] = nextShip[x - 1][y][z] = thrustColor;
                             break;
@@ -763,7 +573,7 @@ public class ModelMaker {
         for (int x = 2; x < xSize; x+=4) {
             for (int y = 2; y < halfY + 4; y+=4) {
                 for (int z = 0; z < zSize; z+=4) {
-                    hashes[x][smallYSize - y][z] |= hashes[x][y][z] |= HastyPointHash.hashAll(x, y, z, seed) | 1L;
+                    hashes[x][smallYSize - y][z] |= hashes[x][y][z] |= hashAll(x, y, z, seed) | 1L;
                 }
             }
         }
@@ -902,7 +712,7 @@ public class ModelMaker {
         for (int x = 2; x < xSize; x+=4) {
             for (int y = 2; y < halfY + 4; y+=4) {
                 for (int z = 0; z < zSize; z+=4) {
-                    hashes[x][smallYSize - y][z] |= hashes[x][y][z] |= HastyPointHash.hashAll(x, y, z, seed) | 1L;
+                    hashes[x][smallYSize - y][z] |= hashes[x][y][z] |= hashAll(x, y, z, seed) | 1L;
                 }
             }
         }
