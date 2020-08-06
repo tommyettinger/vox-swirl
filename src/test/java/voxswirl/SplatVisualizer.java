@@ -77,7 +77,7 @@ public class SplatVisualizer extends ApplicationAdapter {
         worldView.update(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         batch.setProjectionMatrix(screenView.getCamera().combined);
         batch.begin();
-        pmTexture.draw(renderer.drawSplats(voxels, (TimeUtils.millis() & 2047) * 0x1p-11f), 0, 0);
+        pmTexture.draw(renderer.drawSplatsHalf(voxels, (TimeUtils.millis() & 2047) * 0x1p-11f), 0, 0);
         batch.draw(pmTexture,
                 0,
                 0);

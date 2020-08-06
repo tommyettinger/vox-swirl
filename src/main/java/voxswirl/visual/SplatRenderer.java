@@ -112,21 +112,33 @@ public class SplatRenderer {
                     vz = v >>> 20 & 0x3FF;
                     fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 4.500f);
                     fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
-                    if (Math.abs(shadeX[fy][(int)(vz + 4.500f)] - fx) > 1)
+                    if (shadeZ[fx][fy] == vz+4)
+                    {
+                        render[sx][sy] = Coloring.lighten(render[sx][sy], 0.07f);
+                        if(sx > 0) render[sx-1][sy] = Coloring.lighten(render[sx-1][sy], 0.030f);
+                        if(sy > 0) render[sx][sy-1] = Coloring.lighten(render[sx][sy-1], 0.030f);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.lighten(render[sx+1][sy], 0.030f);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.lighten(render[sx][sy+1], 0.030f);
+
+                        if(sx > 1) render[sx-2][sy] = Coloring.lighten(render[sx-2][sy], 0.030f);
+                        if(sy > 1) render[sx][sy-2] = Coloring.lighten(render[sx][sy-2], 0.030f);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.lighten(render[sx+2][sy], 0.030f);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.lighten(render[sx][sy+2], 0.030f);
+                    }
+                    if (Math.abs(shadeX[fy][vz + 4] - fx) > 1)
                     {
                         render[sx][sy] = Coloring.darken(render[sx][sy], 0.05f);
-                        if(sx > 0) render[sx-1][sy] = Coloring.darken(render[sx-1][sy], 0.030f);
-                        if(sy > 0) render[sx][sy-1] = Coloring.darken(render[sx][sy-1], 0.030f);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.darken(render[sx+1][sy], 0.030f);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.darken(render[sx][sy+1], 0.030f);
+                        if(sx > 0) render[sx-1][sy] = Coloring.darken(render[sx-1][sy], 0.023f);
+                        if(sy > 0) render[sx][sy-1] = Coloring.darken(render[sx][sy-1], 0.023f);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.darken(render[sx+1][sy], 0.023f);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.darken(render[sx][sy+1], 0.023f);
 
-                        if(sx > 1) render[sx-2][sy] = Coloring.darken(render[sx-2][sy], 0.030f);
-                        if(sy > 1) render[sx][sy-2] = Coloring.darken(render[sx][sy-2], 0.030f);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.darken(render[sx+2][sy], 0.030f);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.darken(render[sx][sy+2], 0.030f);
+                        if(sx > 1) render[sx-2][sy] = Coloring.darken(render[sx-2][sy], 0.023f);
+                        if(sy > 1) render[sx][sy-2] = Coloring.darken(render[sx][sy-2], 0.023f);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.darken(render[sx+2][sy], 0.023f);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.darken(render[sx][sy+2], 0.023f);
                     }
-                    if (shadeZ[fx][fy] == vz)
-                        render[sx][sy] = Coloring.lighten(render[sx][sy], 0.2f);
+
                 }
             }
         }
@@ -198,22 +210,32 @@ public class SplatRenderer {
                     vz = v >>> 20 & 0x3FF;
                     fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 4.500f);
                     fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
+                    if (shadeZ[fx][fy] == vz+4)
+                    {
+                        render[sx][sy] = Coloring.lighten(render[sx][sy], 0.07f);
+                        if(sx > 0) render[sx-1][sy] = Coloring.lighten(render[sx-1][sy], 0.030f);
+                        if(sy > 0) render[sx][sy-1] = Coloring.lighten(render[sx][sy-1], 0.030f);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.lighten(render[sx+1][sy], 0.030f);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.lighten(render[sx][sy+1], 0.030f);
+
+                        if(sx > 1) render[sx-2][sy] = Coloring.lighten(render[sx-2][sy], 0.030f);
+                        if(sy > 1) render[sx][sy-2] = Coloring.lighten(render[sx][sy-2], 0.030f);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.lighten(render[sx+2][sy], 0.030f);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.lighten(render[sx][sy+2], 0.030f);
+                    }
                     if (Math.abs(shadeX[fy][vz + 4] - fx) > 1)
                     {
                         render[sx][sy] = Coloring.darken(render[sx][sy], 0.05f);
-                        if(sx > 0) render[sx-1][sy] = Coloring.darken(render[sx-1][sy], 0.030f);
-                        if(sy > 0) render[sx][sy-1] = Coloring.darken(render[sx][sy-1], 0.030f);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.darken(render[sx+1][sy], 0.030f);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.darken(render[sx][sy+1], 0.030f);
-                        
-                        if(sx > 1) render[sx-2][sy] = Coloring.darken(render[sx-2][sy], 0.030f);
-                        if(sy > 1) render[sx][sy-2] = Coloring.darken(render[sx][sy-2], 0.030f);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.darken(render[sx+2][sy], 0.030f);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.darken(render[sx][sy+2], 0.030f);
+                        if(sx > 0) render[sx-1][sy] = Coloring.darken(render[sx-1][sy], 0.023f);
+                        if(sy > 0) render[sx][sy-1] = Coloring.darken(render[sx][sy-1], 0.023f);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.darken(render[sx+1][sy], 0.023f);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.darken(render[sx][sy+1], 0.023f);
 
+                        if(sx > 1) render[sx-2][sy] = Coloring.darken(render[sx-2][sy], 0.023f);
+                        if(sy > 1) render[sx][sy-2] = Coloring.darken(render[sx][sy-2], 0.023f);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.darken(render[sx+2][sy], 0.023f);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.darken(render[sx][sy+2], 0.023f);
                     }
-                    if (shadeZ[fx][fy] == vz)
-                        render[sx][sy] = Coloring.lighten(render[sx][sy], 0.2f);
                 }
             }
         }
