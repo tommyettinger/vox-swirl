@@ -249,6 +249,9 @@
                                     <mainClass>voxswirl.app.VoxSwirl</mainClass>
                                 </transformer>
                             </transformers>
+                            <!-- Remove these filters if you expect users of the jar on ARM Linux (i.e. raspi). -->
+                            <!-- The ARM32 and ARM64 native libraries add about 2MB to the final 6MB jar. -->
+                            <!-- But libGDX doesn't currently work out-of-the-box on ARM, so... why have these? -->
                             <filters>
                                 <filter>
                                     <artifact>org.lwjgl:lwjgl:natives-linux-arm32</artifact>

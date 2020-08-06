@@ -48,7 +48,6 @@ public class SplatRenderer {
                 depth = (xPos + yPos) * 2 + zPos * 3;
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
-                //if((x == 0 || x == 3) && (y == 0 || y == 3)) continue;
                 working[ax][ay] = color.medium(voxel);
                 depths[ax][ay] = depth;
                 outlines[ax][ay] = color.dark(voxel);
@@ -69,7 +68,6 @@ public class SplatRenderer {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay]) {
                     drawn = true;
-                    //if((x == 0 || x == 3) && (y == 0 || y == 3)) continue;
                     working[ax][ay] = color.medium(voxel);
                     depths[ax][ay] = depth;
                     outlines[ax][ay] = color.dark(voxel);
@@ -115,7 +113,18 @@ public class SplatRenderer {
                     fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 4.500f);
                     fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
                     if (Math.abs(shadeX[fy][(int)(vz + 4.500f)] - fx) > 1)
-                        render[sx][sy] = Coloring.darken(render[sx][sy], 0.15f);
+                    {
+                        render[sx][sy] = Coloring.darken(render[sx][sy], 0.05f);
+                        if(sx > 0) render[sx-1][sy] = Coloring.darken(render[sx-1][sy], 0.030f);
+                        if(sy > 0) render[sx][sy-1] = Coloring.darken(render[sx][sy-1], 0.030f);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.darken(render[sx+1][sy], 0.030f);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.darken(render[sx][sy+1], 0.030f);
+
+                        if(sx > 1) render[sx-2][sy] = Coloring.darken(render[sx-2][sy], 0.030f);
+                        if(sy > 1) render[sx][sy-2] = Coloring.darken(render[sx][sy-2], 0.030f);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.darken(render[sx+2][sy], 0.030f);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.darken(render[sx][sy+2], 0.030f);
+                    }
                     if (shadeZ[fx][fy] == vz)
                         render[sx][sy] = Coloring.lighten(render[sx][sy], 0.2f);
                 }
@@ -135,23 +144,6 @@ public class SplatRenderer {
                 for (int y = 1; y < ySize; y++) {
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
-//                        if (outlines[x - 1][y] == 0 && outlines[x][y - 1] == 0) {
-//                            pixmap.drawPixel(x - 1, y    , o);
-//                            pixmap.drawPixel(x    , y - 1, o);
-//                            pixmap.drawPixel(x    , y    , o);
-//                        } else if (outlines[x + 1][y] == 0 && outlines[x][y - 1] == 0) {
-//                            pixmap.drawPixel(x + 1, y    , o);
-//                            pixmap.drawPixel(x    , y - 1, o);
-//                            pixmap.drawPixel(x    , y    , o); 
-//                        } else if (outlines[x - 1][y] == 0 && outlines[x][y + 1] == 0) {
-//                            pixmap.drawPixel(x - 1, y    , o);
-//                            pixmap.drawPixel(x    , y + 1, o);
-//                            pixmap.drawPixel(x    , y    , o);
-//                        } else if (outlines[x + 1][y] == 0 && outlines[x][y + 1] == 0) {
-//                            pixmap.drawPixel(x + 1, y    , o);
-//                            pixmap.drawPixel(x    , y + 1, o);
-//                            pixmap.drawPixel(x    , y    , o);
-//                        } else {
                             if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
                                 pixmap.drawPixel(x - 1, y    , o);
                             }
@@ -206,8 +198,20 @@ public class SplatRenderer {
                     vz = v >>> 20 & 0x3FF;
                     fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 4.500f);
                     fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
-                    if (Math.abs(shadeX[fy][(int)(vz + 4.500f)] - fx) > 1)
-                        render[sx][sy] = Coloring.darken(render[sx][sy], 0.15f);
+                    if (Math.abs(shadeX[fy][vz + 4] - fx) > 1)
+                    {
+                        render[sx][sy] = Coloring.darken(render[sx][sy], 0.05f);
+                        if(sx > 0) render[sx-1][sy] = Coloring.darken(render[sx-1][sy], 0.030f);
+                        if(sy > 0) render[sx][sy-1] = Coloring.darken(render[sx][sy-1], 0.030f);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.darken(render[sx+1][sy], 0.030f);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.darken(render[sx][sy+1], 0.030f);
+                        
+                        if(sx > 1) render[sx-2][sy] = Coloring.darken(render[sx-2][sy], 0.030f);
+                        if(sy > 1) render[sx][sy-2] = Coloring.darken(render[sx][sy-2], 0.030f);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.darken(render[sx+2][sy], 0.030f);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.darken(render[sx][sy+2], 0.030f);
+
+                    }
                     if (shadeZ[fx][fy] == vz)
                         render[sx][sy] = Coloring.lighten(render[sx][sy], 0.2f);
                 }
@@ -263,13 +267,14 @@ public class SplatRenderer {
         return pixmapHalf;
     }
 
+    // To move one x+ in voxels is x + 2, y - 1 in pixels.
+    // To move one x- in voxels is x - 2, y + 1 in pixels.
+    // To move one y+ in voxels is x - 2, y - 1 in pixels.
+    // To move one y- in voxels is x + 2, y + 1 in pixels.
+    // To move one z+ in voxels is y + 3 in pixels.
+    // To move one z- in voxels is y - 3 in pixels.
+
     public Pixmap drawSplats(byte[][][] colors, float angleTurns) {
-        // To move one x+ in voxels is x + 2, y - 1 in pixels.
-        // To move one x- in voxels is x - 2, y + 1 in pixels.
-        // To move one y+ in voxels is x - 2, y - 1 in pixels.
-        // To move one y- in voxels is x + 2, y + 1 in pixels.
-        // To move one z+ in voxels is y + 3 in pixels.
-        // To move one z- in voxels is y - 3 in pixels.
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         for (int z = 0; z < size; z++) {
@@ -288,12 +293,6 @@ public class SplatRenderer {
     }
 
     public Pixmap drawSplatsHalf(byte[][][] colors, float angleTurns) {
-        // To move one x+ in voxels is x + 2, y - 1 in pixels.
-        // To move one x- in voxels is x - 2, y + 1 in pixels.
-        // To move one y+ in voxels is x - 2, y - 1 in pixels.
-        // To move one y- in voxels is x + 2, y + 1 in pixels.
-        // To move one z+ in voxels is y + 3 in pixels.
-        // To move one z- in voxels is y - 3 in pixels.
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         for (int z = 0; z < size; z++) {
