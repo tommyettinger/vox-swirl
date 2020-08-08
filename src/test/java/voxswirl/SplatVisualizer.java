@@ -52,6 +52,7 @@ public class SplatVisualizer extends ApplicationAdapter {
             voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream("vox/Tree.vox")));
             if(voxels == null)
                 voxels = new byte[][][]{{{1}}};
+            Tools3D.soakInPlace(voxels);
         } catch (Exception e) {
             e.printStackTrace();
             voxels = new byte[][][]{{{1}}};
@@ -154,6 +155,7 @@ public class SplatVisualizer extends ApplicationAdapter {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
+            Tools3D.soakInPlace(voxels);
             renderer = new SplatRenderer(voxels.length).colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}};

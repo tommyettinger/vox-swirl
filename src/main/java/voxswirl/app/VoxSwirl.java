@@ -11,6 +11,7 @@ import com.github.tommyettinger.anim8.AnimatedGif;
 import com.github.tommyettinger.anim8.Dithered;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
+import voxswirl.physical.Tools3D;
 import voxswirl.visual.Colorizer;
 import voxswirl.visual.SplatRenderer;
 
@@ -87,12 +88,13 @@ public class VoxSwirl extends ApplicationAdapter {
 
     public void load(String name) {
         try {
-            //// loads a file by its full path, which we get via drag+drop
+            //// loads a file by its full path, which we get via a command-line arg
             voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream(name)));
             if(voxels == null) {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
+            Tools3D.soakInPlace(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
             renderer = new SplatRenderer(voxels.length);

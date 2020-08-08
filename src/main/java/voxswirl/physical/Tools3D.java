@@ -495,8 +495,7 @@ public class Tools3D {
 
     }
 
-    public static void translateCopyInto(byte[][][] voxels, byte[][][] into, int xMove, int yMove, int zMove)
-    {
+    public static void translateCopyInto(byte[][][] voxels, byte[][][] into, int xMove, int yMove, int zMove) {
         int xs, ys, zs;
         xs = into.length;
         ys = into[0].length;
@@ -507,11 +506,43 @@ public class Tools3D {
         for (int x = xStart, xx = 0; x < xs && xx < xLimit && xx < xs; x++, xx++) {
             for (int y = yStart, yy = 0; y < ys && yy < yLimit && yy < ys; y++, yy++) {
                 for (int z = zStart, zz = 0; z < zs && zz < zLimit && zz < zs; z++, zz++) {
-                    if(into[x][y][z] == 0 && voxels[xx][yy][zz] != 0)
+                    if (into[x][y][z] == 0 && voxels[xx][yy][zz] != 0)
                         into[x][y][z] = voxels[xx][yy][zz];
                 }
             }
         }
     }
-
+    
+    private static int isSurface(byte[][][] voxels, int x, int y, int z) {
+        if(voxels[x][y][z] == 0) return 0;
+        if(x <= 0 || voxels[x-1][y][z] == 0) return 1;
+        if(y <= 0 || voxels[x][y-1][z] == 0) return 2;
+        if(z <= 0 || voxels[x][y][z-1] == 0) return 3;
+        if(x >= voxels.length - 1 || voxels[x+1][y][z] == 0) return 4;
+        if(y >= voxels[x].length - 1 || voxels[x][y+1][z] == 0) return 5;
+        if(z >= voxels[x][y].length - 1 || voxels[x][y][z+1] == 0) return 6;
+        return -1;
+    }
+    
+    public static void soakInPlace(byte[][][] voxels)
+    {
+        final int xs = voxels.length, ys = voxels[0].length, zs = voxels[0][0].length;
+        byte b;
+        for (int x = 0; x < xs; x++) {
+            for (int y = 0; y < ys; y++) {
+                for (int z = 0; z < zs; z++) {
+                    if(isSurface(voxels, x, y, z) > 0){
+                        b = voxels[x][y][z];
+                        //// don't want lower voxels soaking through right now.
+                        //if(isSurface(voxels, x, y, z-1) == -1) voxels[x][y][z-1] = b;
+                        if(isSurface(voxels, x-1, y, z) == -1) voxels[x-1][y][z] = b;
+                        if(isSurface(voxels, x, y-1, z) == -1) voxels[x][y-1][z] = b;
+                        if(isSurface(voxels, x+1, y, z) == -1) voxels[x+1][y][z] = b;
+                        if(isSurface(voxels, x, y+1, z) == -1) voxels[x][y+1][z] = b;
+                        if(isSurface(voxels, x, y, z+1) == -1) voxels[x][y][z+1] = b;
+                    }
+                }
+            }
+        }
+    }
 }
