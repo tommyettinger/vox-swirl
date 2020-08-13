@@ -4,6 +4,9 @@ import com.badlogic.gdx.math.MathUtils;
 
 import java.nio.charset.StandardCharsets;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 /**
  * Created by Tommy Ettinger on 11/4/2017.
  */
@@ -29,6 +32,17 @@ public class Coloring {
         return (int)((rgba >>> 24) * amount) << 24 |
                 (int)((rgba >>> 16 & 255) * amount) << 16 |
                 (int)((rgba >>> 8 & 255) * amount) << 8 |
+                (rgba & 255);
+    }
+    public static int adjust(final int rgba, float lightnessMultiplier, float saturationMultiplier){
+        final int r = rgba >>> 24      ;
+        final int g = rgba >>> 16 & 255;
+        final int b = rgba >>> 8 & 255 ;
+        final int mid = max(min(r, g), min(max(r, g), b));
+
+        return  (int)MathUtils.clamp(mid * lightnessMultiplier + (r - mid) * saturationMultiplier, 0f, 255f) << 24 |
+                (int)MathUtils.clamp(mid * lightnessMultiplier + (g - mid) * saturationMultiplier, 0f, 255f) << 16 |
+                (int)MathUtils.clamp(mid * lightnessMultiplier + (b - mid) * saturationMultiplier, 0f, 255f) << 8 |
                 (rgba & 255);
     }
 

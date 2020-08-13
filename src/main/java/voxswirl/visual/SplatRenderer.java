@@ -54,7 +54,7 @@ public class SplatRenderer {
                     drawn = true;
                     working[ax][ay] = color.paletteArray[voxel & 255];
                     depths[ax][ay] = depth;
-                    outlines[ax][ay] = Coloring.darken(color.paletteArray[voxel & 255], 0.25f);
+                    outlines[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 0.625f, 1.125f);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
                 }
             }
@@ -98,7 +98,7 @@ public class SplatRenderer {
                     fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
                     if (shadeZ[fx][fy] == vz+4)
                     {
-                        render[sx][sy] = Coloring.lighten(render[sx][sy], 0.07f);
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.125f, 1.2f);
                         if(sx > 0) render[sx-1][sy] = Coloring.lighten(render[sx-1][sy], 0.030f);
                         if(sy > 0) render[sx][sy-1] = Coloring.lighten(render[sx][sy-1], 0.030f);
                         if(sx < xSize) render[sx+1][sy] = Coloring.lighten(render[sx+1][sy], 0.030f);
@@ -196,7 +196,7 @@ public class SplatRenderer {
                     fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
                     if (shadeZ[fx][fy] == vz+4)
                     {
-                        render[sx][sy] = Coloring.lighten(render[sx][sy], 0.07f);
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.125f, 1.2f);
                         if(sx > 0) render[sx-1][sy] = Coloring.lighten(render[sx-1][sy], 0.030f);
                         if(sy > 0) render[sx][sy-1] = Coloring.lighten(render[sx][sy-1], 0.030f);
                         if(sx < xSize) render[sx+1][sy] = Coloring.lighten(render[sx+1][sy], 0.030f);
