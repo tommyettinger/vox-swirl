@@ -9,10 +9,10 @@ import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.utils.Array;
 import com.github.tommyettinger.anim8.AnimatedGif;
 import com.github.tommyettinger.anim8.Dithered;
+import com.github.tommyettinger.anim8.PaletteReducer;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
-import voxswirl.visual.Colorizer;
 import voxswirl.visual.SplatRenderer;
 
 import java.io.File;
@@ -46,9 +46,9 @@ public class VoxSwirl extends ApplicationAdapter {
         if(inputs == null) Gdx.app.exit();
         png = new PixmapIO.PNG();
         gif = new AnimatedGif();
-        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.DIFFUSION);
-        renderer = new SplatRenderer(80);
-        renderer.dither = false;
+        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.BLUE_NOISE);
+        gif.palette = new PaletteReducer();
+        gif.palette.setDitherStrength(0.75f);
         for(String s : inputs)
         {
             load(s);
@@ -62,6 +62,7 @@ public class VoxSwirl extends ApplicationAdapter {
                     pm.add(p);
                     png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
                 }
+                gif.palette.analyze(pm);
                 gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -98,11 +99,10 @@ public class VoxSwirl extends ApplicationAdapter {
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
             renderer = new SplatRenderer(voxels.length);
-            renderer.colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
+            renderer.color.exact(VoxIO.lastPalette);
             
         } catch (FileNotFoundException e) {
-            voxels = new byte[][][]{{{1}}};
-            renderer.colorizer(Colorizer.ManosColorizer);
+            voxels = new byte[][][]{{{1}}}; 
         }
     }
 }

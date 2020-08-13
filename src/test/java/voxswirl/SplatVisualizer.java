@@ -15,7 +15,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
-import voxswirl.visual.Colorizer;
 import voxswirl.visual.SplatRenderer;
 
 import java.io.FileInputStream;
@@ -33,7 +32,6 @@ public class SplatVisualizer extends ApplicationAdapter {
     protected Texture screenTexture, pmTexture;
     private SplatRenderer renderer;
     private byte[][][] voxels;
-    private Colorizer colorizer;
     
     @Override
     public void create() {
@@ -44,20 +42,8 @@ public class SplatVisualizer extends ApplicationAdapter {
         screenView.getCamera().position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
-        
-//        colorizer = Colorizer.ManosColorizer;
-        colorizer = Colorizer.ManossusColorizer;
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
-        try {
-            voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream("vox/Tree.vox")));
-            if(voxels == null)
-                voxels = new byte[][][]{{{1}}};
-            Tools3D.soakInPlace(voxels);
-        } catch (Exception e) {
-            e.printStackTrace();
-            voxels = new byte[][][]{{{1}}};
-        }
-        renderer = new SplatRenderer(voxels.length).colorizer(colorizer);
+        load("vox/Tree.vox");
 //        renderer.dither = true;
         Gdx.input.setInputProcessor(inputProcessor());
     }
@@ -156,10 +142,10 @@ public class SplatVisualizer extends ApplicationAdapter {
                 return;
             }
             Tools3D.soakInPlace(voxels);
-            renderer = new SplatRenderer(voxels.length).colorizer(Colorizer.arbitraryColorizer(VoxIO.lastPalette));
+            renderer = new SplatRenderer(voxels.length);
+            renderer.color.exact(VoxIO.lastPalette);
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}};
-            renderer.colorizer(colorizer);
         }
     }
 }

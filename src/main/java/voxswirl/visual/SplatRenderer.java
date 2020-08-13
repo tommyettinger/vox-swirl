@@ -1,6 +1,7 @@
 package voxswirl.visual;
 
 import com.badlogic.gdx.graphics.Pixmap;
+import com.github.tommyettinger.anim8.PaletteReducer;
 
 import static voxswirl.meta.TrigTools.cos_;
 import static voxswirl.meta.TrigTools.sin_;
@@ -14,7 +15,7 @@ public class SplatRenderer {
     public int[][] depths, voxels;
     public int[][] shadeX, shadeZ;
     public int[][] working, render, outlines;
-    public Colorizer color = Colorizer.ManosColorizer;
+    public PaletteReducer color = new PaletteReducer();
     public boolean dither = false, outline = true;
     public int size;
 
@@ -32,33 +33,16 @@ public class SplatRenderer {
         shadeZ = fill(-1, size + 5 << 1, size + 5 << 1);
     }
 
-    public Colorizer colorizer () {
+    public PaletteReducer colorizer () {
         return color;
     }
 
-    public SplatRenderer colorizer (Colorizer color) {
+    public SplatRenderer colorizer (PaletteReducer color) {
         this.color = color;
         return this;
     }
-    
-    public void splat(int xPos, int yPos, int zPos, byte voxel) {
-        final int size = shadeZ.length,
-                xx = Math.max(0, (size + yPos - xPos) * 2 - 1),
-                yy = Math.max(0, (zPos * 3 + size + size - xPos - yPos) - 1),
-                depth = (xPos + yPos) * 2 + zPos * 3;
-        for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
-            for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
-                working[ax][ay] = color.medium(voxel);
-                depths[ax][ay] = depth;
-                outlines[ax][ay] = color.dark(voxel);
-                voxels[ax][ay] = xPos | yPos << 10 | zPos << 20; 
-            }
-        }
-        shadeZ[xPos][yPos] = Math.max(shadeZ[xPos][yPos], zPos);
-        shadeX[yPos][zPos] = Math.max(shadeX[yPos][zPos], xPos);
-    }
-    
-    public void splatTurned(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
+
+    public void splat(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
         final int 
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
                 yy = (int)(0.5f + Math.max(0, (zPos * 3 + size + size - xPos - yPos) + 1)),
@@ -68,9 +52,9 @@ public class SplatRenderer {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay]) {
                     drawn = true;
-                    working[ax][ay] = color.medium(voxel);
+                    working[ax][ay] = color.paletteArray[voxel & 255];
                     depths[ax][ay] = depth;
-                    outlines[ax][ay] = color.dark(voxel);
+                    outlines[ax][ay] = Coloring.darken(color.paletteArray[voxel & 255], 0.25f);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
                 }
             }
@@ -174,18 +158,18 @@ public class SplatRenderer {
             }
         }
         if(dither) {
-            color.reducer.setDitherStrength(0.3125f);
-            color.reducer.reduceFloydSteinberg(pixmap);
+            color.setDitherStrength(0.3125f);
+            color.reduceFloydSteinberg(pixmap);
 //            color.reducer.reduceKnollRoberts(pixmap);
 //            color.reducer.reduceSierraLite(pixmap);
 //            color.reducer.reduceJimenez(pixmap);
 
         }
 
-        fill(render, (byte) 0);
-        fill(working, (byte) 0);
+        fill(render, 0);
+        fill(working, 0);
         fill(depths, 0);
-        fill(outlines, (byte) 0);
+        fill(outlines, 0);
         fill(voxels, -1);
         fill(shadeX, -1);
         fill(shadeZ, -1);
@@ -272,17 +256,17 @@ public class SplatRenderer {
             }
         }
         if(dither) {
-            color.reducer.setDitherStrength(0.3125f);
-            color.reducer.reduceFloydSteinberg(pixmapHalf);
+            color.setDitherStrength(0.3125f);
+            color.reduceFloydSteinberg(pixmapHalf);
 //            color.reducer.reduceKnollRoberts(pixmapHalf);
 //            color.reducer.reduceSierraLite(pixmapHalf);
 //            color.reducer.reduceJimenez(pixmapHalf);
         }
 
-        fill(render, (byte) 0);
-        fill(working, (byte) 0);
+        fill(render, 0);
+        fill(working, 0);
         fill(depths, 0);
-        fill(outlines, (byte) 0);
+        fill(outlines, 0);
         fill(voxels, -1);
         fill(shadeX, -1);
         fill(shadeZ, -1);
@@ -306,7 +290,7 @@ public class SplatRenderer {
                     if(v != 0)
                     {
                         final float c = cos_(angleTurns), s = sin_(angleTurns);
-                        splatTurned((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
+                        splat((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
                     }
                 }
             }
@@ -324,7 +308,7 @@ public class SplatRenderer {
                     if(v != 0)
                     {
                         final float c = cos_(angleTurns), s = sin_(angleTurns);
-                        splatTurned((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
+                        splat((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
                     }
                 }
             }
