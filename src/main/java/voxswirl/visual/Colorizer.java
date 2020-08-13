@@ -190,6 +190,9 @@ public abstract class Colorizer {
     private static int difference(int y1, int co1, int cg1, int y2, int co2, int cg2) {
         return ((y1 - y2) * (y1 - y2) << 2) + (((co1 - co2) * (co1 - co2) + (cg1 - cg2) * (cg1 - cg2)) * 3);
     }
+    private static int differenceAlt(int y1, int cA1, int cB1, int y2, int cA2, int cB2) {
+        return (y1 - y2) * (y1 - y2) * 7 + (cA1 - cA2) * (cA1 - cA2) + (cB1 - cB2) * (cB1 - cB2);
+    }
 
 
     public static final Colorizer AuroraColorizer = new Colorizer(new PaletteReducer()) {
@@ -1779,9 +1782,12 @@ public abstract class Colorizer {
         final byte[] paletteMapping = new byte[1 << 16];
         final int[] reverse = new int[COUNT];
         final byte[][] ramps = new byte[COUNT][4];
-        final int[] lumas = new int[COUNT], cos = new int[COUNT], cgs = new int[COUNT];
-        final int yLim = 63, coLim = 31, cgLim = 31, shift1 = 6, shift2 = 11;
-        int color, r, g, b, co, cg, t;
+        final int[] lumas = new int[COUNT], cAs = new int[COUNT], cBs = new int[COUNT];
+        final int yLim = 63, cALim = 31, cBLim = 31, shift1 = 6, shift2 = 11;
+        int color, cA, cB, t;
+        double[] lightness = PaletteReducer.LAB[0];
+        double[] colorA = PaletteReducer.LAB[1];
+        double[] colorB = PaletteReducer.LAB[2];
         for (int i = 1; i < COUNT; i++) {
             color = palette[i];
             if((color & 0x80) == 0)
@@ -1789,27 +1795,22 @@ public abstract class Colorizer {
                 lumas[i] = -0x70000000; // very very negative, blocks transparent colors from mixing into opaque ones
                 continue;
             }
-            r = (color >>> 24);
-            g = (color >>> 16 & 0xFF);
-            b = (color >>> 8 & 0xFF);
-            co = r - b;
-            t = b + (co >> 1);
-            cg = g - t;
+            t = PaletteReducer.shrink(color);
             paletteMapping[
                     reverse[i] = 
-                              (lumas[i] = luma(r, g, b) >>> 11)
-                            | (cos[i] = co + 255 >>> 4) << shift1
-                            | (cgs[i] = cg + 255 >>> 4) << shift2] = (byte) i;
+                              (lumas[i] = (int)(lightness[t] * 0.6395))
+                            | (cAs[i] = (int)((colorA[t] + 128.0) * 0x1p-3)) << shift1
+                            | (cBs[i] = (int)((colorB[t] + 128.0) * 0x1p-3)) << shift2] = (byte) i;
         }
 
-        for (int icg = 0; icg <= cgLim; icg++) {
-            for (int ico = 0; ico <= coLim; ico++) {
+        for (int icB = 0; icB <= cBLim; icB++) {
+            for (int icA = 0; icA <= cALim; icA++) {
                 for (int iy = 0; iy <= yLim; iy++) {
-                    final int c2 = icg << shift2 | ico << shift1 | iy;
+                    final int c2 = icB << shift2 | icA << shift1 | iy;
                     if (paletteMapping[c2] == 0) {
                         int dist = 0x7FFFFFFF;
                         for (int i = 1; i < COUNT; i++) {
-                            if (Math.abs(lumas[i] - iy) < 28 && dist > (dist = Math.min(dist, difference(lumas[i], cos[i], cgs[i], iy, ico, icg))))
+                            if (Math.abs(lumas[i] - iy) < 16 && dist > (dist = Math.min(dist, differenceAlt(lumas[i], cAs[i] * 2 - 31, cBs[i] * 2 - 31, iy, icA * 2 - 31, icB * 2 - 31))))
                                 paletteMapping[c2] = (byte) i;
                         }
                     }
@@ -1817,88 +1818,70 @@ public abstract class Colorizer {
             }
         }
 
-        float adj, cof, cgf;
+        float adj, cAf, cBf;
         int idx2;
 //        System.out.println("{\n{ 0, 0, 0, 0 },");
         for (int i = 1; i < COUNT; i++) {
             int rev = reverse[i], y = rev & yLim, match = i;
-            cof = ((co = cos[i]) - 16) * 0x1.111112p-5f;
-            cgf = ((cg = cgs[i]) - 16) * 0x1.111112p-5f;
+            cAf = ((cA = cAs[i]) * 2 - 31) * 0x1.08421p-5f; // 1f / 31f
+            cBf = ((cB = cBs[i]) * 2 - 31) * 0x1.08421p-5f;
             ramps[i][2] = (byte)i;
             ramps[i][3] = grays[4];//15;  //0xFFFFFFFF, white
             ramps[i][1] = grays[0];//0x010101FF, black
             ramps[i][0] = grays[0];//0x010101FF, black
-            for (int yy = y + 2, rr = rev + 2; yy <= yLim; yy++, rr++) {
-                if ((idx2 = paletteMapping[rr] & 255) != i && difference(lumas[idx2], cos[idx2], cgs[idx2], y, co, cg) > THRESHOLD) {
+            for (int yy = y + 4, rr = rev + 4; yy <= yLim; yy++, rr++) {
+                if ((idx2 = paletteMapping[rr] & 255) != i && differenceAlt(lumas[idx2], cAs[idx2] * 2 - 31, cBs[idx2] * 2 - 31, y, cA * 2 - 31, cB * 2 - 31) > THRESHOLD) {
                     ramps[i][3] = paletteMapping[rr];
                     break;
                 }
-                adj = 1f + ((yLim + 1 >>> 1) - yy) * 0x1p-10f;
-                cof = MathUtils.clamp(cof * adj, -0.5f, 0.5f);
-                cgf = MathUtils.clamp(cgf * adj + 0x1.8p-10f, -0.5f, 0.5f);
+                adj = 1f + ((yLim + 1 >>> 1) - yy) * 0x1p-8f;
+                cAf = MathUtils.clamp(cAf * adj, -1f, 1f);
+                cBf = MathUtils.clamp(cBf * adj + 0x1.8p-8f, -1f, 1f);
 
                 rr = yy
-                        | (co = (int) ((cof + 0.5f) * coLim)) << shift1
-                        | (cg = (int) ((cgf + 0.5f) * cgLim)) << shift2;
+                        | (cA = (int) ((cAf * 0.5f + 0.5f) * cALim)) << shift1
+                        | (cB = (int) ((cBf * 0.5f + 0.5f) * cBLim)) << shift2;
             }
-            cof = ((co = cos[i]) - 16) * 0x0.Bp-5f;
-            cgf = ((cg = cgs[i]) - 16) * 0x0.Bp-5f;
-            for (int yy = y - 2, rr = rev - 2; yy > 0; rr--) {
-                if ((idx2 = paletteMapping[rr] & 255) != i && difference(lumas[idx2], cos[idx2], cgs[idx2], y, co, cg) > THRESHOLD) {
+            cAf = ((cA = cAs[i]) * 2 - 31) * 0x0.Bp-5f;
+            cBf = ((cB = cBs[i]) * 2 - 31) * 0x0.Bp-5f;
+            for (int yy = y - 4, rr = rev - 4; yy > 0; rr--) {
+                if ((idx2 = paletteMapping[rr] & 255) != i && differenceAlt(lumas[idx2], cAs[idx2] * 2 - 31, cBs[idx2] * 2 - 31, y, cA * 2 - 31, cB * 2 - 31) > THRESHOLD) {
                     ramps[i][1] = paletteMapping[rr];
                     rev = rr;
                     y = yy;
                     match = paletteMapping[rr] & 255;
                     break;
                 }
-                adj = 1f + (yy - (yLim + 1 >>> 1)) * 0x1p-10f;
-                cof = MathUtils.clamp(cof * adj, -0.5f, 0.5f);
-                cgf = MathUtils.clamp(cgf * adj - 0x1.8p-10f, -0.5f, 0.5f);
-
-//                cof = (cof - 0.5f) * 0.984375f + 0.5f;
-//                cgf = (cgf + 0.5f) * 0.984375f - 0.5f;
+                adj = 1f + (yy - (yLim + 1 >>> 1)) * 0x1p-8f;
+                cAf = MathUtils.clamp(cAf * adj, -1f, 1f);
+                cBf = MathUtils.clamp(cBf * adj - 0x1.8p-8f, -1f, 1f);
+                
                 rr = yy
-                        | (co = (int) ((cof + 0.5f) * coLim)) << shift1
-                        | (cg = (int) ((cgf + 0.5f) * cgLim)) << shift2;
-
-//                cof = MathUtils.clamp(cof * 0.9375f, -0.5f, 0.5f);
-//                cgf = MathUtils.clamp(cgf * 0.9375f, -0.5f, 0.5f);
-//                rr = yy
-//                        | (int) ((cof + 0.5f) * 63) << 7
-//                        | (int) ((cgf + 0.5f) * 63) << 13;
-                if (--yy == 0) {
+                        | (cA = (int) ((cAf * 0.5f + 0.5f) * cALim)) << shift1
+                        | (cB = (int) ((cBf * 0.5f + 0.5f) * cBLim)) << shift2;
+                if (--yy <= 0) {
                     match = -1;
                 }
             }
             if (match >= 0) {
-                cof = ((co = cos[match]) - 16) * 0x1.111112p-5f;
-                cgf = ((cg = cgs[match]) - 16) * 0x1.111112p-5f;
-                for (int yy = y - 3, rr = rev - 3; yy > 0; yy--, rr--) {
-                    if ((idx2 = paletteMapping[rr] & 255) != match && difference(lumas[idx2], cos[idx2], cgs[idx2], y, co, cg) > THRESHOLD) {
+                cAf = ((cA = cAs[match]) * 2 - 31) * 0x1.111112p-5f;
+                cBf = ((cB = cBs[match]) * 2 - 31) * 0x1.111112p-5f;
+                for (int yy = y - 8, rr = rev - 8; yy > 0; yy--, rr--) {
+                    if ((idx2 = paletteMapping[rr] & 255) != match && differenceAlt(lumas[idx2], cAs[idx2] * 2 - 31, cBs[idx2] * 2 - 31, y, cA * 2 - 31, cB * 2 - 31) > THRESHOLD) {
                         ramps[i][0] = paletteMapping[rr];
                         break;
                     }
-                    adj = 1f + (yy - (yLim + 1 >>> 1)) * 0x1p-10f;
-                    cof = MathUtils.clamp(cof * adj, -0.5f, 0.5f);
-                    cgf = MathUtils.clamp(cgf * adj - 0x1.8p-10f, -0.5f, 0.5f);
+                    adj = 1f + (yy - (yLim + 1 >>> 1)) * 0x1p-8f;
+                    cAf = MathUtils.clamp(cAf * adj, -1f, 1f);
+                    cBf = MathUtils.clamp(cBf * adj - 0x1.8p-8f, -1f, 1f);
 
-//                    cof = (cof - 0.5f) * 0.96875f + 0.5f;
-//                    cgf = (cgf + 0.5f) * 0.96875f - 0.5f;
                     rr = yy
-                            | (co = (int) ((cof + 0.5f) * coLim)) << shift1
-                            | (cg = (int) ((cgf + 0.5f) * cgLim)) << shift2;
+                            | (cA = (int) ((cAf * 0.5f + 0.5f) * cALim)) << shift1
+                            | (cB = (int) ((cBf * 0.5f + 0.5f) * cBLim)) << shift2;
 
-//                    cof = MathUtils.clamp(cof * 0.9375f, -0.5f, 0.5f);
-//                    cgf = MathUtils.clamp(cgf * 0.9375f, -0.5f, 0.5f);
-//                    rr = yy
-//                            | (int) ((cof + 0.5f) * 63) << 7
-//                            | (int) ((cgf + 0.5f) * 63) << 13;
                 }
             }
-//            System.out.println("{ " + ramps[i][0] + ", " + ramps[i][1] + ", " + ramps[i][2] + ", " + ramps[i][3] + " },");
         }
-//        System.out.println("};");
-
 
         return new Colorizer(reducer) {
 
