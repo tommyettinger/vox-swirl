@@ -514,7 +514,10 @@ public class Tools3D {
     }
     
     private static int isSurface(byte[][][] voxels, int x, int y, int z) {
-        if(voxels[x][y][z] == 0) return 0;
+        if(x < 0 || y < 0 || z < 0 || 
+                x >= voxels.length || y >= voxels[x].length || z >= voxels[x][y].length || 
+                voxels[x][y][z] == 0)
+            return 0;
         if(x <= 0 || voxels[x-1][y][z] == 0) return 1;
         if(y <= 0 || voxels[x][y-1][z] == 0) return 2;
         if(z <= 0 || voxels[x][y][z-1] == 0) return 3;
