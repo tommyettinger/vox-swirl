@@ -98,6 +98,7 @@ public class SplatVisualizer extends ApplicationAdapter {
         config.setIdleFPS(10);
         config.useVsync(false);
         config.setResizable(true);
+        config.disableAudio(true);
         final SplatVisualizer app = new SplatVisualizer();
         config.setWindowListener(new Lwjgl3WindowAdapter() {
             @Override

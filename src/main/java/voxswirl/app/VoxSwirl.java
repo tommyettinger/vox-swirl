@@ -83,6 +83,7 @@ public class VoxSwirl extends ApplicationAdapter {
         config.setIdleFPS(10);
         config.useVsync(true);
         config.setResizable(false);
+        config.disableAudio(true);
         final VoxSwirl app = new VoxSwirl(arg);
         new Lwjgl3Application(app, config);
     }

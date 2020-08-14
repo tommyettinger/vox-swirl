@@ -157,7 +157,9 @@
         <resources>
             <resource>
                 <directory>assets</directory>
-                <excludes><exclude>**/out/**</exclude></excludes>
+                <excludes>
+                    <exclude>**</exclude>
+                </excludes>
             </resource>
         </resources>
         <testSourceDirectory>src/test/java</testSourceDirectory>
@@ -309,6 +311,13 @@
                                 </filter>
                                 <filter>
                                     <artifact>org.lwjgl:lwjgl-jemalloc:natives-linux-arm64</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+
+                                <filter>
+                                    <artifact>org.lwjgl:lwjgl-openal</artifact>
                                     <excludes>
                                         <exclude>**</exclude>
                                     </excludes>
