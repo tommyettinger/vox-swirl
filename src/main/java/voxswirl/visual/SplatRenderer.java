@@ -1,6 +1,7 @@
 package voxswirl.visual;
 
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.MathUtils;
 import com.github.tommyettinger.anim8.PaletteReducer;
 
 import static voxswirl.meta.TrigTools.cos_;
@@ -18,7 +19,8 @@ public class SplatRenderer {
     public PaletteReducer color = new PaletteReducer();
     public boolean dither = false, outline = true;
     public int size;
-
+    public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
+            smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
     public SplatRenderer (final int size) {
         this.size = size;
         final int w = size * 4 + 4, h = size * 5 + 4;
@@ -31,6 +33,27 @@ public class SplatRenderer {
         voxels = fill(-1, w, h);
         shadeX = fill(-1, size + 5 << 1, size + 5 << 1);
         shadeZ = fill(-1, size + 5 << 1, size + 5 << 1);
+    }
+
+    /**
+     * Takes a modifier between -0.5f and 0.2f, and adjusts how this changes saturation accordingly.
+     * Negative modifiers will decrease saturation, while positive ones increase it. If positive, any
+     * changes are incredibly sensitive, and 0.05 will seem very different from 0.0. If negative, changes
+     * are not as sensitive, but most of the noticeable effect will happen close to -0.1.
+     * @param saturationModifier a float between -0.5f and 0.2f; negative decreases saturation, positive increases
+     * @return this, for chaining
+     */
+    public SplatRenderer saturation(float saturationModifier) {
+        saturationModifier = MathUtils.clamp(saturationModifier, -0.5f, 0.2f);
+        neutral = 1f + saturationModifier;
+        bigUp = 1.1f + saturationModifier;
+        midUp = 1.04f + saturationModifier;
+        midDown = 0.9f + saturationModifier;
+        smallUp = 1.02f + saturationModifier;
+        smallDown = 0.94f + saturationModifier;
+        tinyUp = 1.01f + saturationModifier;
+        tinyDown = 0.98f + saturationModifier;
+        return this;
     }
 
     public PaletteReducer colorizer () {
@@ -52,9 +75,9 @@ public class SplatRenderer {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay]) {
                     drawn = true;
-                    working[ax][ay] = color.paletteArray[voxel & 255];
+                    working[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 1f, neutral);
                     depths[ax][ay] = depth;
-                    outlines[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 0.625f, 1.125f);
+                    outlines[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 0.625f, bigUp);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
                 }
             }
@@ -98,29 +121,29 @@ public class SplatRenderer {
                     fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
                     if (shadeZ[fx][fy] == vz+4)
                     {
-                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.125f, 1.2f);
-                        if(sx > 0) render[sx-1][sy] = Coloring.lighten(render[sx-1][sy], 0.030f);
-                        if(sy > 0) render[sx][sy-1] = Coloring.lighten(render[sx][sy-1], 0.030f);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.lighten(render[sx+1][sy], 0.030f);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.lighten(render[sx][sy+1], 0.030f);
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.1f, midUp);
+                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], 1.030f, smallUp);
+                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], 1.030f, smallUp);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], 1.030f, smallUp);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], 1.030f, smallUp);
 
-                        if(sx > 1) render[sx-2][sy] = Coloring.lighten(render[sx-2][sy], 0.030f);
-                        if(sy > 1) render[sx][sy-2] = Coloring.lighten(render[sx][sy-2], 0.030f);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.lighten(render[sx+2][sy], 0.030f);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.lighten(render[sx][sy+2], 0.030f);
+                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], 1.030f, smallUp);
+                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], 1.030f, smallUp);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], 1.030f, smallUp);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], 1.030f, smallUp);
                     }
                     if (Math.abs(shadeX[fy][vz + 4] - fx) > 1)
                     {
-                        render[sx][sy] = Coloring.darken(render[sx][sy], 0.05f);
-                        if(sx > 0) render[sx-1][sy] = Coloring.darken(render[sx-1][sy], 0.023f);
-                        if(sy > 0) render[sx][sy-1] = Coloring.darken(render[sx][sy-1], 0.023f);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.darken(render[sx+1][sy], 0.023f);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.darken(render[sx][sy+1], 0.023f);
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.95f, smallDown);
+                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], 0.977f, tinyDown);
+                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], 0.977f, tinyDown);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], 0.977f, tinyDown);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], 0.977f, tinyDown);
 
-                        if(sx > 1) render[sx-2][sy] = Coloring.darken(render[sx-2][sy], 0.023f);
-                        if(sy > 1) render[sx][sy-2] = Coloring.darken(render[sx][sy-2], 0.023f);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.darken(render[sx+2][sy], 0.023f);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.darken(render[sx][sy+2], 0.023f);
+                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], 0.977f, tinyDown);
+                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], 0.977f, tinyDown);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], 0.977f, tinyDown);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], 0.977f, tinyDown);
                     }
 
                 }
@@ -159,7 +182,8 @@ public class SplatRenderer {
         }
         if(dither) {
             color.setDitherStrength(0.3125f);
-            color.reduceFloydSteinberg(pixmap);
+            color.reduceBlueNoise(pixmapHalf);
+//            color.reduceFloydSteinberg(pixmapHalf);
 //            color.reducer.reduceKnollRoberts(pixmap);
 //            color.reducer.reduceSierraLite(pixmap);
 //            color.reducer.reduceJimenez(pixmap);
@@ -196,29 +220,29 @@ public class SplatRenderer {
                     fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
                     if (shadeZ[fx][fy] == vz+4)
                     {
-                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.125f, 1.2f);
-                        if(sx > 0) render[sx-1][sy] = Coloring.lighten(render[sx-1][sy], 0.030f);
-                        if(sy > 0) render[sx][sy-1] = Coloring.lighten(render[sx][sy-1], 0.030f);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.lighten(render[sx+1][sy], 0.030f);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.lighten(render[sx][sy+1], 0.030f);
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.1f, midUp);
+                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], 1.030f, smallUp);
+                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], 1.030f, smallUp);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], 1.030f, smallUp);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], 1.030f, smallUp);
 
-                        if(sx > 1) render[sx-2][sy] = Coloring.lighten(render[sx-2][sy], 0.030f);
-                        if(sy > 1) render[sx][sy-2] = Coloring.lighten(render[sx][sy-2], 0.030f);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.lighten(render[sx+2][sy], 0.030f);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.lighten(render[sx][sy+2], 0.030f);
+                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], 1.030f, smallUp);
+                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], 1.030f, smallUp);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], 1.030f, smallUp);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], 1.030f, smallUp);
                     }
                     if (Math.abs(shadeX[fy][vz + 4] - fx) > 1)
                     {
-                        render[sx][sy] = Coloring.darken(render[sx][sy], 0.05f);
-                        if(sx > 0) render[sx-1][sy] = Coloring.darken(render[sx-1][sy], 0.023f);
-                        if(sy > 0) render[sx][sy-1] = Coloring.darken(render[sx][sy-1], 0.023f);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.darken(render[sx+1][sy], 0.023f);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.darken(render[sx][sy+1], 0.023f);
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.95f, smallDown);
+                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], 0.977f, tinyDown);
+                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], 0.977f, tinyDown);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], 0.977f, tinyDown);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], 0.977f, tinyDown);
 
-                        if(sx > 1) render[sx-2][sy] = Coloring.darken(render[sx-2][sy], 0.023f);
-                        if(sy > 1) render[sx][sy-2] = Coloring.darken(render[sx][sy-2], 0.023f);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.darken(render[sx+2][sy], 0.023f);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.darken(render[sx][sy+2], 0.023f);
+                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], 0.977f, tinyDown);
+                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], 0.977f, tinyDown);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], 0.977f, tinyDown);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], 0.977f, tinyDown);
                     }
                 }
             }
@@ -257,7 +281,8 @@ public class SplatRenderer {
         }
         if(dither) {
             color.setDitherStrength(0.3125f);
-            color.reduceFloydSteinberg(pixmapHalf);
+            color.reduceBlueNoise(pixmapHalf);
+//            color.reduceFloydSteinberg(pixmapHalf);
 //            color.reducer.reduceKnollRoberts(pixmapHalf);
 //            color.reducer.reduceSierraLite(pixmapHalf);
 //            color.reducer.reduceJimenez(pixmapHalf);

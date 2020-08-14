@@ -32,10 +32,12 @@ public class SplatVisualizer extends ApplicationAdapter {
     protected Texture screenTexture, pmTexture;
     private SplatRenderer renderer;
     private byte[][][] voxels;
+    private float saturation;
     
     @Override
     public void create() {
         batch = new SpriteBatch();
+        saturation = 0f;
         worldView = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         screenView = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         buffer = new FrameBuffer(Pixmap.Format.RGBA8888, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, false, false);
@@ -120,10 +122,13 @@ public class SplatVisualizer extends ApplicationAdapter {
                     case Input.Keys.F: // fringe, affects outline/edge
                         renderer.outline = !renderer.outline;
                         break;
-                    case Input.Keys.R: // rotate
-//                        System.out.println("(0x7F) before: " + Tools3D.count(seq.data[1], 0x7F));
-                        Tools3D.clockwiseInPlace(voxels);
-//                        System.out.println("(0xBF) after : " + Tools3D.count(seq.data[1], 0xBF));
+                    case Input.Keys.UP:
+                        renderer.saturation(saturation = Math.min(1f, saturation + 0.004f));
+                        System.out.println(saturation);
+                        break;
+                    case Input.Keys.DOWN:
+                        renderer.saturation(saturation = Math.max(-1f, saturation - 0.004f));
+                        System.out.println(saturation);
                         break;
                     case Input.Keys.ESCAPE:
                         Gdx.app.exit();
