@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import voxswirl.io.LittleEndianDataInputStream;
@@ -33,6 +32,7 @@ public class RotationVisualizer extends ApplicationAdapter {
     private RotatingRenderer renderer;
     private byte[][][] voxels;
     private float saturation;
+    public float yaw, pitch, roll;
     
     @Override
     public void create() {
@@ -52,6 +52,19 @@ public class RotationVisualizer extends ApplicationAdapter {
 
     @Override
     public void render() {
+        if(Gdx.input.isKeyPressed(Input.Keys.U)) 
+            yaw += 0.25f * Gdx.graphics.getDeltaTime();
+        else if(Gdx.input.isKeyPressed(Input.Keys.J)) 
+            yaw -= 0.25f * Gdx.graphics.getDeltaTime();
+        else if(Gdx.input.isKeyPressed(Input.Keys.I)) 
+            pitch += 0.25f * Gdx.graphics.getDeltaTime();
+        else if(Gdx.input.isKeyPressed(Input.Keys.K)) 
+            pitch -= 0.25f * Gdx.graphics.getDeltaTime();
+        else if(Gdx.input.isKeyPressed(Input.Keys.O)) 
+            roll += 0.25f * Gdx.graphics.getDeltaTime();
+        else if(Gdx.input.isKeyPressed(Input.Keys.L)) 
+            roll -= 0.25f * Gdx.graphics.getDeltaTime();
+
 //        model.setFrame((int)(TimeUtils.millis() >>> 7) & 15);
 //        boom.setFrame((int)(TimeUtils.millis() >>> 7) & 15);
         buffer.begin();
@@ -66,7 +79,8 @@ public class RotationVisualizer extends ApplicationAdapter {
         worldView.update(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         batch.setProjectionMatrix(screenView.getCamera().combined);
         batch.begin();
-        pmTexture.draw(renderer.drawSplatsHalf(voxels, 0f, (TimeUtils.millis() & 2047) * 0x1p-11f, 0f), 0, 0);
+//        pmTexture.draw(renderer.drawSplatsHalf(voxels, 0f, (TimeUtils.millis() & 2047) * 0x1p-11f, 0f), 0, 0);
+        pmTexture.draw(renderer.drawSplatsHalf(voxels, yaw, pitch, roll), 0, 0);
         batch.draw(pmTexture,
                 0,
                 0);
