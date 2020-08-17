@@ -536,8 +536,7 @@ public class Tools3D {
                 for (int z = 0; z < zs; z++) {
                     if(isSurface(voxels, x, y, z) > 0){
                         b = voxels[x][y][z];
-                        //// don't want lower voxels soaking through right now.
-                        //if(isSurface(voxels, x, y, z-1) == -1) voxels[x][y][z-1] = b;
+                        if(isSurface(voxels, x, y, z-1) == -1) voxels[x][y][z-1] = b;
                         if(isSurface(voxels, x-1, y, z) == -1) voxels[x-1][y][z] = b;
                         if(isSurface(voxels, x, y-1, z) == -1) voxels[x][y-1][z] = b;
                         if(isSurface(voxels, x+1, y, z) == -1) voxels[x+1][y][z] = b;
