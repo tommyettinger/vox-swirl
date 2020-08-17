@@ -142,25 +142,25 @@ public class RotatingRenderer extends SplatRenderer {
             System.arraycopy(working[x], 0, render[x], 0, ySize);
         }
         int v, vx, vy, vz, fx, fy, fz;
-        float hs = (size) * 0.5f;
+        float hs = (size) * 0.5f, ox, oy, oz;
         final float cYaw = cos_(yaw), sYaw = sin_(yaw);
         final float cPitch = cos_(pitch), sPitch = sin_(pitch);
         final float cRoll = cos_(roll), sRoll = sin_(roll);
+        final float x_x = cYaw * cPitch, y_x = cYaw * sPitch * sRoll - sYaw * cRoll, z_x = cYaw * sPitch * cRoll + sYaw * sRoll;
+        final float x_y = sYaw * cPitch, y_y = sYaw * sPitch * sRoll + cYaw * cRoll, z_y = sYaw * sPitch * cRoll - cYaw * sRoll;
+        final float x_z = -sPitch, y_z = cPitch * sRoll, z_z = cPitch * cRoll;
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
                 if((v = voxels[sx][sy]) != -1) {
                     vx = v & 0x3FF;
                     vy = v >>> 10 & 0x3FF;
                     vz = v >>> 20 & 0x3FF;
-                    final float x1 = (vx-hs) * cYaw - (vy-hs) * sYaw;
-                    final float y1 = (vx-hs) * sYaw + (vy-hs) * sYaw;
-                    final float z1 = vz - hs;
-                    final float x2 = x1;
-                    final float y2 = y1 * sPitch - z1 * cPitch;
-                    final float z2 = y1 * sPitch + z1 * cPitch;
-                    fx = (int)(z2 * sRoll + x2 * cRoll + hs + 4.500f);
-                    fy = (int)(y2 + hs + 4.500f);
-                    fz = (int)(z2 * cRoll - x2 * sRoll + hs + 4.500f);
+                    ox = vx - hs;
+                    oy = vy - hs;
+                    oz = vz - hs;
+                    fx = (int)(ox * x_x + oy * y_x + oz * z_x + hs + 4.500f);
+                    fy = (int)(ox * x_y + oy * y_y + oz * z_y + hs + 4.500f);
+                    fz = (int)(ox * x_z + oy * y_z + oz * z_z + hs + 4.500f);
                     if (Math.abs(shadeZ[fx][fy] - fz) < 1)
                     {
                         render[sx][sy] = Coloring.adjust(render[sx][sy], 1.1f, midUp);
@@ -277,22 +277,25 @@ public class RotatingRenderer extends SplatRenderer {
     public Pixmap drawSplatsHalf(byte[][][] colors, float yaw, float pitch, float roll) {
         final int size = colors.length;
         final float hs = (size) * 0.5f;
+        float ox, oy, oz; // offset x,y,z
         final float cYaw = cos_(yaw), sYaw = sin_(yaw);
         final float cPitch = cos_(pitch), sPitch = sin_(pitch);
         final float cRoll = cos_(roll), sRoll = sin_(roll);
+        final float x_x = cYaw * cPitch, y_x = cYaw * sPitch * sRoll - sYaw * cRoll, z_x = cYaw * sPitch * cRoll + sYaw * sRoll;
+        final float x_y = sYaw * cPitch, y_y = sYaw * sPitch * sRoll + cYaw * cRoll, z_y = sYaw * sPitch * cRoll - cYaw * sRoll;
+        final float x_z = -sPitch, y_z = cPitch * sRoll, z_z = cPitch * cRoll;
         for (int z = 0; z < size; z++) {
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {
                     final byte v = colors[x][y][z];
                     if(v != 0)
                     {
-                        final float x1 = (x-hs) * cYaw - (y-hs) * sYaw;
-                        final float y1 = (x-hs) * sYaw + (y-hs) * sYaw;
-                        final float z1 = z - hs;
-                        final float x2 = x1;
-                        final float y2 = y1 * sPitch - z1 * cPitch;
-                        final float z2 = y1 * sPitch + z1 * cPitch;
-                        splat(z2 * sRoll + x2 * cRoll + hs, y2 + hs, z2 * cRoll - x2 * sRoll + hs, x, y, z, v);
+                        ox = x - hs;
+                        oy = y - hs;
+                        oz = z - hs;
+                        splat(ox * x_x + oy * y_x + oz * z_x + hs,
+                                ox * x_y + oy * y_y + oz * z_y + hs,
+                                ox * x_z + oy * y_z + oz * z_z + hs, x, y, z, v);
                     }
                 }
             }

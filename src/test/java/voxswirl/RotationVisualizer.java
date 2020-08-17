@@ -66,7 +66,7 @@ public class RotationVisualizer extends ApplicationAdapter {
         worldView.update(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         batch.setProjectionMatrix(screenView.getCamera().combined);
         batch.begin();
-        pmTexture.draw(renderer.drawSplatsHalf(voxels, (TimeUtils.millis() & 2047) * 0x1p-11f, 0f, 0f), 0, 0);
+        pmTexture.draw(renderer.drawSplatsHalf(voxels, 0f, (TimeUtils.millis() & 2047) * 0x1p-11f, 0f), 0, 0);
         batch.draw(pmTexture,
                 0,
                 0);
@@ -149,7 +149,7 @@ public class RotationVisualizer extends ApplicationAdapter {
             }
             Tools3D.soakInPlace(v);
             voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
-            Tools3D.translateCopyInto(v, voxels, v.length >> 1, v.length >> 1, v.length >> 1);
+            Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, v.length >> 2);
             renderer = new RotatingRenderer(voxels.length);
             renderer.color.exact(VoxIO.lastPalette);
         } catch (FileNotFoundException e) {
