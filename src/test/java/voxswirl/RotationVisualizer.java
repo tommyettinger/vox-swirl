@@ -44,7 +44,6 @@ public class RotationVisualizer extends ApplicationAdapter {
         screenView.getCamera().position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
-        pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
         load("vox/Tree.vox");
 //        renderer.dither = true;
         Gdx.input.setInputProcessor(inputProcessor());
@@ -70,8 +69,6 @@ public class RotationVisualizer extends ApplicationAdapter {
         buffer.begin();
         
         Gdx.gl.glClearColor(0.4f, 0.75f, 0.3f, 1f);
-        // for GB_GREEN palette
-//        Gdx.gl.glClearColor(0xE0 / 255f, 0xF8 / 255f, 0xD0 / 255f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         
         worldView.apply();
@@ -154,6 +151,8 @@ public class RotationVisualizer extends ApplicationAdapter {
         };
     }
     public void load(String name) {
+        if(pmTexture != null) pmTexture.dispose();
+        pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
         try {
             //// loads a file by its full path, which we get via drag+drop
             byte[][][] v = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream(name)));
