@@ -1,5 +1,6 @@
 package voxswirl.io;
 
+import com.badlogic.gdx.utils.ArrayMap;
 import voxswirl.meta.GwtIncompatible;
 
 import java.io.ByteArrayOutputStream;
@@ -7,6 +8,8 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 
 /**
@@ -47,6 +50,18 @@ public class VoxIO {
             0x000088ff, 0x000077ff, 0x000055ff, 0x000044ff, 0x000022ff, 0x000011ff, 0xeeeeeeff, 0xddddddff,
             0xbbbbbbff, 0xaaaaaaff, 0x888888ff, 0x777777ff, 0x555555ff, 0x444444ff, 0x222222ff, 0x111111ff
     };
+    public static final ArrayMap<byte[], String> lastMaterials = new ArrayMap<>(false, 256, byte[].class, String.class);
+    public static final byte[] TYPE = "_type".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] WEIGHT = "_weight".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] ROUGH = "_rough".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] SPEC = "_spec".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] IOR = "_ior".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] ATT = "_att".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] FLUX = "_flux".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] PLASTIC = "_plastic".getBytes(StandardCharsets.UTF_8);
+    
+    public static final byte[] DIFFUSE = "_diffuse".getBytes(StandardCharsets.UTF_8);
+    
     public static byte[][][] readVox(InputStream stream) {
         return readVox(new LittleEndianDataInputStream(stream));
     }
@@ -70,7 +85,7 @@ public class VoxIO {
                     stream.readInt();
                     String chunkName = new String(chunkId); // assumes default charset is compatible with ASCII
 
-                    // there are only 3 chunks we only care about, and they are SIZE, XYZI, and RGBA
+                    // there are only 4 chunks we care about, and they are SIZE, XYZI, RGBA, and MATL
                     if (chunkName.equals("SIZE")) {
                         sizeX = stream.readInt();
                         sizeY = stream.readInt();
@@ -87,12 +102,23 @@ public class VoxIO {
                         for (int i = 0; i < numVoxels; i++) {
                             voxelData[stream.read() + offX][stream.read() + offY][stream.read()] = stream.readByte();
                         }
-                    } else if(chunkName.equals("RGBA") && voxelData != null)
+                    } else if(chunkName.equals("RGBA"))
                     {
                         for (int i = 1; i < 256; i++) {
                             lastPalette[i] = Integer.reverseBytes(stream.readInt());
                         }
                         stream.readInt();
+                    } else if(chunkName.equals("MATL")){
+                        int materialID = stream.readInt();
+                        int dictSize = stream.readInt();
+                        for (int i = 0; i < dictSize; i++) {
+                            byte[] key = new byte[stream.readInt()];
+                            stream.read(key);
+                            byte[] val = new byte[stream.readInt()];
+                            stream.read(val);
+                            System.out.println("Material #" + materialID + ": " + new String(key, StandardCharsets.UTF_8) + ", " + new String(val, StandardCharsets.UTF_8));
+
+                        }
                     }
                     else stream.skipBytes(chunkSize);   // read any excess bytes
                 }
