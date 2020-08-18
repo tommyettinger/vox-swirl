@@ -1,13 +1,10 @@
 package voxswirl.io;
 
 import com.badlogic.gdx.utils.ArrayMap;
+import com.badlogic.gdx.utils.IntMap;
 import voxswirl.meta.GwtIncompatible;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -50,17 +47,17 @@ public class VoxIO {
             0x000088ff, 0x000077ff, 0x000055ff, 0x000044ff, 0x000022ff, 0x000011ff, 0xeeeeeeff, 0xddddddff,
             0xbbbbbbff, 0xaaaaaaff, 0x888888ff, 0x777777ff, 0x555555ff, 0x444444ff, 0x222222ff, 0x111111ff
     };
-    public static final ArrayMap<byte[], String> lastMaterials = new ArrayMap<>(false, 256, byte[].class, String.class);
-    public static final byte[] TYPE = "_type".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] WEIGHT = "_weight".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] ROUGH = "_rough".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] SPEC = "_spec".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] IOR = "_ior".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] ATT = "_att".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] FLUX = "_flux".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] PLASTIC = "_plastic".getBytes(StandardCharsets.UTF_8);
+    public static final IntMap<ArrayMap<String, String>> lastMaterials = new IntMap<>(64);
+    public static final String TYPE = "_type";
+    public static final String WEIGHT = "_weight";
+    public static final String ROUGH = "_rough";
+    public static final String SPEC = "_spec";
+    public static final String IOR = "_ior";
+    public static final String ATT = "_att";
+    public static final String FLUX = "_flux";
+    public static final String PLASTIC = "_plastic";
     
-    public static final byte[] DIFFUSE = "_diffuse".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] DIFFUSE_BYTES = "_diffuse".getBytes(StandardCharsets.UTF_8);
     
     public static byte[][][] readVox(InputStream stream) {
         return readVox(new LittleEndianDataInputStream(stream));
@@ -68,6 +65,7 @@ public class VoxIO {
     public static byte[][][] readVox(LittleEndianDataInputStream stream) {
         // check out https://github.com/ephtracy/voxel-model/blob/master/MagicaVoxel-file-format-vox.txt for the file format used below
         byte[][][] voxelData = null;
+        lastMaterials.clear();
         try {
             byte[] chunkId = new byte[4];
             if (4 != stream.read(chunkId))
@@ -116,8 +114,22 @@ public class VoxIO {
                             stream.read(key);
                             byte[] val = new byte[stream.readInt()];
                             stream.read(val);
-                            System.out.println("Material #" + materialID + ": " + new String(key, StandardCharsets.UTF_8) + ", " + new String(val, StandardCharsets.UTF_8));
-
+                            if(Arrays.equals(val, DIFFUSE_BYTES)){
+                                for (++i; i < dictSize; i++) {
+                                    int skip = stream.readInt();
+                                    stream.skipBytes(skip);
+                                    skip = stream.readInt();
+                                    stream.skipBytes(skip);
+                                }
+                                break;
+                            }
+                            else
+                            {
+                                ArrayMap<String, String> am;
+                                if((am = lastMaterials.get(materialID)) == null)
+                                    lastMaterials.put(materialID, am = new ArrayMap<>(true, dictSize, String.class, String.class));
+                                am.put(new String(key, StandardCharsets.UTF_8), new String(val, StandardCharsets.UTF_8));
+                            }
                         }
                     }
                     else stream.skipBytes(chunkSize);   // read any excess bytes
