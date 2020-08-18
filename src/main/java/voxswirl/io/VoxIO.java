@@ -1,8 +1,8 @@
 package voxswirl.io;
 
-import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.IntMap;
 import voxswirl.meta.GwtIncompatible;
+import voxswirl.physical.VoxMaterial;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -47,15 +47,7 @@ public class VoxIO {
             0x000088ff, 0x000077ff, 0x000055ff, 0x000044ff, 0x000022ff, 0x000011ff, 0xeeeeeeff, 0xddddddff,
             0xbbbbbbff, 0xaaaaaaff, 0x888888ff, 0x777777ff, 0x555555ff, 0x444444ff, 0x222222ff, 0x111111ff
     };
-    public static final IntMap<ArrayMap<String, String>> lastMaterials = new IntMap<>(64);
-    public static final String TYPE = "_type";
-    public static final String WEIGHT = "_weight";
-    public static final String ROUGH = "_rough";
-    public static final String SPEC = "_spec";
-    public static final String IOR = "_ior";
-    public static final String ATT = "_att";
-    public static final String FLUX = "_flux";
-    public static final String PLASTIC = "_plastic";
+    public static final IntMap<VoxMaterial> lastMaterials = new IntMap<>(64);
     
     public static final byte[] DIFFUSE_BYTES = "_diffuse".getBytes(StandardCharsets.UTF_8);
     
@@ -125,10 +117,11 @@ public class VoxIO {
                             }
                             else
                             {
-                                ArrayMap<String, String> am;
+                                VoxMaterial am;
                                 if((am = lastMaterials.get(materialID)) == null)
-                                    lastMaterials.put(materialID, am = new ArrayMap<>(true, dictSize, String.class, String.class));
-                                am.put(new String(key, StandardCharsets.UTF_8), new String(val, StandardCharsets.UTF_8));
+                                    lastMaterials.put(materialID, am = new VoxMaterial(new String(val, StandardCharsets.UTF_8)));
+                                else
+                                    am.putTrait(new String(key, StandardCharsets.UTF_8), Float.parseFloat(new String(val, StandardCharsets.UTF_8)));
                             }
                         }
                     }
@@ -140,6 +133,10 @@ public class VoxIO {
         } catch (IOException e) {
             e.printStackTrace();
         }
+//        for(IntMap.Entry<VoxMaterial> a : lastMaterials)
+//        {
+//            System.out.println(a.key + ": " + a.value);
+//        }
         return voxelData;
     }
 
