@@ -9,11 +9,13 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
+import voxswirl.physical.VoxMaterial;
 import voxswirl.visual.RotatingRenderer;
 
 import java.io.FileInputStream;
@@ -44,10 +46,17 @@ public class RotationVisualizer extends ApplicationAdapter {
         screenView.getCamera().position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
-//        load("vox/CrazyBox.vox");
-        load("vox/Lomuk.vox");
+        load("vox/CrazyBox.vox");
+//        load("vox/Lomuk.vox");
 //        load("vox/Tree.vox");
 //        renderer.dither = true;
+
+        for(IntMap.Entry<VoxMaterial> m : VoxIO.lastMaterials){
+            if(m.value.type != VoxMaterial.MaterialType._diffuse){
+                System.out.println(m.key + ": " + m.value);
+            }
+        }
+
         Gdx.input.setInputProcessor(inputProcessor());
     }
 

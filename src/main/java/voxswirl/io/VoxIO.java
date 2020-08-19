@@ -6,7 +6,6 @@ import voxswirl.physical.VoxMaterial;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 
 /**
@@ -98,7 +97,7 @@ public class VoxIO {
                             lastPalette[i] = Integer.reverseBytes(stream.readInt());
                         }
                         stream.readInt();
-                    } else if(chunkName.equals("MATL")){
+                    } else if(chunkName.equals("MATL")){ // remove this block if you don't handle materials
                         int materialID = stream.readInt();
                         int dictSize = stream.readInt();
                         for (int i = 0; i < dictSize; i++) {
@@ -106,23 +105,11 @@ public class VoxIO {
                             stream.read(key);
                             byte[] val = new byte[stream.readInt()];
                             stream.read(val);
-                            if(Arrays.equals(val, DIFFUSE_BYTES)){
-                                for (++i; i < dictSize; i++) {
-                                    int skip = stream.readInt();
-                                    stream.skipBytes(skip);
-                                    skip = stream.readInt();
-                                    stream.skipBytes(skip);
-                                }
-                                break;
-                            }
+                            VoxMaterial vm;
+                            if ((vm = lastMaterials.get(materialID)) == null)
+                                lastMaterials.put(materialID, new VoxMaterial(new String(val, StandardCharsets.UTF_8)));
                             else
-                            {
-                                VoxMaterial am;
-                                if((am = lastMaterials.get(materialID)) == null)
-                                    lastMaterials.put(materialID, am = new VoxMaterial(new String(val, StandardCharsets.UTF_8)));
-                                else
-                                    am.putTrait(new String(key, StandardCharsets.UTF_8), Float.parseFloat(new String(val, StandardCharsets.UTF_8)));
-                            }
+                                vm.putTrait(new String(key, StandardCharsets.UTF_8), Float.parseFloat(new String(val, StandardCharsets.UTF_8)));
                         }
                     }
                     else stream.skipBytes(chunkSize);   // read any excess bytes
@@ -133,10 +120,6 @@ public class VoxIO {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        for(IntMap.Entry<VoxMaterial> a : lastMaterials)
-//        {
-//            System.out.println(a.key + ": " + a.value);
-//        }
         return voxelData;
     }
 
