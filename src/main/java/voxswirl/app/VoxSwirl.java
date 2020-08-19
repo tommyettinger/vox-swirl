@@ -56,7 +56,7 @@ public class VoxSwirl extends ApplicationAdapter {
                 Pixmap pixmap;
                 Array<Pixmap> pm = new Array<>(32);
                 for (int i = 0; i < 32; i++) {
-                    pixmap = renderer.drawSplatsHalf(voxels, i * 0x1p-5f);
+                    pixmap = renderer.drawSplatsHalf(voxels, i * 0x1p-5f, VoxIO.lastMaterials);
                     Pixmap p = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), pixmap.getFormat());
                     p.drawPixmap(pixmap, 0, 0);
                     pm.add(p);

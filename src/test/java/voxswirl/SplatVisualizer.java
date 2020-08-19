@@ -45,7 +45,9 @@ public class SplatVisualizer extends ApplicationAdapter {
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
-        load("vox/Tree.vox");
+//        load("vox/Tree.vox");
+        load("vox/Lomuk.vox");
+//        load("vox/CrazyBox.vox");
 //        renderer.dither = true;
         Gdx.input.setInputProcessor(inputProcessor());
     }
@@ -66,7 +68,7 @@ public class SplatVisualizer extends ApplicationAdapter {
         worldView.update(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         batch.setProjectionMatrix(screenView.getCamera().combined);
         batch.begin();
-        pmTexture.draw(renderer.drawSplatsHalf(voxels, (TimeUtils.millis() & 2047) * 0x1p-11f), 0, 0);
+        pmTexture.draw(renderer.drawSplatsHalf(voxels, (TimeUtils.millis() & 2047) * 0x1p-11f, VoxIO.lastMaterials), 0, 0);
         batch.draw(pmTexture,
                 0,
                 0);

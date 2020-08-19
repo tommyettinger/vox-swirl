@@ -2,7 +2,9 @@ package voxswirl.visual;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.IntMap;
 import com.github.tommyettinger.anim8.PaletteReducer;
+import voxswirl.physical.VoxMaterial;
 
 import static voxswirl.meta.TrigTools.cos_;
 import static voxswirl.meta.TrigTools.sin_;
@@ -13,14 +15,16 @@ import static voxswirl.meta.ArrayTools.fill;
  */
 public class SplatRenderer {
     public Pixmap pixmap, pixmapHalf;
-    public int[][] depths, voxels;
+    public int[][] depths, voxels, working, render, outlines;
+    public VoxMaterial[][] materials;
     public int[][] shadeX, shadeZ;
-    public int[][] working, render, outlines;
     public PaletteReducer color = new PaletteReducer();
     public boolean dither = false, outline = true;
     public int size;
     public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
             smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
+    public IntMap<VoxMaterial> materialMap;
+
     protected SplatRenderer() {
         
     }
@@ -33,6 +37,7 @@ public class SplatRenderer {
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
+        materials = new VoxMaterial[w][h];
         voxels = fill(-1, w, h);
         shadeX = fill(-1, size + 5 << 1, size + 5 << 1);
         shadeZ = fill(-1, size + 5 << 1, size + 5 << 1);
@@ -74,13 +79,16 @@ public class SplatRenderer {
                 yy = (int)(0.5f + Math.max(0, (zPos * 3 + size + size - xPos - yPos) + 1)),
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
         boolean drawn = false;
+        final VoxMaterial m = materialMap.get(voxel & 255);
+        final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay]) {
                     drawn = true;
                     working[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 1f, neutral);
                     depths[ax][ay] = depth;
-                    outlines[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 0.625f, bigUp);
+                    materials[ax][ay] = m;
+                    outlines[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 0.625f + emit, bigUp);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
                 }
             }
@@ -308,7 +316,8 @@ public class SplatRenderer {
     // To move one z+ in voxels is y + 3 in pixels.
     // To move one z- in voxels is y - 3 in pixels.
 
-    public Pixmap drawSplats(byte[][][] colors, float angleTurns) {
+    public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
+        this.materialMap = materialMap;
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         for (int z = 0; z < size; z++) {
@@ -326,7 +335,8 @@ public class SplatRenderer {
         return blit(angleTurns);
     }
 
-    public Pixmap drawSplatsHalf(byte[][][] colors, float angleTurns) {
+    public Pixmap drawSplatsHalf(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
+        this.materialMap = materialMap;
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         for (int z = 0; z < size; z++) {

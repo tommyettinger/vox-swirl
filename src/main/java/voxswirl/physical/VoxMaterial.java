@@ -44,8 +44,8 @@ public class VoxMaterial {
 	private static final MaterialType[] ALL_TYPES = MaterialType.values();
 	private static final MaterialTrait[] ALL_TRAITS = MaterialTrait.values();
 
-	public MaterialType type;
-	public IntFloatMap traits = new IntFloatMap(16);
+	public final MaterialType type;
+	public final IntFloatMap traits = new IntFloatMap(16);
 	
 	public VoxMaterial(){
 		type = MaterialType._diffuse;

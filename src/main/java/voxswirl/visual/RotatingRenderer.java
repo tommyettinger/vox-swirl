@@ -1,6 +1,8 @@
 package voxswirl.visual;
 
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.utils.IntMap;
+import voxswirl.physical.VoxMaterial;
 
 import static voxswirl.meta.ArrayTools.fill;
 import static voxswirl.meta.TrigTools.cos_;
@@ -19,6 +21,7 @@ public class RotatingRenderer extends SplatRenderer {
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
+        materials = new VoxMaterial[w][h];
         voxels = fill(-1, w, h);
         shadeX = fill(-1, size * 3 + 10 >> 1, size * 3 + 10 >> 1);
         shadeZ = fill(-1, size * 3 + 10 >> 1, size * 3 + 10 >> 1);
@@ -248,7 +251,8 @@ public class RotatingRenderer extends SplatRenderer {
     // To move one z+ in voxels is y + 3 in pixels.
     // To move one z- in voxels is y - 3 in pixels.
 
-    public Pixmap drawSplats(byte[][][] colors, float yaw, float pitch, float roll) {
+    public Pixmap drawSplats(byte[][][] colors, float yaw, float pitch, float roll, IntMap<VoxMaterial> materialMap) {
+        this.materialMap = materialMap;
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         final float cYaw = cos_(yaw), sYaw = sin_(yaw);
@@ -274,7 +278,8 @@ public class RotatingRenderer extends SplatRenderer {
         return blit(yaw, pitch, roll);
     }
 
-    public Pixmap drawSplatsHalf(byte[][][] colors, float yaw, float pitch, float roll) {
+    public Pixmap drawSplatsHalf(byte[][][] colors, float yaw, float pitch, float roll, IntMap<VoxMaterial> materialMap) {
+        this.materialMap = materialMap;
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         float ox, oy, oz; // offset x,y,z
