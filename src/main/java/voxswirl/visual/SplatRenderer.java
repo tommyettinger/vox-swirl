@@ -3,12 +3,13 @@ package voxswirl.visual;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.IntMap;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.anim8.PaletteReducer;
 import voxswirl.physical.VoxMaterial;
 
+import static voxswirl.meta.ArrayTools.fill;
 import static voxswirl.meta.TrigTools.cos_;
 import static voxswirl.meta.TrigTools.sin_;
-import static voxswirl.meta.ArrayTools.fill;
 
 /**
  * Renders {@code byte[][][]} voxel models to {@link Pixmap}s with arbitrary yaw rotation.
@@ -24,6 +25,7 @@ public class SplatRenderer {
     public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
             smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
     public IntMap<VoxMaterial> materialMap;
+    public long seed;
 
     protected SplatRenderer() {
         
@@ -41,6 +43,15 @@ public class SplatRenderer {
         voxels = fill(-1, w, h);
         shadeX = fill(-1, size + 5 << 1, size + 5 << 1);
         shadeZ = fill(-1, size + 5 << 1, size + 5 << 1);
+    }
+    protected static float hash(final int x, final int y, final int z, final int w, final int u) {
+        final int s = x * 0x1C3360 ^ y * 0x18DA3A ^ z * 0x15E6DA ^ w * 0x134D28 ^ u * 0x110280;
+        return ((s ^ (s << 19 | s >>> 13) ^ (s << 5 | s >>> 27) ^ 0xD1B54A35) * 0x125493 >>> 8) * 0x1p-24f;
+    }
+    
+    protected float random(){
+        return (((seed = seed * 0xD1342543DE82EF95L + 0x632BE59BD9B4E019L) >>> 41) +
+                ((seed = seed * 0xD1342543DE82EF95L + 0x632BE59BD9B4E019L) >>> 41)) * 0x1p-24f;
     }
 
     /**
@@ -81,14 +92,15 @@ public class SplatRenderer {
         boolean drawn = false;
         final VoxMaterial m = materialMap.get(voxel & 255);
         final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
+        final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
-                if (depth >= depths[ax][ay]) {
+                if (depth >= depths[ax][ay] && (alpha == 0f || random() >= alpha)) {
                     drawn = true;
                     working[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 1f, neutral);
                     depths[ax][ay] = depth;
                     materials[ax][ay] = m;
-                    outlines[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 0.625f + emit, bigUp);
+                    outlines[ax][ay] = alpha > 0f ? 0 : Coloring.adjust(color.paletteArray[voxel & 255], 0.625f + emit, bigUp);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
                 }
             }
@@ -318,6 +330,8 @@ public class SplatRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
+        seed = (TimeUtils.millis() >>> 5) * 0x632BE59BD9B4E019L;
+//        seed = Tools3D.hash64(colors);
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         for (int z = 0; z < size; z++) {
@@ -337,6 +351,8 @@ public class SplatRenderer {
 
     public Pixmap drawSplatsHalf(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
+        seed = (TimeUtils.millis() >>> 5) * 0x632BE59BD9B4E019L;
+//        seed = Tools3D.hash64(colors);
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         for (int z = 0; z < size; z++) {

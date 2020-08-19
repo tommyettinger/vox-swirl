@@ -547,4 +547,22 @@ public class Tools3D {
             }
         }
     }
+
+    /**
+     * Probably a pretty lousy hash; should be fast enough for a one-at-a-time hash with 64-bit output.
+     * Higher bits should be better.
+     * @param voxels a 3D byte array like any other here; must be non-null.
+     * @return a 64-bit hash of voxels
+     */
+    public static long hash64(byte[][][] voxels){
+        long n = 0x632BE59BD9B4E019L, r = 0xC6BC279692B5CC83L, s = 0xDB4F0B9175AE2165L;
+        for (int x = 0; x < voxels.length; x++) {
+            for (int y = 0; y < voxels[x].length; y++) {
+                for (int z = 0; z < voxels[x][y].length; z++) {
+                    r ^= (s += voxels[x][y][z] * (n += 0x9E3779B97F4A7C16L));
+                }
+            }
+        }
+        return (n = (r ^ r >>> 27) * 0xAEF17502108EF2D9L + s) ^ n >>> 25;
+    }
 }

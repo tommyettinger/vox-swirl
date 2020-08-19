@@ -9,12 +9,14 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
+import voxswirl.physical.VoxMaterial;
 import voxswirl.visual.SplatRenderer;
 
 import java.io.FileInputStream;
@@ -33,11 +35,14 @@ public class SplatVisualizer extends ApplicationAdapter {
     private SplatRenderer renderer;
     private byte[][][] voxels;
     private float saturation;
+    private float time;
+    private boolean play = true;
     
     @Override
     public void create() {
         batch = new SpriteBatch();
         saturation = 0f;
+        time = (TimeUtils.millis() & 2047) * 0x1p-11f;
         worldView = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         screenView = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         buffer = new FrameBuffer(Pixmap.Format.RGBA8888, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, false, false);
@@ -49,6 +54,13 @@ public class SplatVisualizer extends ApplicationAdapter {
         load("vox/Lomuk.vox");
 //        load("vox/CrazyBox.vox");
 //        renderer.dither = true;
+
+        for(IntMap.Entry<VoxMaterial> m : VoxIO.lastMaterials){
+            if(m.value.type != VoxMaterial.MaterialType._diffuse){
+                System.out.println(m.key + ": " + m.value);
+            }
+        }
+
         Gdx.input.setInputProcessor(inputProcessor());
     }
 
@@ -56,6 +68,7 @@ public class SplatVisualizer extends ApplicationAdapter {
     public void render() {
 //        model.setFrame((int)(TimeUtils.millis() >>> 7) & 15);
 //        boom.setFrame((int)(TimeUtils.millis() >>> 7) & 15);
+        if(play) time = (TimeUtils.millis() & 2047) * 0x1p-11f;
         buffer.begin();
         
         Gdx.gl.glClearColor(0.4f, 0.75f, 0.3f, 1f);
@@ -68,7 +81,7 @@ public class SplatVisualizer extends ApplicationAdapter {
         worldView.update(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         batch.setProjectionMatrix(screenView.getCamera().combined);
         batch.begin();
-        pmTexture.draw(renderer.drawSplatsHalf(voxels, (TimeUtils.millis() & 2047) * 0x1p-11f, VoxIO.lastMaterials), 0, 0);
+        pmTexture.draw(renderer.drawSplatsHalf(voxels, time, VoxIO.lastMaterials), 0, 0);
         batch.draw(pmTexture,
                 0,
                 0);
@@ -132,6 +145,9 @@ public class SplatVisualizer extends ApplicationAdapter {
                     case Input.Keys.DOWN:
                         renderer.saturation(saturation = Math.max(-1f, saturation - 0.004f));
                         System.out.println(saturation);
+                        break;
+                    case Input.Keys.SPACE:
+                        play = !play;
                         break;
                     case Input.Keys.ESCAPE:
                         Gdx.app.exit();
