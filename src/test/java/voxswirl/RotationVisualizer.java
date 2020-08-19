@@ -88,7 +88,7 @@ public class RotationVisualizer extends ApplicationAdapter {
         batch.setProjectionMatrix(screenView.getCamera().combined);
         batch.begin();
 //        pmTexture.draw(renderer.drawSplatsHalf(voxels, 0f, (TimeUtils.millis() & 2047) * 0x1p-11f, 0f), 0, 0);
-        pmTexture.draw(renderer.drawSplatsHalf(voxels, yaw, pitch, roll, VoxIO.lastMaterials), 0, 0);
+        pmTexture.draw(renderer.drawSplats(voxels, yaw, pitch, roll, VoxIO.lastMaterials), 0, 0);
         batch.draw(pmTexture,
                 0,
                 0);

@@ -59,7 +59,7 @@ public class VoxMaterial {
 		traits.put(5, 0.3f);
 		traits.put(4, 0.41f);
 		if(type == MaterialType._media)
-			traits.put(0, 0.75f); // cloud materials are always partly transparent
+			traits.put(0, 0.6f); // cloud materials are always partly transparent
 	}
 
 	public float getTrait(MaterialTrait trait){
