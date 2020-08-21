@@ -52,11 +52,11 @@
             <name>Sonatype Nexus Snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
-<!--	    <repository>-->
-<!--		    <id>jitpack.io</id>-->
-<!--           <name>JitPack.io</name>-->
-<!--		    <url>https://jitpack.io</url>-->
-<!--	    </repository>-->
+	    <repository>
+		    <id>jitpack.io</id>
+           <name>JitPack.io</name>
+		    <url>https://jitpack.io</url>
+	    </repository>
 	</repositories>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -69,7 +69,7 @@
         <junit.version>4.11</junit.version>
         <squidlib.version>3.0.0</squidlib.version>
         <gdx.version>1.9.11</gdx.version>
-        <anim8.version>0.1.7</anim8.version>
+        <anim8.version>70342de95c</anim8.version>
     </properties>
 
 

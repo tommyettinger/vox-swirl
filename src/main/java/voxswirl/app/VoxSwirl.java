@@ -35,8 +35,7 @@ public class VoxSwirl extends ApplicationAdapter {
         else 
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
-            inputs = new String[]{"D:/Tree.vox"};
-//            inputs = new String[]{"D:/Eye_Tyrant.vox"};
+            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox"};
             if(!new File(inputs[0]).exists()) 
                 System.exit(0);
         }
@@ -46,9 +45,9 @@ public class VoxSwirl extends ApplicationAdapter {
         if(inputs == null) Gdx.app.exit();
         png = new PixmapIO.PNG();
         gif = new AnimatedGif();
-        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.BLUE_NOISE);
+        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.CHAOTIC_NOISE);
         gif.palette = new PaletteReducer();
-        gif.palette.setDitherStrength(0.75f);
+        gif.palette.setDitherStrength(0.25f);
         for(String s : inputs)
         {
             load(s);
