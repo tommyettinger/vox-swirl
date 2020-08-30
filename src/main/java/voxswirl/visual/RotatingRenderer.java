@@ -106,22 +106,22 @@ public class RotatingRenderer extends SplatRenderer {
         }
         if (outline) {
             int o;
-            for (int x = 1; x < xSize; x++) { 
+            for (int x = 2; x < xSize - 1; x++) { 
                 final int hx = x >>> 1;
-                for (int y = 1; y < ySize; y++) {
+                for (int y = 2; y < ySize - 1; y++) {
                     int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
-                        if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
+                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
                             pixmap.drawPixel(hx - 1, hy    , o);
                         }
-                        if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
+                        if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
                             pixmap.drawPixel(hx + 1, hy    , o);
                         }
-                        if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
+                        if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
                             pixmap.drawPixel(hx    , hy - 1, o);
                         }
-                        if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
+                        if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
                             pixmap.drawPixel(hx    , hy + 1, o);
                         }
                     }

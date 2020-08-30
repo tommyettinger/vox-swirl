@@ -49,6 +49,15 @@ public class SplatRenderer {
         return ((s ^ (s << 19 | s >>> 13) ^ (s << 5 | s >>> 27) ^ 0xD1B54A35) * 0x125493 >>> 8) * 0x1p-24f;
     }
     
+    protected float bn(int x, int y) {
+//        final float result = (((x | ~y) & 1) + (x + ~y & 1) + (x & y & 1)) * 0.333f;
+//        System.out.println(result);
+//        return result;
+//        return (((x | ~y) & 1) + (x + ~y & 1) + (x & y & 1)) * 0.333f;
+        return (PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 128) * 0x1p-8f;
+    }
+
+    
     protected float random(){
         return (((seed * 0xAF251AF3B0F025B5L + 0xB564EF22EC7AECE5L) >>> 41) +
                 ((seed = seed * 0xD1342543DE82EF95L + 0x632BE59BD9B4E019L) >>> 41)) * 0x1p-24f;
@@ -100,12 +109,13 @@ public class SplatRenderer {
         final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
-                if (depth >= depths[ax][ay] && (alpha == 0f || random() >= alpha)) {
+                if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
                     drawn = true;
                     working[ax][ay] = Coloring.adjust(palette[voxel & 255], 1f, neutral);
                     depths[ax][ay] = depth;
                     materials[ax][ay] = m;
-                    outlines[ax][ay] = alpha > 0f ? 0 : Coloring.adjust(palette[voxel & 255], 0.625f + emit, bigUp);
+                    if(alpha == 0f)
+                        outlines[ax][ay] = Coloring.adjust(palette[voxel & 255], 0.625f + emit, bigUp);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
                 }
             }
@@ -197,22 +207,22 @@ public class SplatRenderer {
         }
         if (outline) {
             int o;
-            for (int x = 1; x < xSize; x++) { 
+            for (int x = 2; x < xSize - 1; x++) {
                 final int hx = x >>> 1;
-                for (int y = 1; y < ySize; y++) {
+                for (int y = 2; y < ySize - 1; y++) {
                     int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
-                        if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
+                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
                             pixmap.drawPixel(hx - 1, hy    , o);
                         }
-                        if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
+                        if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
                             pixmap.drawPixel(hx + 1, hy    , o);
                         }
-                        if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
+                        if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
                             pixmap.drawPixel(hx    , hy - 1, o);
                         }
-                        if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
+                        if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
                             pixmap.drawPixel(hx    , hy + 1, o);
                         }
                     }
