@@ -129,8 +129,8 @@ public class RotatingRenderer extends SplatRenderer {
             }
         }
         if(dither) {
-            color.setDitherStrength(0.3125f);
-            color.reduceBlueNoise(pixmap);
+            reducer.setDitherStrength(0.5f);
+            reducer.reduceBlueNoise(pixmap);
 //            color.reduceFloydSteinberg(pixmapHalf);
 //            color.reducer.reduceKnollRoberts(pixmapHalf);
 //            color.reducer.reduceSierraLite(pixmapHalf);

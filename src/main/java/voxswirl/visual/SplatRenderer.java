@@ -19,7 +19,8 @@ public class SplatRenderer {
     public int[][] depths, voxels, working, render, outlines;
     public VoxMaterial[][] materials;
     public int[][] shadeX, shadeZ;
-    public PaletteReducer color = new PaletteReducer();
+    public PaletteReducer reducer = new PaletteReducer();
+    public int[] palette;
     public boolean dither = false, outline = true;
     public int size;
     public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
@@ -74,12 +75,17 @@ public class SplatRenderer {
         return this;
     }
 
-    public PaletteReducer palette() {
-        return color;
+    public int[] palette() {
+        return palette;
     }
 
     public SplatRenderer palette(PaletteReducer color) {
-        this.color = color;
+        this.palette = color.paletteArray;
+        return this;
+    }
+
+    public SplatRenderer palette(int[] color) {
+        this.palette = color;
         return this;
     }
 
@@ -96,10 +102,10 @@ public class SplatRenderer {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay] && (alpha == 0f || random() >= alpha)) {
                     drawn = true;
-                    working[ax][ay] = Coloring.adjust(color.paletteArray[voxel & 255], 1f, neutral);
+                    working[ax][ay] = Coloring.adjust(palette[voxel & 255], 1f, neutral);
                     depths[ax][ay] = depth;
                     materials[ax][ay] = m;
-                    outlines[ax][ay] = alpha > 0f ? 0 : Coloring.adjust(color.paletteArray[voxel & 255], 0.625f + emit, bigUp);
+                    outlines[ax][ay] = alpha > 0f ? 0 : Coloring.adjust(palette[voxel & 255], 0.625f + emit, bigUp);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
                 }
             }
@@ -214,8 +220,8 @@ public class SplatRenderer {
             }
         }
         if(dither) {
-            color.setDitherStrength(0.3125f);
-            color.reduceBlueNoise(pixmap);
+            reducer.setDitherStrength(0.5f);
+            reducer.reduceBlueNoise(pixmap);
 //            color.reduceFloydSteinberg(pixmapHalf);
 //            color.reducer.reduceKnollRoberts(pixmapHalf);
 //            color.reducer.reduceSierraLite(pixmapHalf);

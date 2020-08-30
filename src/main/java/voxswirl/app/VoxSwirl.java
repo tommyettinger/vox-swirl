@@ -100,7 +100,7 @@ public class VoxSwirl extends ApplicationAdapter {
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
             renderer = new SplatRenderer(voxels.length);
-            renderer.color.exact(VoxIO.lastPalette);
+            renderer.palette = VoxIO.lastPalette;
             
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}}; 

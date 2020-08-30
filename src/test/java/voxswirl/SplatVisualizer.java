@@ -167,7 +167,7 @@ public class SplatVisualizer extends ApplicationAdapter {
             }
             Tools3D.soakInPlace(voxels);
             renderer = new SplatRenderer(voxels.length);
-            renderer.color.exact(VoxIO.lastPalette);
+            renderer.palette = VoxIO.lastPalette;
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}};
         }

@@ -46,7 +46,8 @@ public class RotationVisualizer extends ApplicationAdapter {
         screenView.getCamera().position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
-        load("vox/CrazyBox.vox");
+        load("vox/Infantry_Firing.vox");
+//        load("vox/CrazyBox.vox");
 //        load("vox/Lomuk.vox");
 //        load("vox/Tree.vox");
 //        renderer.dither = true;
@@ -175,7 +176,7 @@ public class RotationVisualizer extends ApplicationAdapter {
             voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
             Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, v.length >> 2);
             renderer = new RotatingRenderer(voxels.length);
-            renderer.color.exact(VoxIO.lastPalette);
+            renderer.palette = VoxIO.lastPalette;
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}};
         }
