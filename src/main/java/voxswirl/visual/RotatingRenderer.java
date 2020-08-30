@@ -1,6 +1,7 @@
 package voxswirl.visual;
 
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.IntMap;
 import voxswirl.physical.VoxMaterial;
 
@@ -42,6 +43,8 @@ public class RotatingRenderer extends SplatRenderer {
         final float x_x = cYaw * cPitch, y_x = cYaw * sPitch * sRoll - sYaw * cRoll, z_x = cYaw * sPitch * cRoll + sYaw * sRoll;
         final float x_y = sYaw * cPitch, y_y = sYaw * sPitch * sRoll + cYaw * cRoll, z_y = sYaw * sPitch * cRoll - cYaw * sRoll;
         final float x_z = -sPitch, y_z = cPitch * sRoll, z_z = cPitch * cRoll;
+        VoxMaterial m;
+        boolean direct;
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
                 if((v = voxels[sx][sy]) != -1) {
@@ -54,31 +57,41 @@ public class RotatingRenderer extends SplatRenderer {
                     fx = (int)(ox * x_x + oy * y_x + oz * z_x + hs + 4.500f);
                     fy = (int)(ox * x_y + oy * y_y + oz * z_y + hs + 4.500f);
                     fz = (int)(ox * x_z + oy * y_z + oz * z_z + hs + 4.500f);
+                    m = materials[sx][sy];
+                    direct = false;
                     if (Math.abs(shadeZ[fx][fy] - fz) < 1)
                     {
+                        direct = true;
                         render[sx][sy] = Coloring.adjust(render[sx][sy], 1.1f, midUp);
-                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], 1.030f, smallUp);
-                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], 1.030f, smallUp);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], 1.030f, smallUp);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], 1.030f, smallUp);
+                        float spread = MathUtils.lerp(1.033f, 1f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], spread, smallUp);
+                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], spread, smallUp);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], spread, smallUp);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], spread, smallUp);
 
-                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], 1.030f, smallUp);
-                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], 1.030f, smallUp);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], 1.030f, smallUp);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], 1.030f, smallUp);
+                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], spread, smallUp);
+                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], spread, smallUp);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], spread, smallUp);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], spread, smallUp);
                     }
                     if (Math.abs(shadeX[fy][fz] - fx) > 1)
                     {
+                        direct = false;
                         render[sx][sy] = Coloring.adjust(render[sx][sy], 0.95f, smallDown);
-                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], 0.977f, tinyDown);
-                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], 0.977f, tinyDown);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], 0.977f, tinyDown);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], 0.977f, tinyDown);
+                        float spread = MathUtils.lerp(0.974f, 1f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], spread, tinyDown);
+                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], spread, tinyDown);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], spread, tinyDown);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], spread, tinyDown);
 
-                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], 0.977f, tinyDown);
-                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], 0.977f, tinyDown);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], 0.977f, tinyDown);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], 0.977f, tinyDown);
+                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], spread, tinyDown);
+                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], spread, tinyDown);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], spread, tinyDown);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], spread, tinyDown);
+                    }
+                    if(direct)
+                    {
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.8f + m.getTrait(VoxMaterial.MaterialTrait._ior), m.getTrait(VoxMaterial.MaterialTrait._metal) * 0.375f + 0.85f);
                     }
                 }
             }

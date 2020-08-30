@@ -45,9 +45,9 @@ public class VoxSwirl extends ApplicationAdapter {
         if(inputs == null) Gdx.app.exit();
         png = new PixmapIO.PNG();
         gif = new AnimatedGif();
-        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.CHAOTIC_NOISE);
+        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.BLUE_NOISE);
         gif.palette = new PaletteReducer();
-        gif.palette.setDitherStrength(0.25f);
+        gif.palette.setDitherStrength(0.5f);
         for(String s : inputs)
         {
             load(s);
@@ -61,7 +61,8 @@ public class VoxSwirl extends ApplicationAdapter {
                     pm.add(p);
                     png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
                 }
-                gif.palette.analyze(pm);
+                //gif.palette.setDefaultPalette();
+//                gif.palette.exact(VoxIO.lastPalette);
                 gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
             } catch (IOException e) {
                 e.printStackTrace();
