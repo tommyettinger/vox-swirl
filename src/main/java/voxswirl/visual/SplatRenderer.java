@@ -138,7 +138,28 @@ public class SplatRenderer {
         return this;
     }
 
+    /**
+     * Compiles all of the individual voxels drawn with {@link #splat(float, float, float, int, int, int, byte)} into a
+     * single Pixmap and returns it.
+     * @param turns yaw in turns; like turning your head or making a turn in a car
+     * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, int, int, int, byte)}
+     */
     public Pixmap blit(float turns) {
+        return blit(turns, 0f, 0f);
+    }
+
+    /**
+     * Compiles all of the individual voxels drawn with {@link #splat(float, float, float, int, int, int, byte)} into a
+     * single Pixmap and returns it.
+     * <br>
+     * Although this is in SplatRenderer (which only handles yaw rotation), this allows specifying pitch and roll as
+     * well in order to have one consistent implementation, used by {@link RotatingRenderer}.
+     * @param yaw in turns; like turning your head or making a turn in a car
+     * @param pitch in turns; like looking up or down or making a nosedive in a plane
+     * @param roll in turns; like tilting your head to one side or doing a barrel roll in a starship
+     * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, int, int, int, byte)}
+     */
+    public Pixmap blit(float yaw, float pitch, float roll) {
         final int threshold = 8;
         pixmap.setColor(0);
         pixmap.fill();
@@ -146,8 +167,14 @@ public class SplatRenderer {
         for (int x = 0; x <= xSize; x++) {
             System.arraycopy(working[x], 0, render[x], 0, ySize);
         }
-        int v, vx, vy, vz, fx, fy;
-        float hs = (size) * 0.5f, c = cos_(turns), s = sin_(turns);
+        int v, vx, vy, vz, fx, fy, fz;
+        float hs = (size) * 0.5f, ox, oy, oz;
+        final float cYaw = cos_(yaw), sYaw = sin_(yaw);
+        final float cPitch = cos_(pitch), sPitch = sin_(pitch);
+        final float cRoll = cos_(roll), sRoll = sin_(roll);
+        final float x_x = cYaw * cPitch, y_x = cYaw * sPitch * sRoll - sYaw * cRoll, z_x = cYaw * sPitch * cRoll + sYaw * sRoll;
+        final float x_y = sYaw * cPitch, y_y = sYaw * sPitch * sRoll + cYaw * cRoll, z_y = sYaw * sPitch * cRoll - cYaw * sRoll;
+        final float x_z = -sPitch, y_z = cPitch * sRoll, z_z = cPitch * cRoll;
         VoxMaterial m;
         boolean direct;
         for (int sx = 0; sx <= xSize; sx++) {
@@ -156,11 +183,15 @@ public class SplatRenderer {
                     vx = v & 0x3FF;
                     vy = v >>> 10 & 0x3FF;
                     vz = v >>> 20 & 0x3FF;
-                    fx = (int)((vx-hs) * c - (vy-hs) * s + hs + 4.500f);
-                    fy = (int)((vx-hs) * s + (vy-hs) * c + hs + 4.500f);
+                    ox = vx - hs;
+                    oy = vy - hs;
+                    oz = vz - hs;
+                    fx = (int)(ox * x_x + oy * y_x + oz * z_x + hs + 4.500f);
+                    fy = (int)(ox * x_y + oy * y_y + oz * z_y + hs + 4.500f);
+                    fz = (int)(ox * x_z + oy * y_z + oz * z_z + hs + 4.500f);
                     m = materials[sx][sy];
                     direct = false;
-                    if (shadeZ[fx][fy] == vz+4)
+                    if (Math.abs(shadeZ[fx][fy] - fz) < 1)
                     {
                         direct = true;
                         render[sx][sy] = Coloring.adjust(render[sx][sy], 1.1f, midUp);
@@ -175,7 +206,7 @@ public class SplatRenderer {
                         if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], spread, smallUp);
                         if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], spread, smallUp);
                     }
-                    if (Math.abs(shadeX[fy][vz + 4] - fx) > 1)
+                    if (Math.abs(shadeX[fy][fz] - fx) > 1)
                     {
                         direct = false;
                         render[sx][sy] = Coloring.adjust(render[sx][sy], 0.95f, smallDown);
@@ -232,9 +263,6 @@ public class SplatRenderer {
         if(dither) {
             reducer.setDitherStrength(0.5f);
             reducer.reduceBlueNoise(pixmap);
-//            color.reduceFloydSteinberg(pixmapHalf);
-//            color.reducer.reduceKnollRoberts(pixmapHalf);
-//            color.reducer.reduceSierraLite(pixmapHalf);
 //            color.reducer.reduceJimenez(pixmapHalf);
         }
 
