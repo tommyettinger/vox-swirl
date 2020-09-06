@@ -35,7 +35,9 @@ public class VoxSwirl extends ApplicationAdapter {
         else 
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
-            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox"};
+//            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/libGDX_Logo_Half.vox"};
+            inputs = new String[]{"vox/libGDX_Logo.vox"};
+//            inputs = new String[]{"vox/libGDX_Logo_Half.vox"};
             if(!new File(inputs[0]).exists()) 
                 System.exit(0);
         }
@@ -45,7 +47,7 @@ public class VoxSwirl extends ApplicationAdapter {
         if(inputs == null) Gdx.app.exit();
         png = new PixmapIO.PNG();
         gif = new AnimatedGif();
-        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.BLUE_NOISE);
+        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.CHAOTIC_NOISE);
         gif.palette = new PaletteReducer();
         gif.palette.setDitherStrength(0.5f);
         for(String s : inputs)
@@ -55,7 +57,7 @@ public class VoxSwirl extends ApplicationAdapter {
                 Pixmap pixmap;
                 Array<Pixmap> pm = new Array<>(32);
                 for (int i = 0; i < 32; i++) {
-                    pixmap = renderer.drawSplats(voxels, i * 0x1p-5f, VoxIO.lastMaterials);
+                    pixmap = renderer.drawSplats(voxels, (i + 12 & 31) * 0x1p-5f, VoxIO.lastMaterials);
                     Pixmap p = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), pixmap.getFormat());
                     p.drawPixmap(pixmap, 0, 0);
                     pm.add(p);
