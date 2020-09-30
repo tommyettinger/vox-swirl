@@ -160,7 +160,7 @@ public class SplatRenderer {
      * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, int, int, int, byte)}
      */
     public Pixmap blit(float yaw, float pitch, float roll) {
-        final int threshold = 19;
+        final int threshold = 8;
         pixmap.setColor(0);
         pixmap.fill();
         int xSize = working.length - 1, ySize = working[0].length - 1, depth;
@@ -206,12 +206,11 @@ public class SplatRenderer {
                         if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], spread, smallUp);
                         if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], spread, smallUp);
                     }
-                    if (Math.abs(shadeX[fy][fz] - fx) > 6 + random())
+                    if (Math.abs(shadeX[fy][fz] - fx) > 1)
                     {
                         direct = false;
-                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.965f, smallDown);
-                        float spread = MathUtils.lerp(1f, 0.97f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                        // * (1f + (PaletteReducer.RAW_BLUE_NOISE[(sx & 63) << 6 | (sy & 63)] + 0.5f) * 0x1p-11f)
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.95f, smallDown);
+                        float spread = MathUtils.lerp(0.974f, 1f, m.getTrait(VoxMaterial.MaterialTrait._rough));
                         if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], spread, tinyDown);
                         if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], spread, tinyDown);
                         if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], spread, tinyDown);
