@@ -243,19 +243,44 @@ public class SplatRenderer {
                 for (int y = 2; y < ySize - 1; y++) {
                     int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
-                        depth = depths[x][y];
-                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
+//                        depth = depths[x][y];
+                        if (outlines[x - 1][y] == 0) {
                             pixmap.drawPixel(hx - 1, hy    , o);
                         }
-                        if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
+                        if (outlines[x + 1][y] == 0) {
                             pixmap.drawPixel(hx + 1, hy    , o);
                         }
-                        if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
+                        if (outlines[x][y - 1] == 0) {
                             pixmap.drawPixel(hx    , hy - 1, o);
                         }
-                        if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
+                        if (outlines[x][y + 1] == 0) {
                             pixmap.drawPixel(hx    , hy + 1, o);
                         }
+//                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
+//                            pixmap.drawPixel(hx, hy    , o);
+//                        }
+//                        else if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
+//                            pixmap.drawPixel(hx, hy    , o);
+//                        }
+//                        else if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
+//                            pixmap.drawPixel(hx    , hy, o);
+//                        }
+//                        else if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
+//                            pixmap.drawPixel(hx    , hy, o);
+//                        }
+                        
+//                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
+//                            pixmap.drawPixel(hx - 1, hy    , o);
+//                        }
+//                        if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
+//                            pixmap.drawPixel(hx + 1, hy    , o);
+//                        }
+//                        if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
+//                            pixmap.drawPixel(hx    , hy - 1, o);
+//                        }
+//                        if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
+//                            pixmap.drawPixel(hx    , hy + 1, o);
+//                        }
                     }
                 }
             }
