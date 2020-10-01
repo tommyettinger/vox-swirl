@@ -22,8 +22,8 @@ public class RotatingRenderer extends SplatRenderer {
         depths =   new int[w][h];
         materials = new VoxMaterial[w][h];
         voxels = fill(-1, w, h);
-        shadeX = fill(-1, size * 3 + 10 >> 1, size * 3 + 10 >> 1);
-        shadeZ = fill(-1, size * 3 + 10 >> 1, size * 3 + 10 >> 1);
+        shadeX = fill(-1f, size * 3 + 10 >> 1, size * 3 + 10 >> 1);
+        shadeZ = fill(-1f, size * 3 + 10 >> 1, size * 3 + 10 >> 1);
     }
     
     // To move one x+ in voxels is x + 2, y - 1 in pixels.

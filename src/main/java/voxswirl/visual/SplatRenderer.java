@@ -18,7 +18,7 @@ public class SplatRenderer {
     public Pixmap pixmap;
     public int[][] depths, voxels, working, render, outlines;
     public VoxMaterial[][] materials;
-    public int[][] shadeX, shadeZ;
+    public float[][] shadeX, shadeZ;
     public PaletteReducer reducer = new PaletteReducer();
     public int[] palette;
     public boolean dither = false, outline = true;
@@ -41,8 +41,8 @@ public class SplatRenderer {
         depths =   new int[w][h];
         materials = new VoxMaterial[w][h];
         voxels = fill(-1, w, h);
-        shadeX = fill(-1, size + 5 << 1, size + 5 << 1);
-        shadeZ = fill(-1, size + 5 << 1, size + 5 << 1);
+        shadeX = fill(-1f, size + 5 << 1, size + 5 << 1);
+        shadeZ = fill(-1f, size + 5 << 1, size + 5 << 1);
     }
     protected static float hash(final int x, final int y, final int z, final int w, final int u) {
         final int s = x * 0x1C3360 ^ y * 0x18DA3A ^ z * 0x15E6DA ^ w * 0x134D28 ^ u * 0x110280;
@@ -121,8 +121,8 @@ public class SplatRenderer {
             }
         }
         if(drawn) {
-            shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)] = Math.max(shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)], (int) (4.500f + zPos));
-            shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)] = Math.max(shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)], (int) (4.500f + xPos));
+            shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)] = Math.max(shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)], (4.500f + zPos));
+            shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)] = Math.max(shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)], (4.500f + xPos));
         }
     }
     
@@ -133,8 +133,8 @@ public class SplatRenderer {
         fill(depths, 0);
         fill(outlines, (byte) 0);
         fill(voxels, -1);
-        fill(shadeX, -1);
-        fill(shadeZ, -1);
+        fill(shadeX, -1f);
+        fill(shadeZ, -1f);
         return this;
     }
 
@@ -168,7 +168,7 @@ public class SplatRenderer {
             System.arraycopy(working[x], 0, render[x], 0, ySize);
         }
         int v, vx, vy, vz, fx, fy, fz;
-        float hs = (size) * 0.5f, ox, oy, oz;
+        float hs = (size) * 0.5f, ox, oy, oz, tx, tz;
         final float cYaw = cos_(yaw), sYaw = sin_(yaw);
         final float cPitch = cos_(pitch), sPitch = sin_(pitch);
         final float cRoll = cos_(roll), sRoll = sin_(roll);
@@ -186,16 +186,32 @@ public class SplatRenderer {
                     ox = vx - hs;
                     oy = vy - hs;
                     oz = vz - hs;
-                    fx = (int)(ox * x_x + oy * y_x + oz * z_x + hs + 4.500f);
+                    tx = ox * x_x + oy * y_x + oz * z_x + hs + 4.500f;
+                    fx = (int)(tx);
                     fy = (int)(ox * x_y + oy * y_y + oz * z_y + hs + 4.500f);
-                    fz = (int)(ox * x_z + oy * y_z + oz * z_z + hs + 4.500f);
+                    tz = ox * x_z + oy * y_z + oz * z_z + hs + 4.500f;
+                    fz = (int)(tz);
                     m = materials[sx][sy];
-                    direct = false;
-                    if (Math.abs(shadeZ[fx][fy] - fz) < 1)
+                    direct = true;
+                    if ((shadeX[fy][fz] - tx) > 2f || ((fy > 1 && shadeX[fy - 2][fz] - tx > 2f) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > 2f)))
                     {
-                        direct = true;
-                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.1f, midUp);
-                        float spread = MathUtils.lerp(1.033f, 1f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        direct = false;
+                        render[sx][sy] = Coloring.adjust(working[sx][sy], 0.65f, smallDown);
+                        float spread = MathUtils.lerp(0.66f, 0.88f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(working[sx-1][sy], spread, smallDown);
+                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(working[sx][sy-1], spread, smallDown);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(working[sx+1][sy], spread, smallDown);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(working[sx][sy+1], spread, smallDown);
+
+                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(working[sx-2][sy], spread, smallDown);
+                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(working[sx][sy-2], spread, smallDown);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(working[sx+2][sy], spread, smallDown);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(working[sx][sy+2], spread, smallDown);
+                    }
+                    if (Math.abs(shadeZ[fx][fy] - tz) < 1)
+                    {
+                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.2f, midUp);
+                        float spread = MathUtils.lerp(1.17f, 1.04f, m.getTrait(VoxMaterial.MaterialTrait._rough));
                         if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], spread, smallUp);
                         if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], spread, smallUp);
                         if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], spread, smallUp);
@@ -205,25 +221,10 @@ public class SplatRenderer {
                         if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], spread, smallUp);
                         if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], spread, smallUp);
                         if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], spread, smallUp);
-                    }
-                    if (Math.abs(shadeX[fy][fz] - fx) > 1)
-                    {
-                        direct = false;
-                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.95f, smallDown);
-                        float spread = MathUtils.lerp(0.974f, 1f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], spread, tinyDown);
-                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], spread, tinyDown);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], spread, tinyDown);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], spread, tinyDown);
-
-                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], spread, tinyDown);
-                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], spread, tinyDown);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], spread, tinyDown);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], spread, tinyDown);
-                    }
-                    if(direct)
-                    {
-                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.8f + m.getTrait(VoxMaterial.MaterialTrait._ior), m.getTrait(VoxMaterial.MaterialTrait._metal) * 0.375f + 0.85f);
+                        if(direct)
+                        {
+                            render[sx][sy] = Coloring.adjust(render[sx][sy], 0.8f + m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.5f, m.getTrait(VoxMaterial.MaterialTrait._metal) * 0.375f + 0.85f);
+                        }
                     }
                 }
             }
