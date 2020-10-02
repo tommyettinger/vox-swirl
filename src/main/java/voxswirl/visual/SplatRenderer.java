@@ -41,8 +41,8 @@ public class SplatRenderer {
         depths =   new int[w][h];
         materials = new VoxMaterial[w][h];
         voxels = fill(-1, w, h);
-        shadeX = fill(-1f, size + 5 << 1, size + 5 << 1);
-        shadeZ = fill(-1f, size + 5 << 1, size + 5 << 1);
+        shadeX = fill(-1f, size * 3 + 5, size * 3 + 5);
+        shadeZ = fill(-1f, size * 3 + 5, size * 3 + 5);
     }
     protected static float hash(final int x, final int y, final int z, final int w, final int u) {
         final int s = x * 0x1C3360 ^ y * 0x18DA3A ^ z * 0x15E6DA ^ w * 0x134D28 ^ u * 0x110280;
@@ -97,11 +97,11 @@ public class SplatRenderer {
         this.palette = color;
         return this;
     }
-
+    
     public void splat(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
         final int 
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
-                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size + size - xPos - yPos) + 1)),
+                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 2 - xPos - yPos) + 1)),
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
         boolean drawn = false;
         final VoxMaterial m = materialMap.get(voxel & 255);
@@ -120,7 +120,9 @@ public class SplatRenderer {
                 }
             }
         }
-        if(drawn) {
+        if(xPos < -4.5 || yPos < -4.5 || zPos < -4.5 || xPos + 4.5 > shadeZ.length || yPos + 4.5 > shadeZ[0].length || zPos + 4.5 > shadeX[0].length)
+            System.out.println(xPos + ", " + yPos + ", " + zPos + " is out of bounds");
+        else if(drawn) {
             shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)] = Math.max(shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)], (4.500f + zPos));
             shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)] = Math.max(shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)], (4.500f + xPos));
         }
@@ -186,13 +188,19 @@ public class SplatRenderer {
                     ox = vx - hs;
                     oy = vy - hs;
                     oz = vz - hs;
-                    tx = ox * x_x + oy * y_x + oz * z_x + hs + 4.500f;
+                    tx = ox * x_x + oy * y_x + oz * z_x + size + 4.500f;
                     fx = (int)(tx);
-                    fy = (int)(ox * x_y + oy * y_y + oz * z_y + hs + 4.500f);
+                    fy = (int)(ox * x_y + oy * y_y + oz * z_y + size + 4.500f);
                     tz = ox * x_z + oy * y_z + oz * z_z + hs + 4.500f;
                     fz = (int)(tz);
                     m = materials[sx][sy];
                     direct = true;
+                    if(fx < 0)
+                        System.out.println("X!");
+                    if(fy < 0)
+                        System.out.println("Y!");
+                    if(fz < 0)
+                        System.out.println("Z!");
                     double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if ((shadeX[fy][fz] - tx) > limit || ((fy > 1 && shadeX[fy - 2][fz] - tx > limit) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > limit)))
                     {
@@ -323,7 +331,7 @@ public class SplatRenderer {
                     if(v != 0)
                     {
                         final float c = cos_(angleTurns), s = sin_(angleTurns);
-                        splat((x-hs) * c - (y-hs) * s + hs, (x-hs) * s + (y-hs) * c + hs, z, x, y, z, v);
+                        splat((x-hs) * c - (y-hs) * s + size, (x-hs) * s + (y-hs) * c + size, z + hs, x, y, z, v);
                     }
                 }
             }
