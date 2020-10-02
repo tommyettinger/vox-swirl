@@ -193,7 +193,8 @@ public class SplatRenderer {
                     fz = (int)(tz);
                     m = materials[sx][sy];
                     direct = true;
-                    if ((shadeX[fy][fz] - tx) > 2f || ((fy > 1 && shadeX[fy - 2][fz] - tx > 2f) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > 2f)))
+                    double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
+                    if ((shadeX[fy][fz] - tx) > limit || ((fy > 1 && shadeX[fy - 2][fz] - tx > limit) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > limit)))
                     {
                         direct = false;
                         render[sx][sy] = Coloring.adjust(working[sx][sy], 0.65f, smallDown);
