@@ -44,10 +44,6 @@ public class SplatRenderer {
         shadeX = fill(-1f, size * 3 + 5, size * 3 + 5);
         shadeZ = fill(-1f, size * 3 + 5, size * 3 + 5);
     }
-    protected static float hash(final int x, final int y, final int z, final int w, final int u) {
-        final int s = x * 0x1C3360 ^ y * 0x18DA3A ^ z * 0x15E6DA ^ w * 0x134D28 ^ u * 0x110280;
-        return ((s ^ (s << 19 | s >>> 13) ^ (s << 5 | s >>> 27) ^ 0xD1B54A35) * 0x125493 >>> 8) * 0x1p-24f;
-    }
     
     protected float bn(int x, int y) {
 //        final float result = (((x | ~y) & 1) + (x + ~y & 1) + (x & y & 1)) * 0.333f;
@@ -60,7 +56,7 @@ public class SplatRenderer {
     
     protected float random(){
         return (((seed * 0xAF251AF3B0F025B5L + 0xB564EF22EC7AECE5L) >>> 41) +
-                ((seed = seed * 0xD1342543DE82EF95L + 0x632BE59BD9B4E019L) >>> 41)) * 0x8p-24f;
+                ((seed = seed * 0xD1342543DE82EF95L + 0x632BE59BD9B4E019L) >>> 41)) * 0x1p-21f;
     }
 
     /**
@@ -195,12 +191,6 @@ public class SplatRenderer {
                     fz = (int)(tz);
                     m = materials[sx][sy];
                     direct = true;
-                    if(fx < 0)
-                        System.out.println("X!");
-                    if(fy < 0)
-                        System.out.println("Y!");
-                    if(fz < 0)
-                        System.out.println("Z!");
                     double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if ((shadeX[fy][fz] - tx) > limit || ((fy > 1 && shadeX[fy - 2][fz] - tx > limit) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > limit)))
                     {
@@ -219,20 +209,20 @@ public class SplatRenderer {
                     }
                     if (Math.abs(shadeZ[fx][fy] - tz) < 1)
                     {
-                        render[sx][sy] = Coloring.adjust(render[sx][sy], 1.2f, midUp);
-                        float spread = MathUtils.lerp(1.17f, 1.04f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(render[sx-1][sy], spread, smallUp);
-                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(render[sx][sy-1], spread, smallUp);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(render[sx+1][sy], spread, smallUp);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(render[sx][sy+1], spread, smallUp);
+                        render[sx][sy] = Coloring.adjust(working[sx][sy], 1.2f, midUp);
+                        float spread = MathUtils.lerp(1.15f, 1.01f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(working[sx-1][sy], spread, smallUp);
+                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(working[sx][sy-1], spread, smallUp);
+                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(working[sx+1][sy], spread, smallUp);
+                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(working[sx][sy+1], spread, smallUp);
 
-                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(render[sx-2][sy], spread, smallUp);
-                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(render[sx][sy-2], spread, smallUp);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(render[sx+2][sy], spread, smallUp);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(render[sx][sy+2], spread, smallUp);
+                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(working[sx-2][sy], spread, smallUp);
+                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(working[sx][sy-2], spread, smallUp);
+                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(working[sx+2][sy], spread, smallUp);
+                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(working[sx][sy+2], spread, smallUp);
                         if(direct)
                         {
-                            render[sx][sy] = Coloring.adjust(render[sx][sy], 0.8f + m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.5f, m.getTrait(VoxMaterial.MaterialTrait._metal) * 0.375f + 0.85f);
+                            render[sx][sy] = Coloring.adjust(working[sx][sy], 0.8f + m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.5f, m.getTrait(VoxMaterial.MaterialTrait._metal) * 0.375f + 0.85f);
                         }
                     }
                 }
@@ -331,7 +321,7 @@ public class SplatRenderer {
                     if(v != 0)
                     {
                         final float c = cos_(angleTurns), s = sin_(angleTurns);
-                        splat((x-hs) * c - (y-hs) * s + size, (x-hs) * s + (y-hs) * c + size, z + hs, x, y, z, v);
+                        splat((x-hs) * c - (y-hs) * s + size, (x-hs) * s + (y-hs) * c + size, z, x, y, z, v);
                     }
                 }
             }
