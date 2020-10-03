@@ -97,7 +97,7 @@ public class SplatRenderer {
     public void splat(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
         final int 
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
-                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 2 - xPos - yPos) + 1)),
+                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 3 - xPos - yPos) + 1)),
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
         boolean drawn = false;
         final VoxMaterial m = materialMap.get(voxel & 255);
