@@ -324,7 +324,7 @@ public class SplatRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
-        seed = (TimeUtils.millis() >>> 6) * 0x632BE59BD9B4E019L;
+        seed = TimeUtils.millis() * 0x632BE59BD9B4E019L;
 //        seed = Tools3D.hash64(colors);
         final int size = colors.length;
         final float hs = (size) * 0.5f;

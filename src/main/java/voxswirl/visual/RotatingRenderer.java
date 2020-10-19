@@ -2,6 +2,7 @@ package voxswirl.visual;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.utils.IntMap;
+import com.badlogic.gdx.utils.TimeUtils;
 import voxswirl.physical.VoxMaterial;
 
 import static voxswirl.meta.ArrayTools.fill;
@@ -22,8 +23,8 @@ public class RotatingRenderer extends SplatRenderer {
         depths =   new int[w][h];
         materials = new VoxMaterial[w][h];
         voxels = fill(-1, w, h);
-        shadeX = fill(-1f, size * 3 + 10 >> 1, size * 3 + 10 >> 1);
-        shadeZ = fill(-1f, size * 3 + 10 >> 1, size * 3 + 10 >> 1);
+        shadeX = fill(-1f, size * 3 + 5, size * 3 + 5);
+        shadeZ = fill(-1f, size * 3 + 5, size * 3 + 5);
     }
     
     // To move one x+ in voxels is x + 2, y - 1 in pixels.
@@ -35,6 +36,7 @@ public class RotatingRenderer extends SplatRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float yaw, float pitch, float roll, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
+        seed = TimeUtils.millis() * 0x632BE59BD9B4E019L;        
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         float ox, oy, oz; // offset x,y,z
@@ -53,8 +55,8 @@ public class RotatingRenderer extends SplatRenderer {
                         ox = x - hs;
                         oy = y - hs;
                         oz = z - hs;
-                        splat(ox * x_x + oy * y_x + oz * z_x + hs,
-                                ox * x_y + oy * y_y + oz * z_y + hs,
+                        splat(  ox * x_x + oy * y_x + oz * z_x + size,
+                                ox * x_y + oy * y_y + oz * z_y + size,
                                 ox * x_z + oy * y_z + oz * z_z + hs, x, y, z, v);
                     }
                 }
