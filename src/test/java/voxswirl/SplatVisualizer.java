@@ -51,7 +51,8 @@ public class SplatVisualizer extends ApplicationAdapter {
         batch.enableBlending();
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
 //        load("vox/Tree.vox");
-        load("vox/Lomuk.vox");
+        load("vox/Infantry_Firing.vox");
+//        load("vox/Lomuk.vox");
 //        load("vox/CrazyBox.vox");
 //        renderer.dither = true;
 
