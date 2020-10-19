@@ -28,5 +28,15 @@ public class TrigTools {
 			return (x < 0.0f) ? (y < 0.0f) ? 0.5f + r : 0.5f - r : (y < 0.0f) ? 1f - r : r;
 		}
 	}
+	public static float swayRandomized(final int seed, float value)
+	{
+		final int floor = value >= 0f ? (int) value : (int) value - 1;
+		int z = seed + floor;
+		final float start = (((z = (z ^ 0xD1B54A35) * 0x1D2BC3)) * ((z ^ z >>> 15) | 0xFFE00001) ^ z ^ z << 11) * 0x0.ffffffp-31f,
+				end = (((z = (seed + floor + 1 ^ 0xD1B54A35) * 0x1D2BC3)) * ((z ^ z >>> 15) | 0xFFE00001) ^ z ^ z << 11) * 0x0.ffffffp-31f;
+		value -= floor;
+		value *= value * (3 - 2 * value);
+		return (1 - value) * start + value * end;
+	}
 
 }
