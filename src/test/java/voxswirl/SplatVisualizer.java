@@ -42,7 +42,7 @@ public class SplatVisualizer extends ApplicationAdapter {
     public void create() {
         batch = new SpriteBatch();
         saturation = 0f;
-        time = (TimeUtils.millis() & 2047) * 0x1p-11f;
+        time = (TimeUtils.millis() & 4095) * 0x1p-12f;
         worldView = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         screenView = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         buffer = new FrameBuffer(Pixmap.Format.RGBA8888, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, false, false);
@@ -51,6 +51,7 @@ public class SplatVisualizer extends ApplicationAdapter {
         batch.enableBlending();
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
 //        load("vox/Tree.vox");
+//        load("vox/IPT_No_Pow.vox");
         load("vox/Infantry_Firing.vox");
 //        load("vox/Lomuk.vox");
 //        load("vox/CrazyBox.vox");
@@ -69,7 +70,7 @@ public class SplatVisualizer extends ApplicationAdapter {
     public void render() {
 //        model.setFrame((int)(TimeUtils.millis() >>> 7) & 15);
 //        boom.setFrame((int)(TimeUtils.millis() >>> 7) & 15);
-        if(play) time = (TimeUtils.millis() & 2047) * 0x1p-11f;
+        if(play) time = (TimeUtils.millis() & 4095) * 0x1p-12f;
         buffer.begin();
         
         Gdx.gl.glClearColor(0.4f, 0.75f, 0.3f, 1f);

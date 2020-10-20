@@ -257,19 +257,33 @@ public class SplatRenderer {
                 for (int y = 2; y < ySize - 1; y++) {
                     int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
-//                        depth = depths[x][y];
-                        if (outlines[x - 1][y] == 0) {
-                            pixmap.drawPixel(hx - 1, hy    , o);
+                        depth = depths[x][y];
+//                        if (outlines[x - 1][y] == 0) {
+//                            pixmap.drawPixel(hx - 1, hy    , o);
+//                        }
+//                        if (outlines[x + 1][y] == 0) {
+//                            pixmap.drawPixel(hx + 1, hy    , o);
+//                        }
+//                        if (outlines[x][y - 1] == 0) {
+//                            pixmap.drawPixel(hx    , hy - 1, o);
+//                        }
+//                        if (outlines[x][y + 1] == 0) {
+//                            pixmap.drawPixel(hx    , hy + 1, o);
+//                        }
+
+                        if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
+                            pixmap.drawPixel(hx, hy    , o);
                         }
-                        if (outlines[x + 1][y] == 0) {
-                            pixmap.drawPixel(hx + 1, hy    , o);
+                        else if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
+                            pixmap.drawPixel(hx, hy    , o);
                         }
-                        if (outlines[x][y - 1] == 0) {
-                            pixmap.drawPixel(hx    , hy - 1, o);
+                        else if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
+                            pixmap.drawPixel(hx    , hy, o);
                         }
-                        if (outlines[x][y + 1] == 0) {
-                            pixmap.drawPixel(hx    , hy + 1, o);
+                        else if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
+                            pixmap.drawPixel(hx    , hy, o);
                         }
+
 //                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
 //                            pixmap.drawPixel(hx, hy    , o);
 //                        }
@@ -324,7 +338,7 @@ public class SplatRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
-        seed = TimeUtils.millis() * 0x632BE59BD9B4E019L;
+        seed += TimeUtils.millis() * 0x632BE59BD9B4E019L;
 //        seed = Tools3D.hash64(colors);
         final int size = colors.length;
         final float hs = (size) * 0.5f;

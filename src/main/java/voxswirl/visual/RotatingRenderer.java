@@ -36,7 +36,7 @@ public class RotatingRenderer extends SplatRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float yaw, float pitch, float roll, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
-        seed = TimeUtils.millis() * 0x632BE59BD9B4E019L;        
+        seed += TimeUtils.millis() * 0x632BE59BD9B4E019L;        
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         float ox, oy, oz; // offset x,y,z
