@@ -38,7 +38,8 @@ public class VoxSwirl extends ApplicationAdapter {
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
 //            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/IPT.vox", "vox/LAB.vox"};
-            inputs = new String[]{"vox/IPT_No_Pow.vox"};
+            inputs = new String[]{"vox/Infantry_Firing.vox"};
+//            inputs = new String[]{"vox/IPT_No_Pow.vox"};
 //            inputs = new String[]{"vox/IPT_Original.vox"};
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
