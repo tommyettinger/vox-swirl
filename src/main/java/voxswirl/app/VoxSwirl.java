@@ -4,7 +4,6 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.utils.Array;
@@ -12,6 +11,7 @@ import com.github.tommyettinger.anim8.*;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
+import voxswirl.visual.Coloring;
 import voxswirl.visual.SplatRenderer;
 
 import java.io.File;
@@ -241,8 +241,8 @@ public class VoxSwirl extends ApplicationAdapter {
           Gaussian-distributed Halton sequence.
          */
         final int[] ghp63 = new int[]{
-                0x00000000, 0x0B080FFF, 0x353336FF, 0x555555FF, 0x797577FF, 0xAAAAAAFF, 0xC8C8C8FF, 0xE0E0E0FF,
-                0xFAF7F0FF, 0x217CD2FF, 0x540A44FF, 0xD6C2DDFF, 0xF19FFFFF, 0x1E8FF0FF, 0x4F326FFF, 0x9EB025FF,
+                0x00000000, 0x0B080FFF, 0xFAF7F0FF, 0x797577FF, 0x555555FF, 0xAAAAAAFF, 0x353336FF, 0xE0E0E0FF,
+                0xC8C8C8FF, 0x217CD2FF, 0x540A44FF, 0xD6C2DDFF, 0xF19FFFFF, 0x1E8FF0FF, 0x4F326FFF, 0x9EB025FF,
                 0x9753C2FF, 0x75E3E0FF, 0xFE927FFF, 0x488C54FF, 0x8FABFBFF, 0x910945FF, 0x46BD6BFF, 0x92C3B9FF,
                 0xC0654DFF, 0x011183FF, 0xFF4100FF, 0x09A7C5FF, 0x2A4356FF, 0x45ABF3FF, 0x400433FF, 0x00BA90FF,
                 0x4B5423FF, 0xC3ABEFFF, 0xFD3676FF, 0xA25FDDFF, 0xE9E7E0FF, 0xA33323FF, 0xA3D455FF, 0x673EC9FF,
@@ -251,55 +251,45 @@ public class VoxSwirl extends ApplicationAdapter {
                 0x08A2A3FF, 0x414E49FF, 0x5FA423FF, 0xAAA2F2FF, 0x8C91B4FF, 0xD52B42FF, 0x8AEA66FF, 0xB2D7EAFF,
         };
 
-        /*
-          Uses YCwCm with rejection sampling of a Gaussian-distributed Halton sequence. Luma is treated
-          differently; because most of the gamut at mid-lightness would be accepted, possibly too many colors
-          wind up in that area if Gaussian makes the mid-range even more likely. This uses a bias/gain function
-          by Jon Barron, barronSpline(), to slightly reduce the odds of mid-range values being sampled. This
-          seems to allow more of the colors that challenge other palettes to work here, like dark brown.
-
-          Name is short for BArron gauSS halTON.
-
-          Current default.
-         */
-        final int[] basston255 = new int[]{
-                0x00000000, 0x0B080FFF, 0x353336FF, 0x555555FF, 0x797577FF, 0xAAAAAAFF, 0xC8C8C8FF, 0xE0E0E0FF,
-                0xFAF7F0FF, 0x5D8ABCFF, 0x741317FF, 0x77F6F2FF, 0xC08FADFF, 0x85299DFF, 0x4AC5A1FF, 0x315266FF,
-                0x013C56FF, 0x9DC9B5FF, 0x5D8240FF, 0xA08167FF, 0x026957FF, 0xBADBD9FF, 0x95B7CDFF, 0x705A58FF,
-                0x012016FF, 0xE85BBDFF, 0x7B3058FF, 0xDEBB6DFF, 0x339C9EFF, 0x50B365FF, 0x0F1A5CFF, 0x94B3C3FF,
-                0x7D542AFF, 0xDCF1E1FF, 0xB37EA6FF, 0x206F4BFF, 0xDCE3ABFF, 0x4A2109FF, 0xC1AED6FF, 0x6A6D8DFF,
-                0x84A25CFF, 0xDCC4E4FF, 0xB7B496FF, 0x18AB47FF, 0x7BABE3FF, 0x0E9236FF, 0xEEED85FF, 0x2E334BFF,
-                0xB6555BFF, 0xA7667EFF, 0x2E3866FF, 0xB6DCAEFF, 0x98B3A7FF, 0x9C2383FF, 0x57BDAFFF, 0x8B2812FF,
-                0xCAD9F9FF, 0x5A0A22FF, 0x568559FF, 0xB95CBEFF, 0x185280FF, 0xD6CDCBFF, 0x98B5DBFF, 0x8C4084FF,
-                0xE2F3EDFF, 0x93B36BFF, 0x6E3775FF, 0xF0C9FFFF, 0x164E16FF, 0x8AF19FFF, 0x4F9C62FF, 0x51BC50FF,
-                0x394826FF, 0x7FFCF6FF, 0x0E1581FF, 0xF37C90FF, 0x4D5AB2FF, 0xDDFCC2FF, 0xA77FD7FF, 0xA90666FF,
-                0xEFC8ECFF, 0x8BEC8EFF, 0xB4407CFF, 0x84A173FF, 0x176656FF, 0xF5B7DDFF, 0x68EFADFF, 0x2AA341FF,
-                0xA99AACFF, 0x1F901AFF, 0x2C4614FF, 0x617DD1FF, 0x3AABA5FF, 0x6E0F43FF, 0x1E0B55FF, 0x7AD377FF,
-                0x606525FF, 0xB57A92FF, 0x117151FF, 0xA25337FF, 0x8D8498FF, 0x900543FF, 0xA5F8A8FF, 0x232416FF,
-                0x9ECD65FF, 0x6257A1FF, 0x1E0C16FF, 0x7CB993FF, 0x08875BFF, 0x3D1D5DFF, 0x6E8066FF, 0xA17478FF,
-                0x0D5765FF, 0x96EBE9FF, 0x90AAF8FF, 0x6C43A9FF, 0xECEDC7FF, 0xBA8B69FF, 0x793141FF, 0xCDB890FF,
-                0x1AB767FF, 0xF0F9FFFF, 0x899298FF, 0x3E551DFF, 0xB3F69EFF, 0xCB95E3FF, 0x90457BFF, 0xCC819FFF,
-                0x595064FF, 0x6B1808FF, 0x91E7C9FF, 0x7273B7FF, 0x3BC068FF, 0xC7C8D6FF, 0x86D16DFF, 0x17954FFF,
-                0xC16AC6FF, 0x4D4A4CFF, 0xD3EAA0FF, 0xFB88BAFF, 0xA64A5EFF, 0xB38143FF, 0x2E4D5BFF, 0xF4B9C3FF,
-                0x55EDCDFF, 0x746B29FF, 0x5DD298FF, 0x357C10FF, 0x2A3547FF, 0xE3A4CEFF, 0x67857FFF, 0x848B8BFF,
-                0x2F4654FF, 0xF7B4B4FF, 0xA1BC90FF, 0x8D3E6AFF, 0x6DCA62FF, 0x1C812BFF, 0x3B272BFF, 0x9ED3C1FF,
-                0x857444FF, 0xF64593FF, 0x276824FF, 0x242B29FF, 0xCAA3BDFF, 0x745E84FF, 0x86B9A5FF, 0x972C4EFF,
-                0x4E1F51FF, 0x93F0B0FF, 0x6F925AFF, 0xDB3B83FF, 0xB690C6FF, 0x1B7C92FF, 0xB37A9AFF, 0x8E1D2DFF,
-                0xA2FBDDFF, 0xB2BDA5FF, 0x517989FF, 0x4BB49AFF, 0x0F6646FF, 0xFBABD3FF, 0x340B49FF, 0x6F604EFF,
-                0xE85BBBFF, 0x673876FF, 0x194A14FF, 0x9B5686FF, 0x1CD583FF, 0x621F45FF, 0xC8C8D8FF, 0xCD9880FF,
-                0x307D73FF, 0x7FAA9EFF, 0x355C58FF, 0xD7E7A7FF, 0x232A5AFF, 0xABC0D2FF, 0xCB268EFF, 0xE54D8DFF,
-                0x4F2E86FF, 0xE3BEF2FF, 0x7FE28EFF, 0x993A90FF, 0xA5A975FF, 0x535E42FF, 0x084D5FFF, 0xE2B987FF,
-                0x3CAD71FF, 0x7E8389FF, 0x543313FF, 0xD6C3B5FF, 0xA593FDFF, 0xA2303AFF, 0x70C34DFF, 0x543D6BFF,
-                0x63012BFF, 0x4B867EFF, 0x7D978DFF, 0x465105FF, 0xD695ABFF, 0x2E9256FF, 0x2D0808FF, 0x9D98BCFF,
-                0x6F3E52FF, 0x194929FF, 0xD5B8A2FF, 0xCB3A76FF, 0x6EA169FF, 0xC0CCF0FF, 0xADA5C5FF, 0x954438FF,
-                0xE2F8C2FF, 0x090561FF, 0x9495C1FF, 0x4A5642FF, 0xC4EBE1FF, 0x095509FF, 0xEA9FA7FF, 0x5B7C9AFF,
-                0x3CDA6CFF, 0x2A4C8AFF, 0xB7BC8AFF, 0x6D7C18FF, 0xEB777BFF, 0x3C6D59FF, 0x770052FF, 0xD0B8D0FF,
-                0x8C66ACFF, 0x937286FF, 0x641F29FF, 0xB1D0E4FF, 0xBCA36FFF, 0x6D4482FF, 0xF9D4ECFF, 0x65BB85FF,
+        final int[] hq255 = new int[]{
+                0x00000000, 0x0B080FFF, 0xFAF7F0FF, 0x797577FF, 0x555555FF, 0xAAAAAAFF, 0x353336FF, 0xE0E0E0FF,
+                0xC8C8C8FF, 0x001DFFFF, 0x4C0082FF, 0xD2FF56FF, 0x008700FF, 0xF15AC5FF, 0x00725BFF, 0xFF00FFFF,
+                0xF40071FF, 0x00FF10FF, 0x000071FF, 0xFF06EEFF, 0x004360FF, 0xCFFF8EFF, 0xBD0000FF, 0x3B49FFFF,
+                0x491F69FF, 0xFF5C79FF, 0x008000FF, 0x00FC00FF, 0xBF00FFFF, 0x00D5FFFF, 0x331500FF, 0xFF7A5CFF,
+                0x477200FF, 0xFF41FFFF, 0x6400CAFF, 0x326DCAFF, 0x449B00FF, 0xFF40ACFF, 0x0057A8FF, 0x00A2FFFF,
+                0x5F00BDFF, 0x00E168FF, 0xDD0000FF, 0xFF76FFFF, 0x0000FFFF, 0x00D9CCFF, 0xFF0024FF, 0x00FF00FF,
+                0x001A45FF, 0xDC59FFFF, 0x004100FF, 0xFFF17BFF, 0xF60000FF, 0x00B3D4FF, 0x006546FF, 0xE9D0D4FF,
+                0x392900FF, 0xFFA000FF, 0x9E00DBFF, 0x00C7FFFF, 0x20003DFF, 0xFFEB29FF, 0x071C0AFF, 0xA27DFFFF,
+                0x440072FF, 0x00A3FDFF, 0x00641EFF, 0xFF8938FF, 0x140065FF, 0xFF00FFFF, 0xB61E74FF, 0xE1E076FF,
+                0x2E4000FF, 0xCD00FFFF, 0x0000AAFF, 0xFFEF93FF, 0x9F0019FF, 0x00FF00FF, 0xBC00D6FF, 0xFF00FFFF,
+                0x002800FF, 0x00FF4CFF, 0x460000FF, 0x00F4FFFF, 0x890088FF, 0xDD2F97FF, 0x007500FF, 0xE2A09EFF,
+                0x745F98FF, 0x00E8E6FF, 0x003FB9FF, 0xD4827CFF, 0x003E00FF, 0x00B6FFFF, 0x2A004BFF, 0x1AD6A6FF,
+                0xF30A42FF, 0xFF0060FF, 0x005C2CFF, 0x4179E9FF, 0xFF0039FF, 0xFCDA00FF, 0x3D7B00FF, 0xFFB5FFFF,
+                0x00007BFF, 0xFF706CFF, 0xC30000FF, 0x788849FF, 0x0057B5FF, 0xFF5ED7FF, 0x0053FFFF, 0xFF7A00FF,
+                0x9A0038FF, 0x00FFFFFF, 0x680031FF, 0xFF00FFFF, 0x446B43FF, 0x00E259FF, 0x4B148AFF, 0x00BB7CFF,
+                0x006823FF, 0xE4BDAAFF, 0x00BA00FF, 0xFF30FFFF, 0x66005AFF, 0x6DFF00FF, 0x004612FF, 0xFFE23AFF,
+                0x003B18FF, 0x6A5EFFFF, 0xB4080AFF, 0x71F100FF, 0x6A0000FF, 0xFF6CECFF, 0x0054D5FF, 0xB4BBFFFF,
+                0x8F0000FF, 0x519C3EFF, 0x4E0081FF, 0xFF9EFFFF, 0x2D00B9FF, 0xFF6517FF, 0xCE0039FF, 0x00DFFFFF,
+                0x008898FF, 0xFF45FFFF, 0x003C00FF, 0x00F2BEFF, 0x6600EFFF, 0x00FFFFFF, 0x701800FF, 0xD4A83AFF,
+                0x00932AFF, 0x009EFFFF, 0x9A00FFFF, 0xC8B900FF, 0x353500FF, 0xFFB65CFF, 0x001D37FF, 0xFF46D7FF,
+                0xB20087FF, 0xE6FFA0FF, 0x006800FF, 0xB900FFFF, 0x0000FFFF, 0xF500FFFF, 0xF70000FF, 0x00FF00FF,
+                0x8F00F7FF, 0xFF00FFFF, 0x00465AFF, 0xD8FF00FF, 0xD7003CFF, 0x00DCFFFF, 0x007BDDFF, 0xFF3F22FF,
+                0x2C4D00FF, 0xFF76B7FF, 0x200053FF, 0x45B7FFFF, 0x00AA00FF, 0xFF0000FF, 0x546500FF, 0x90CBFFFF,
+                0x6F00DBFF, 0x00B7FFFF, 0xB56B16FF, 0xFF7700FF, 0x000087FF, 0x00FFFFFF, 0x410068FF, 0xFDFD75FF,
+                0x510000FF, 0xC300FFFF, 0x323D60FF, 0xBAA0B5FF, 0x1D060CFF, 0x00FF55FF, 0x0063A1FF, 0xF400DFFF,
+                0x479F00FF, 0x00CA00FF, 0xA30000FF, 0x00DBFFFF, 0x4900CAFF, 0xFF00BBFF, 0x00CC00FF, 0xD0FF00FF,
+                0x4C0046FF, 0x00E2FFFF, 0x4A00ABFF, 0xFFE289FF, 0x367900FF, 0x8018FFFF, 0x850068FF, 0x00CBFEFF,
+                0x242600FF, 0xFFB42DFF, 0x00889FFF, 0xEA00FFFF, 0x46000AFF, 0x00FFB2FF, 0x4F0000FF, 0xFF00FFFF,
+                0x007DA0FF, 0x00E400FF, 0xDA0000FF, 0x00E200FF, 0x000068FF, 0xF94DFFFF, 0x00754FFF, 0xF8B000FF,
+                0xB60000FF, 0x00C79DFF, 0x3A4954FF, 0xC500FFFF, 0x009C17FF, 0xFFCA61FF, 0x410082FF, 0x0075FFFF,
+                0xAA00A2FF, 0xFFFA51FF, 0x244E00FF, 0x00FFECFF, 0x8E00FFFF, 0x00CE65FF, 0xC70034FF, 0xFF5417FF,
+                0x0041C9FF, 0xFFA8CFFF, 0x620000FF, 0x2EFD06FF, 0x334300FF, 0xFFD4FFFF, 0x003E4EFF, 0x00B25CFF,
         };
+
         png8.palette = gif.palette = new PaletteReducer();
-        gif.palette.setDitherStrength(0.5f);
-        for (int colorCount : new int[] {3, 4, 8, 16, 24, 32, 48, 64, 86, 128, 192, 256}) {
-            gif.palette.exact(basston255, colorCount);
+        gif.palette.setDitherStrength(0.75f);
+        for (int colorCount : new int[] {3, 8, 32, 64, 86, 128, 256}) {
+            gif.palette.exact(Coloring.RANDO255, colorCount);
             for (String s : inputs) {
                 load(s);
                 try {
@@ -313,14 +303,12 @@ public class VoxSwirl extends ApplicationAdapter {
                         if(colorCount == 256)
                             png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
                         png8.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
-//                    png8.write(Gdx.files.local("out/ghy/" + name + '/' + name + "_angle" + i + ".png"), p, false);
-//                    png8.write(Gdx.files.local("out/ghp/" + name + '/' + name + "_angle" + i + ".png"), p, false);
+//                        png8.write(Gdx.files.local("out/lowColorHQ/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
                     }
-                    //gif.palette.setDefaultPalette();
-//                gif.palette.analyze(pm, 150);
+//                    gif.palette.setDefaultPalette();
+//                    gif.palette.analyze(pm, 150);
                     gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
-//                gif.write(Gdx.files.local("out/ghy/" + name + '/' + name + ".gif"), pm, 12);
-//                gif.write(Gdx.files.local("out/ghp/" + name + '/' + name + ".gif"), pm, 12);
+//                    gif.write(Gdx.files.local("out/lowColorHQ/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
                     if(colorCount == 256)
                         apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
                 } catch (IOException e) {
