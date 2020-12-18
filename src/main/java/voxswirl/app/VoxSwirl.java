@@ -36,7 +36,7 @@ public class VoxSwirl extends ApplicationAdapter {
         else 
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
-            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox"};
+            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/IPT.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Infantry_Firing.vox"};
 //            inputs = new String[]{"vox/IPT_No_Pow.vox"};
@@ -289,7 +289,7 @@ public class VoxSwirl extends ApplicationAdapter {
         png8.palette = gif.palette = new PaletteReducer();
         gif.palette.setDitherStrength(0.75f);
         for (int colorCount : new int[] {3, 8, 32, 64, 86, 128, 256}) {
-            gif.palette.exact(Coloring.RANDO255, colorCount);
+            gif.palette.exact(Coloring.HALTONIC255, colorCount);
             for (String s : inputs) {
                 load(s);
                 try {
@@ -303,12 +303,12 @@ public class VoxSwirl extends ApplicationAdapter {
                         if(colorCount == 256)
                             png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
                         png8.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
-//                        png8.write(Gdx.files.local("out/lowColorHQ/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
+//                        png8.write(Gdx.files.local("out/lowColorHalt/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
                     }
 //                    gif.palette.setDefaultPalette();
 //                    gif.palette.analyze(pm, 150);
                     gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
-//                    gif.write(Gdx.files.local("out/lowColorHQ/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
+//                    gif.write(Gdx.files.local("out/lowColorHalt/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
                     if(colorCount == 256)
                         apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
                 } catch (IOException e) {
