@@ -176,7 +176,7 @@ public class RotationVisualizer extends ApplicationAdapter {
             voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
             Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, v.length >> 2);
             renderer = new RotatingRenderer(voxels.length);
-            renderer.palette = VoxIO.lastPalette;
+            renderer.palette(VoxIO.lastPalette);
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}};
         }

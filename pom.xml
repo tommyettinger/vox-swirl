@@ -69,6 +69,7 @@
         <junit.version>4.13.1</junit.version>
         <gdx.version>1.9.12</gdx.version>
         <anim8.version>0.2.3</anim8.version>
+        <colorful.version>0.4.0</colorful.version>
     </properties>
 
 
@@ -77,6 +78,11 @@
             <groupId>com.github.tommyettinger</groupId>
             <artifactId>anim8-gdx</artifactId>
             <version>${anim8.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tommyettinger</groupId>
+            <artifactId>colorful</artifactId>
+            <version>${colorful.version}</version>
         </dependency>
         <dependency>
             <groupId>com.badlogicgames.gdx</groupId>
