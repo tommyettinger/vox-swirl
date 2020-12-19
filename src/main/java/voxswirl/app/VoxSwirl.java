@@ -52,7 +52,7 @@ public class VoxSwirl extends ApplicationAdapter {
     }
     @Override
     public void create() {
-        if(inputs == null) Gdx.app.exit();
+        if (inputs == null) Gdx.app.exit();
         png = new PixmapIO.PNG();
         png8 = new PNG8();
         gif = new AnimatedGif();
@@ -61,29 +61,29 @@ public class VoxSwirl extends ApplicationAdapter {
         png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
         png8.palette = gif.palette = new PaletteReducer();
         gif.palette.setDitherStrength(0.75f);
-        for (int colorCount : new int[] {/*3, 8, 32, 64, 86, 128, */ 256}) {
-            gif.palette.exact(Coloring.HALTONIC255, colorCount);
-            for (String s : inputs) {
-                System.out.println(s + " with color count " + colorCount);
-                load(s);
-                try {
-                    Pixmap pixmap;
-                    Array<Pixmap> pm = new Array<>(64);
-                    for (int i = 0; i < 64; i++) {
-                        pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f, VoxIO.lastMaterials);
-                        Pixmap p = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), pixmap.getFormat());
-                        p.drawPixmap(pixmap, 0, 0);
-                        pm.add(p);
-                        if(colorCount == 256)
-                            png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
+        for (String s : inputs) {
+            load(s);
+            try {
+                Pixmap pixmap;
+                Array<Pixmap> pm = new Array<>(64);
+                for (int i = 0; i < 64; i++) {
+                    pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f, VoxIO.lastMaterials);
+                    Pixmap p = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), pixmap.getFormat());
+                    p.drawPixmap(pixmap, 0, 0);
+                    pm.add(p);
+                    png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
+                    for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
+                        png8.palette.exact(Coloring.HALTONIC255, colorCount);
                         png8.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
                     }
-                    gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
-                    if(colorCount == 256)
-                        apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
+                for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
+                    gif.palette.exact(Coloring.HALTONIC255, colorCount);
+                    gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
+                }
+                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         Gdx.app.exit();
