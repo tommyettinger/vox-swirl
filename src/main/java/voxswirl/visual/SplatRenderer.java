@@ -118,6 +118,18 @@ public class SplatRenderer {
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
                 yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 3 - xPos - yPos) + 1)),
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
+        //depth - yy == 3 * xPos + 3 * yPos - 3 * size
+        //depth - yy * 2 = 4 * xPos + 4 * yPos - 6 * size
+        //depth - yy * 2 - xx * 2 = 8 * xPos - 4 * size
+        //depth - yy - yy - xx - xx + size * 4 >> 3 == xPos
+
+        //yy - depth = xPos + yPos + size * 3
+        //yy - xx - depth = xPos * 2 + size * 2
+        //(yy - xx - depth >> 1) - size = xPos
+
+        //yy - depth = xPos + yPos + size * 3
+        //yy + xx - depth = yPos * 2 + size * 4
+        //(yy + xx - depth >> 1) - size - size = yPos
         boolean drawn = false;
         final VoxMaterial m = materialMap.get(voxel & 255);
         final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
@@ -215,9 +227,11 @@ public class SplatRenderer {
         // light wave from front left going back and right
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
-                for (int d = deepest; d >= 0; d--) {
-                    if (depths[sx][sy] == d + sy - sx) {
-                        colorI[sx][sy] += 0.125f;
+                for (int px = sx, py = sy; px <= xSize && py <= ySize; ++px, py += (px & 1)) {
+//                    if ((depth = depths[px][py]) != 0 && (depth - px + py) == sx) {
+                    if ((depth = depths[px][py]) != 0 && (py + px - depth) == sx) {
+                        colorI[px][py] += 0.125f;
+                        colorT[px][py] = 1.0f;
                         break;
                     }
                 }
