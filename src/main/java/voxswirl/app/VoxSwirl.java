@@ -41,6 +41,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/IPT.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Infantry_Firing.vox"};
 //            inputs = new String[]{"vox/IPT_No_Pow.vox"};
+            inputs = new String[]{"vox/Box.vox", "vox/Direction_Cube.vox"};
 //            inputs = new String[]{"vox/IPT_Original.vox"};
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
@@ -82,6 +83,7 @@ public class VoxSwirl extends ApplicationAdapter {
                     gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
                 }
                 apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
+//                VoxIO.writeVOX("out/" + s.substring(4, s.length() - 4) + "_remade.vox", renderer.remade, VoxIO.lastPalette);
             } catch (IOException e) {
                 e.printStackTrace();
             }

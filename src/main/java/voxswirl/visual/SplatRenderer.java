@@ -6,6 +6,9 @@ import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.anim8.PaletteReducer;
 import com.github.tommyettinger.colorful.ipt_hq.ColorTools;
+import voxswirl.io.VoxIO;
+import voxswirl.meta.ArrayTools;
+import voxswirl.physical.Tools3D;
 import voxswirl.physical.VoxMaterial;
 
 import static voxswirl.meta.ArrayTools.fill;
@@ -19,6 +22,7 @@ public class SplatRenderer {
     public Pixmap pixmap;
     public int[][] depths, voxels, working, render, outlines;
     public VoxMaterial[][] materials;
+    public byte[][][] remade;
     public float[][] shadeX, shadeZ, colorI, colorP, colorT;
     public PaletteReducer reducer = new PaletteReducer();
     private int[] palette;
@@ -46,8 +50,9 @@ public class SplatRenderer {
         colorP = fill(-1f, w, h);
         colorT = fill(-1f, w, h);
         voxels = fill(-1, w, h);
-        shadeX = fill(-1f, size * 3 + 5, size * 3 + 5);
-        shadeZ = fill(-1f, size * 3 + 5, size * 3 + 5);
+        shadeX = fill(-1f, size * 4, size * 4);
+        shadeZ = fill(-1f, size * 4, size * 4);
+        remade = new byte[size << 1][size << 1][size << 1];
     }
     
     protected float bn(int x, int y) {
@@ -116,24 +121,13 @@ public class SplatRenderer {
     public void splat(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
         final int 
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
-                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 2 - xPos - yPos) + 1)),
+                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 3 - xPos - yPos) + 1)),
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
-        //depth - yy == 3 * xPos + 3 * yPos - 3 * size
-        //depth - yy * 2 = 4 * xPos + 4 * yPos - 6 * size
-        //depth - yy * 2 - xx * 2 = 8 * xPos - 4 * size
-        //depth - yy - yy - xx - xx + size * 4 >> 3 == xPos
-
-        //yy - depth = xPos + yPos + size * 3
-        //yy - xx - depth = xPos * 2 + size * 2
-        //(yy - xx - depth >> 1) - size = xPos
-
-        //yy - depth = xPos + yPos + size * 3
-        //yy + xx - depth = yPos * 2 + size * 4
-        //(yy + xx - depth >> 1) - size - size = yPos
         boolean drawn = false;
         final VoxMaterial m = materialMap.get(voxel & 255);
         final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
         final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
+        final float hs = size * 0.5f;
         for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
@@ -147,14 +141,21 @@ public class SplatRenderer {
                     if(alpha == 0f)
                         outlines[ax][ay] = Coloring.adjust(palette[voxel & 255], 0.625f + emit, bigUp);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
+                    for (int xp = (int)xPos; xp < xPos + 0.5f; xp++) {
+                        for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
+                            for (int zp = (int) zPos; zp < zPos + 0.5f; zp++) {
+                                remade[xp][yp][zp] = voxel;
+                            }
+                        }
+                    }
                 }
             }
         }
-        if(xPos < -4.5 || yPos < -4.5 || zPos < -4.5 || xPos + 4.5 > shadeZ.length || yPos + 4.5 > shadeZ[0].length || zPos + 4.5 > shadeX[0].length)
+        if(xPos < -hs || yPos < -hs || zPos < -hs || xPos + hs > shadeZ.length || yPos + hs > shadeZ[0].length || zPos + hs > shadeX[0].length)
             System.out.println(xPos + ", " + yPos + ", " + zPos + " is out of bounds");
         else if(drawn) {
-            shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)] = Math.max(shadeZ[(int) (4.500f + xPos)][(int) (4.500f + yPos)], (4.500f + zPos));
-            shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)] = Math.max(shadeX[(int) (4.500f + yPos)][(int) (4.500f + zPos)], (4.500f + xPos));
+            shadeZ[(int) (hs + xPos)][(int) (hs + yPos)] = Math.max(shadeZ[(int) (hs + xPos)][(int) (hs + yPos)], (hs + zPos));
+            shadeX[(int) (hs + yPos)][(int) (hs + zPos)] = Math.max(shadeX[(int) (hs + yPos)][(int) (hs + zPos)], (hs + xPos));
         }
     }
     
@@ -275,11 +276,11 @@ public class SplatRenderer {
                     ox = vx - hs;
                     oy = vy - hs;
                     oz = vz - hs;
-                    tx = ox * x_x + oy * y_x + oz * z_x + hs + 4.500f;
+                    tx = ox * x_x + oy * y_x + oz * z_x + size + hs;
                     fx = (int)(tx);
-                    ty = ox * x_y + oy * y_y + oz * z_y + hs + 4.500f;
+                    ty = ox * x_y + oy * y_y + oz * z_y + size + hs;
                     fy = (int)(ty);
-                    tz = ox * x_z + oy * y_z + oz * z_z + hs + 4.500f;
+                    tz = ox * x_z + oy * y_z + oz * z_z + hs + hs;
                     fz = (int)(tz);
                     m = materials[sx][sy];
                     double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
@@ -511,10 +512,10 @@ public class SplatRenderer {
                     ox = vx - hs;
                     oy = vy - hs;
                     oz = vz - hs;
-                    tx = ox * x_x + oy * y_x + oz * z_x + size + 4.500f;
+                    tx = ox * x_x + oy * y_x + oz * z_x + size + hs;
                     fx = (int)(tx);
-                    fy = (int)(ox * x_y + oy * y_y + oz * z_y + size + 4.500f);
-                    tz = ox * x_z + oy * y_z + oz * z_z + hs + 4.500f;
+                    fy = (int)(ox * x_y + oy * y_y + oz * z_y + size + hs);
+                    tz = ox * x_z + oy * y_z + oz * z_z + hs + hs;
                     fz = (int)(tz);
                     m = materials[sx][sy];
                     double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
@@ -666,11 +667,12 @@ public class SplatRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
+        Tools3D.fill(remade, 0);
         seed += TimeUtils.millis() * 0x632BE59BD9B4E019L;
 //        seed = Tools3D.hash64(colors);
         final int size = colors.length;
         final float hs = (size) * 0.5f;
-        System.out.printf("%dx%dx%d model:\n", size, size, size);
+//        System.out.printf("%dx%dx%d model:\n", size, size, size);
         float minX = Float.POSITIVE_INFINITY, maxX = Float.NEGATIVE_INFINITY;
         float minY = Float.POSITIVE_INFINITY, maxY = Float.NEGATIVE_INFINITY;
         for (int z = 0; z < size; z++) {
@@ -680,8 +682,8 @@ public class SplatRenderer {
                     if(v != 0)
                     {
                         final float c = cos_(angleTurns), s = sin_(angleTurns);
-                        final float xPos = (x-hs) * c - (y-hs) * s + hs;
-                        final float yPos = (x-hs) * s + (y-hs) * c + hs;
+                        final float xPos = (x-hs) * c - (y-hs) * s + size;
+                        final float yPos = (x-hs) * s + (y-hs) * c + size;
                         minX = Math.min(minX, xPos);
                         maxX = Math.max(maxX, xPos);
                         minY = Math.min(minY, yPos);
@@ -691,7 +693,11 @@ public class SplatRenderer {
                 }
             }
         }
-        System.out.printf("min X: %f, max X: %f, min Y: %f, max Y: %f\n", minX, maxX, minY, maxY);
+//        final int size2 = size << 1;
+//        if(minX < 0 || minY < 0 || maxX >= size2 || maxY >= size2) {
+//            System.out.println("UH OH on angle " + angleTurns + " for size " + size + " model!");
+//            System.out.printf("min X: %f, max X: %f, min Y: %f, max Y: %f\n", minX, maxX, minY, maxY);
+//        }
         return blit(angleTurns);
     }
 
