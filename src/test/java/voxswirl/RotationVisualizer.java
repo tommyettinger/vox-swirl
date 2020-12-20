@@ -22,8 +22,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class RotationVisualizer extends ApplicationAdapter {
-    public static final int SCREEN_WIDTH = 512;//640;
-    public static final int SCREEN_HEIGHT = 512;//720;
+    public static final int SCREEN_WIDTH = 800;//640;
+    public static final int SCREEN_HEIGHT = 800;//720;
     public static final int VIRTUAL_WIDTH = SCREEN_WIDTH;
     public static final int VIRTUAL_HEIGHT = SCREEN_HEIGHT;
     protected SpriteBatch batch;
@@ -46,6 +46,7 @@ public class RotationVisualizer extends ApplicationAdapter {
         screenView.getCamera().position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
+//        load("vox/libGDX_BadLogic_Logo.vox");
         load("vox/Infantry_Firing.vox");
 //        load("vox/CrazyBox.vox");
 //        load("vox/Lomuk.vox");
@@ -75,7 +76,10 @@ public class RotationVisualizer extends ApplicationAdapter {
             roll += 0.25f * Gdx.graphics.getDeltaTime();
         else if(Gdx.input.isKeyPressed(Input.Keys.L)) 
             roll -= 0.25f * Gdx.graphics.getDeltaTime();
-
+        else if(Gdx.input.isKeyPressed(Input.Keys.R))
+        {
+            yaw = pitch = roll = 0f;
+        }
 //        model.setFrame((int)(TimeUtils.millis() >>> 7) & 15);
 //        boom.setFrame((int)(TimeUtils.millis() >>> 7) & 15);
         buffer.begin();
@@ -86,10 +90,11 @@ public class RotationVisualizer extends ApplicationAdapter {
         worldView.apply();
         worldView.getCamera().position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
         worldView.update(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-        batch.setProjectionMatrix(screenView.getCamera().combined);
+        batch.setProjectionMatrix(worldView.getCamera().combined);
         batch.begin();
 //        pmTexture.draw(renderer.drawSplatsHalf(voxels, 0f, (TimeUtils.millis() & 2047) * 0x1p-11f, 0f), 0, 0);
-        pmTexture.draw(renderer.drawSplats(voxels, yaw, pitch, roll, VoxIO.lastMaterials), 0, 0);
+        renderer.drawSplats(voxels, yaw, pitch, roll, VoxIO.lastMaterials);
+        pmTexture.draw(renderer.pixmap, 0, 0);
         batch.draw(pmTexture,
                 0,
                 0);
@@ -147,11 +152,11 @@ public class RotationVisualizer extends ApplicationAdapter {
                         renderer.outline = !renderer.outline;
                         break;
                     case Input.Keys.UP:
-                        renderer.saturation(saturation = Math.min(1f, saturation + 0.004f));
+                        renderer.saturation(saturation = Math.min(1f, saturation + 0.01f));
                         System.out.println(saturation);
                         break;
                     case Input.Keys.DOWN:
-                        renderer.saturation(saturation = Math.max(-1f, saturation - 0.004f));
+                        renderer.saturation(saturation = Math.max(-1f, saturation - 0.01f));
                         System.out.println(saturation);
                         break;
                     case Input.Keys.ESCAPE:
@@ -173,8 +178,9 @@ public class RotationVisualizer extends ApplicationAdapter {
                 return;
             }
             Tools3D.soakInPlace(v);
-            voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
-            Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, v.length >> 2);
+//            voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
+//            Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, v.length >> 2);
+            voxels = v;
             renderer = new RotatingRenderer(voxels.length);
             renderer.palette(VoxIO.lastPalette);
         } catch (FileNotFoundException e) {

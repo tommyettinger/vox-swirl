@@ -23,8 +23,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class SplatVisualizer extends ApplicationAdapter {
-    public static final int SCREEN_WIDTH = 512;//640;
-    public static final int SCREEN_HEIGHT = 512;//720;
+    public static final int SCREEN_WIDTH = 800;//640;
+    public static final int SCREEN_HEIGHT = 800;//720;
     public static final int VIRTUAL_WIDTH = SCREEN_WIDTH;
     public static final int VIRTUAL_HEIGHT = SCREEN_HEIGHT;
     protected SpriteBatch batch;
@@ -52,6 +52,7 @@ public class SplatVisualizer extends ApplicationAdapter {
         pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
 //        load("vox/Tree.vox");
 //        load("vox/IPT_No_Pow.vox");
+//        load("vox/libGDX_BadLogic_Logo.vox");
         load("vox/Infantry_Firing.vox");
 //        load("vox/Lomuk.vox");
 //        load("vox/CrazyBox.vox");
@@ -141,11 +142,11 @@ public class SplatVisualizer extends ApplicationAdapter {
                         renderer.outline = !renderer.outline;
                         break;
                     case Input.Keys.UP:
-                        renderer.saturation(saturation = Math.min(1f, saturation + 0.004f));
+                        renderer.saturation(saturation = Math.min(1f, saturation + 0.01f));
                         System.out.println(saturation);
                         break;
                     case Input.Keys.DOWN:
-                        renderer.saturation(saturation = Math.max(-1f, saturation - 0.004f));
+                        renderer.saturation(saturation = Math.max(-1f, saturation - 0.01f));
                         System.out.println(saturation);
                         break;
                     case Input.Keys.SPACE:
@@ -160,14 +161,19 @@ public class SplatVisualizer extends ApplicationAdapter {
         };
     }
     public void load(String name) {
+        if(pmTexture != null) pmTexture.dispose();
+        pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
         try {
             //// loads a file by its full path, which we get via drag+drop
-            voxels = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream(name)));
-            if(voxels == null) {
+            byte[][][] v = VoxIO.readVox(new LittleEndianDataInputStream(new FileInputStream(name)));
+            if(v == null) {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
-            Tools3D.soakInPlace(voxels);
+            Tools3D.soakInPlace(v);
+//            voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
+//            Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, 0);
+            voxels = v;
             renderer = new SplatRenderer(voxels.length);
             renderer.palette(VoxIO.lastPalette);
         } catch (FileNotFoundException e) {

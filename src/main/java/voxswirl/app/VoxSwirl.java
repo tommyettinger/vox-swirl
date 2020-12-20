@@ -83,7 +83,7 @@ public class VoxSwirl extends ApplicationAdapter {
                     gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
                 }
                 apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
-//                VoxIO.writeVOX("out/" + s.substring(4, s.length() - 4) + "_remade.vox", renderer.remade, VoxIO.lastPalette);
+                VoxIO.writeVOX("out/" + s.substring(4, s.length() - 4) + "_remade.vox", renderer.remade, VoxIO.lastPalette);
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -20,11 +20,11 @@ import static voxswirl.meta.TrigTools.sin_;
  */
 public class SplatRenderer {
     public Pixmap pixmap;
-    public int[][] depths, voxels, working, render, outlines;
+    public int[][] depths, voxels, render, outlines;
     public VoxMaterial[][] materials;
     public byte[][][] remade;
     public float[][] shadeX, shadeZ, colorI, colorP, colorT;
-    public PaletteReducer reducer = new PaletteReducer();
+    public PaletteReducer reducer = new PaletteReducer(Coloring.HALTONIC255);
     private int[] palette;
     public float[] paletteI, paletteP, paletteT;
     public boolean dither = false, outline = true;
@@ -41,17 +41,16 @@ public class SplatRenderer {
         this.size = size;
         final int w = size * 4 + 4, h = size * 5 + 4;
         pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
-        working =  new int[w][h];
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
         materials = new VoxMaterial[w][h];
-        colorI = fill(-1f, w, h);
-        colorP = fill(-1f, w, h);
-        colorT = fill(-1f, w, h);
         voxels = fill(-1, w, h);
         shadeX = fill(-1f, size * 4, size * 4);
         shadeZ = fill(-1f, size * 4, size * 4);
+        colorI = fill(-1f, w, h);
+        colorP = fill(-1f, w, h);
+        colorT = fill(-1f, w, h);
         remade = new byte[size << 1][size << 1][size << 1];
     }
     
@@ -78,7 +77,7 @@ public class SplatRenderer {
      * @return this, for chaining
      */
     public SplatRenderer saturation(float saturationModifier) {
-        saturationModifier = MathUtils.clamp(saturationModifier, -0.5f, 0.2f);
+        saturationModifier = MathUtils.clamp(saturationModifier, -1f, 0.5f);
         neutral = 1f + saturationModifier;
         bigUp = 1.1f + saturationModifier;
         midUp = 1.04f + saturationModifier;
@@ -128,11 +127,10 @@ public class SplatRenderer {
         final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
         final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
         final float hs = size * 0.5f;
-        for (int x = 0, ax = xx; x < 4 && ax < working.length; x++, ax++) {
-            for (int y = 0, ay = yy; y < 4 && ay < working[0].length; y++, ay++) {
+        for (int x = 0, ax = xx; x < 4 && ax < render.length; x++, ax++) {
+            for (int y = 0, ay = yy; y < 4 && ay < render[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
                     drawn = true;
-                    working[ax][ay] = Coloring.adjust(palette[voxel & 255], 1f, neutral);
                     colorI[ax][ay] = paletteI[voxel & 255];
                     colorP[ax][ay] = paletteP[voxel & 255];
                     colorT[ax][ay] = paletteT[voxel & 255];
@@ -141,6 +139,7 @@ public class SplatRenderer {
                     if(alpha == 0f)
                         outlines[ax][ay] = Coloring.adjust(palette[voxel & 255], 0.625f + emit, bigUp);
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
+//                    remade[(int)xPos][(int)yPos][(int)zPos] = voxel;
                     for (int xp = (int)xPos; xp < xPos + 0.5f; xp++) {
                         for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
                             for (int zp = (int) zPos; zp < zPos + 0.5f; zp++) {
@@ -162,8 +161,8 @@ public class SplatRenderer {
     public SplatRenderer clear() {
         pixmap.setColor(0);
         pixmap.fill();
-        fill(working, (byte) 0);
         fill(depths, 0);
+        fill(render, 0);
         fill(outlines, (byte) 0);
         fill(voxels, -1);
         fill(shadeX, -1f);
@@ -199,7 +198,7 @@ public class SplatRenderer {
         final int threshold = 8;
         pixmap.setColor(0);
         pixmap.fill();
-        int xSize = working.length - 1, ySize = working[0].length - 1, depth;
+        int xSize = render.length - 1, ySize = render[0].length - 1, depth;
 //        for (int x = 0; x <= xSize; x++) {
 //            System.arraycopy(working[x], 0, render[x], 0, ySize);
 //        }
@@ -389,7 +388,10 @@ public class SplatRenderer {
         for (int x = 0; x <= xSize; x++) {
             for (int y = 0; y <= ySize; y++) {
                 if (colorP[x][y] >= 0f) {
-                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.ipt(Math.min(Math.max(colorI[x][y] - 0.11f, 0f), 1f), colorP[x][y], colorT[x][y], 1f)));
+                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.ipt(
+                            Math.min(Math.max(colorI[x][y] - 0.11f, 0f), 1f),
+                            (colorP[x][y] - 0.5f) * neutral + 0.5f,
+                            (colorT[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
             }
         }
@@ -457,13 +459,12 @@ public class SplatRenderer {
             }
         }
         if(dither) {
-            reducer.setDitherStrength(0.5f);
-            reducer.reduceBlueNoise(pixmap);
+            reducer.setDitherStrength(0.75f);
+            reducer.reduceScatter(pixmap);
 //            color.reducer.reduceJimenez(pixmapHalf);
         }
 
         fill(render, 0);
-        fill(working, 0);
         fill(depths, 0);
         fill(outlines, 0);
         fill(voxels, -1);
@@ -475,188 +476,188 @@ public class SplatRenderer {
         return pixmap;
     }
 
-    /**
-     * Compiles all of the individual voxels drawn with {@link #splat(float, float, float, int, int, int, byte)} into a
-     * single Pixmap and returns it.
-     * <br>
-     * Although this is in SplatRenderer (which only handles yaw rotation), this allows specifying pitch and roll as
-     * well in order to have one consistent implementation, used by {@link RotatingRenderer}.
-     * @param yaw in turns; like turning your head or making a turn in a car
-     * @param pitch in turns; like looking up or down or making a nosedive in a plane
-     * @param roll in turns; like tilting your head to one side or doing a barrel roll in a starship
-     * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, int, int, int, byte)}
-     */
-    public Pixmap blitOld(float yaw, float pitch, float roll) {
-        final int threshold = 8;
-        pixmap.setColor(0);
-        pixmap.fill();
-        int xSize = working.length - 1, ySize = working[0].length - 1, depth;
-        for (int x = 0; x <= xSize; x++) {
-            System.arraycopy(working[x], 0, render[x], 0, ySize);
-        }
-        int v, vx, vy, vz, fx, fy, fz;
-        float hs = (size) * 0.5f, ox, oy, oz, tx, tz;
-        final float cYaw = cos_(yaw), sYaw = sin_(yaw);
-        final float cPitch = cos_(pitch), sPitch = sin_(pitch);
-        final float cRoll = cos_(roll), sRoll = sin_(roll);
-        final float x_x = cYaw * cPitch, y_x = cYaw * sPitch * sRoll - sYaw * cRoll, z_x = cYaw * sPitch * cRoll + sYaw * sRoll;
-        final float x_y = sYaw * cPitch, y_y = sYaw * sPitch * sRoll + cYaw * cRoll, z_y = sYaw * sPitch * cRoll - cYaw * sRoll;
-        final float x_z = -sPitch, y_z = cPitch * sRoll, z_z = cPitch * cRoll;
-        VoxMaterial m;
-        for (int sx = 0; sx <= xSize; sx++) {
-            for (int sy = 0; sy <= ySize; sy++) {
-                if((v = voxels[sx][sy]) != -1) {
-                    vx = v & 0x3FF;
-                    vy = v >>> 10 & 0x3FF;
-                    vz = v >>> 20 & 0x3FF;
-                    ox = vx - hs;
-                    oy = vy - hs;
-                    oz = vz - hs;
-                    tx = ox * x_x + oy * y_x + oz * z_x + size + hs;
-                    fx = (int)(tx);
-                    fy = (int)(ox * x_y + oy * y_y + oz * z_y + size + hs);
-                    tz = ox * x_z + oy * y_z + oz * z_z + hs + hs;
-                    fz = (int)(tz);
-                    m = materials[sx][sy];
-                    double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
-                    if ((shadeX[fy][fz] - tx) > limit || ((fy > 1 && shadeX[fy - 2][fz] - tx > limit) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > limit))) {
-                        if (Math.abs(shadeZ[fx][fy] - tz) < 1) {
-                            render[sx][sy] = Coloring.adjust(working[sx][sy], 1.25f, midUp);
-                            float spread = MathUtils.lerp(1.22f, 1.03f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                            if (sx > 0) render[sx - 1][sy] = Coloring.adjust(working[sx - 1][sy], spread, smallUp);
-                            if (sy > 0) render[sx][sy - 1] = Coloring.adjust(working[sx][sy - 1], spread, smallUp);
-                            if (sx < xSize) render[sx + 1][sy] = Coloring.adjust(working[sx + 1][sy], spread, smallUp);
-                            if (sy < ySize) render[sx][sy + 1] = Coloring.adjust(working[sx][sy + 1], spread, smallUp);
-
-                            if (sx > 1) render[sx - 2][sy] = Coloring.adjust(working[sx - 2][sy], spread, smallUp);
-                            if (sy > 1) render[sx][sy - 2] = Coloring.adjust(working[sx][sy - 2], spread, smallUp);
-                            if (sx < xSize - 1)
-                                render[sx + 2][sy] = Coloring.adjust(working[sx + 2][sy], spread, smallUp);
-                            if (sy < ySize - 1)
-                                render[sx][sy + 2] = Coloring.adjust(working[sx][sy + 2], spread, smallUp);
-                        } else {
-                            render[sx][sy] = Coloring.adjust(working[sx][sy], 0.65f, smallDown);
-                            float spread = MathUtils.lerp(0.66f, 0.88f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                            if (sx > 0) render[sx - 1][sy] = Coloring.adjust(working[sx - 1][sy], spread, smallDown);
-                            if (sy > 0) render[sx][sy - 1] = Coloring.adjust(working[sx][sy - 1], spread, smallDown);
-                            if (sx < xSize)
-                                render[sx + 1][sy] = Coloring.adjust(working[sx + 1][sy], spread, smallDown);
-                            if (sy < ySize)
-                                render[sx][sy + 1] = Coloring.adjust(working[sx][sy + 1], spread, smallDown);
-
-                            if (sx > 1) render[sx - 2][sy] = Coloring.adjust(working[sx - 2][sy], spread, smallDown);
-                            if (sy > 1) render[sx][sy - 2] = Coloring.adjust(working[sx][sy - 2], spread, smallDown);
-                            if (sx < xSize - 1)
-                                render[sx + 2][sy] = Coloring.adjust(working[sx + 2][sy], spread, smallDown);
-                            if (sy < ySize - 1)
-                                render[sx][sy + 2] = Coloring.adjust(working[sx][sy + 2], spread, smallDown);
-                        }
-                    }
-                    else if (Math.abs(shadeZ[fx][fy] - tz) < 1)
-                    {
-                        render[sx][sy] = Coloring.adjust(working[sx][sy], 1.3f, bigUp);
-                        float spread = MathUtils.lerp(1.27f, 1.05f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(working[sx-1][sy], spread, midUp);
-                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(working[sx][sy-1], spread, midUp);
-                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(working[sx+1][sy], spread, midUp);
-                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(working[sx][sy+1], spread, midUp);
-
-                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(working[sx-2][sy], spread, midUp);
-                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(working[sx][sy-2], spread, midUp);
-                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(working[sx+2][sy], spread, midUp);
-                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(working[sx][sy+2], spread, midUp);
-
-                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.85f + m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.5f, m.getTrait(VoxMaterial.MaterialTrait._metal) * 0.375f + 1f);
-                    }
-                }
-            }
-        }
-
-        for (int x = 0; x <= xSize; x++) {
-            for (int y = 0; y <= ySize; y++) {
-                if (render[x][y] != 0) {
-                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y]);
-                }
-            }
-        }
-        if (outline) {
-            int o;
-            for (int x = 2; x < xSize - 1; x++) {
-                final int hx = x >>> 1;
-                for (int y = 2; y < ySize - 1; y++) {
-                    int hy = y >>> 1;
-                    if ((o = outlines[x][y]) != 0) {
-                        depth = depths[x][y];
-//                        if (outlines[x - 1][y] == 0) {
-//                            pixmap.drawPixel(hx - 1, hy    , o);
+//    /**
+//     * Compiles all of the individual voxels drawn with {@link #splat(float, float, float, int, int, int, byte)} into a
+//     * single Pixmap and returns it.
+//     * <br>
+//     * Although this is in SplatRenderer (which only handles yaw rotation), this allows specifying pitch and roll as
+//     * well in order to have one consistent implementation, used by {@link RotatingRenderer}.
+//     * @param yaw in turns; like turning your head or making a turn in a car
+//     * @param pitch in turns; like looking up or down or making a nosedive in a plane
+//     * @param roll in turns; like tilting your head to one side or doing a barrel roll in a starship
+//     * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, int, int, int, byte)}
+//     */
+//    public Pixmap blitOld(float yaw, float pitch, float roll) {
+//        final int threshold = 8;
+//        pixmap.setColor(0);
+//        pixmap.fill();
+//        int xSize = working.length - 1, ySize = working[0].length - 1, depth;
+//        for (int x = 0; x <= xSize; x++) {
+//            System.arraycopy(working[x], 0, render[x], 0, ySize);
+//        }
+//        int v, vx, vy, vz, fx, fy, fz;
+//        float hs = (size) * 0.5f, ox, oy, oz, tx, tz;
+//        final float cYaw = cos_(yaw), sYaw = sin_(yaw);
+//        final float cPitch = cos_(pitch), sPitch = sin_(pitch);
+//        final float cRoll = cos_(roll), sRoll = sin_(roll);
+//        final float x_x = cYaw * cPitch, y_x = cYaw * sPitch * sRoll - sYaw * cRoll, z_x = cYaw * sPitch * cRoll + sYaw * sRoll;
+//        final float x_y = sYaw * cPitch, y_y = sYaw * sPitch * sRoll + cYaw * cRoll, z_y = sYaw * sPitch * cRoll - cYaw * sRoll;
+//        final float x_z = -sPitch, y_z = cPitch * sRoll, z_z = cPitch * cRoll;
+//        VoxMaterial m;
+//        for (int sx = 0; sx <= xSize; sx++) {
+//            for (int sy = 0; sy <= ySize; sy++) {
+//                if((v = voxels[sx][sy]) != -1) {
+//                    vx = v & 0x3FF;
+//                    vy = v >>> 10 & 0x3FF;
+//                    vz = v >>> 20 & 0x3FF;
+//                    ox = vx - hs;
+//                    oy = vy - hs;
+//                    oz = vz - hs;
+//                    tx = ox * x_x + oy * y_x + oz * z_x + size + hs;
+//                    fx = (int)(tx);
+//                    fy = (int)(ox * x_y + oy * y_y + oz * z_y + size + hs);
+//                    tz = ox * x_z + oy * y_z + oz * z_z + hs + hs;
+//                    fz = (int)(tz);
+//                    m = materials[sx][sy];
+//                    double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
+//                    if ((shadeX[fy][fz] - tx) > limit || ((fy > 1 && shadeX[fy - 2][fz] - tx > limit) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > limit))) {
+//                        if (Math.abs(shadeZ[fx][fy] - tz) < 1) {
+//                            render[sx][sy] = Coloring.adjust(working[sx][sy], 1.25f, midUp);
+//                            float spread = MathUtils.lerp(1.22f, 1.03f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+//                            if (sx > 0) render[sx - 1][sy] = Coloring.adjust(working[sx - 1][sy], spread, smallUp);
+//                            if (sy > 0) render[sx][sy - 1] = Coloring.adjust(working[sx][sy - 1], spread, smallUp);
+//                            if (sx < xSize) render[sx + 1][sy] = Coloring.adjust(working[sx + 1][sy], spread, smallUp);
+//                            if (sy < ySize) render[sx][sy + 1] = Coloring.adjust(working[sx][sy + 1], spread, smallUp);
+//
+//                            if (sx > 1) render[sx - 2][sy] = Coloring.adjust(working[sx - 2][sy], spread, smallUp);
+//                            if (sy > 1) render[sx][sy - 2] = Coloring.adjust(working[sx][sy - 2], spread, smallUp);
+//                            if (sx < xSize - 1)
+//                                render[sx + 2][sy] = Coloring.adjust(working[sx + 2][sy], spread, smallUp);
+//                            if (sy < ySize - 1)
+//                                render[sx][sy + 2] = Coloring.adjust(working[sx][sy + 2], spread, smallUp);
+//                        } else {
+//                            render[sx][sy] = Coloring.adjust(working[sx][sy], 0.65f, smallDown);
+//                            float spread = MathUtils.lerp(0.66f, 0.88f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+//                            if (sx > 0) render[sx - 1][sy] = Coloring.adjust(working[sx - 1][sy], spread, smallDown);
+//                            if (sy > 0) render[sx][sy - 1] = Coloring.adjust(working[sx][sy - 1], spread, smallDown);
+//                            if (sx < xSize)
+//                                render[sx + 1][sy] = Coloring.adjust(working[sx + 1][sy], spread, smallDown);
+//                            if (sy < ySize)
+//                                render[sx][sy + 1] = Coloring.adjust(working[sx][sy + 1], spread, smallDown);
+//
+//                            if (sx > 1) render[sx - 2][sy] = Coloring.adjust(working[sx - 2][sy], spread, smallDown);
+//                            if (sy > 1) render[sx][sy - 2] = Coloring.adjust(working[sx][sy - 2], spread, smallDown);
+//                            if (sx < xSize - 1)
+//                                render[sx + 2][sy] = Coloring.adjust(working[sx + 2][sy], spread, smallDown);
+//                            if (sy < ySize - 1)
+//                                render[sx][sy + 2] = Coloring.adjust(working[sx][sy + 2], spread, smallDown);
 //                        }
-//                        if (outlines[x + 1][y] == 0) {
-//                            pixmap.drawPixel(hx + 1, hy    , o);
-//                        }
-//                        if (outlines[x][y - 1] == 0) {
-//                            pixmap.drawPixel(hx    , hy - 1, o);
-//                        }
-//                        if (outlines[x][y + 1] == 0) {
-//                            pixmap.drawPixel(hx    , hy + 1, o);
-//                        }
-
-                        if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
-                            pixmap.drawPixel(hx, hy    , o);
-                        }
-                        else if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
-                            pixmap.drawPixel(hx, hy    , o);
-                        }
-                        else if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
-                            pixmap.drawPixel(hx    , hy, o);
-                        }
-                        else if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
-                            pixmap.drawPixel(hx    , hy, o);
-                        }
-
-//                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
+//                    }
+//                    else if (Math.abs(shadeZ[fx][fy] - tz) < 1)
+//                    {
+//                        render[sx][sy] = Coloring.adjust(working[sx][sy], 1.3f, bigUp);
+//                        float spread = MathUtils.lerp(1.27f, 1.05f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+//                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(working[sx-1][sy], spread, midUp);
+//                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(working[sx][sy-1], spread, midUp);
+//                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(working[sx+1][sy], spread, midUp);
+//                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(working[sx][sy+1], spread, midUp);
+//
+//                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(working[sx-2][sy], spread, midUp);
+//                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(working[sx][sy-2], spread, midUp);
+//                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(working[sx+2][sy], spread, midUp);
+//                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(working[sx][sy+2], spread, midUp);
+//
+//                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.85f + m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.5f, m.getTrait(VoxMaterial.MaterialTrait._metal) * 0.375f + 1f);
+//                    }
+//                }
+//            }
+//        }
+//
+//        for (int x = 0; x <= xSize; x++) {
+//            for (int y = 0; y <= ySize; y++) {
+//                if (render[x][y] != 0) {
+//                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y]);
+//                }
+//            }
+//        }
+//        if (outline) {
+//            int o;
+//            for (int x = 2; x < xSize - 1; x++) {
+//                final int hx = x >>> 1;
+//                for (int y = 2; y < ySize - 1; y++) {
+//                    int hy = y >>> 1;
+//                    if ((o = outlines[x][y]) != 0) {
+//                        depth = depths[x][y];
+////                        if (outlines[x - 1][y] == 0) {
+////                            pixmap.drawPixel(hx - 1, hy    , o);
+////                        }
+////                        if (outlines[x + 1][y] == 0) {
+////                            pixmap.drawPixel(hx + 1, hy    , o);
+////                        }
+////                        if (outlines[x][y - 1] == 0) {
+////                            pixmap.drawPixel(hx    , hy - 1, o);
+////                        }
+////                        if (outlines[x][y + 1] == 0) {
+////                            pixmap.drawPixel(hx    , hy + 1, o);
+////                        }
+//
+//                        if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
 //                            pixmap.drawPixel(hx, hy    , o);
 //                        }
-//                        else if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
+//                        else if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
 //                            pixmap.drawPixel(hx, hy    , o);
 //                        }
-//                        else if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
+//                        else if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
 //                            pixmap.drawPixel(hx    , hy, o);
 //                        }
-//                        else if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
+//                        else if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
 //                            pixmap.drawPixel(hx    , hy, o);
 //                        }
-
-//                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
-//                            pixmap.drawPixel(hx - 1, hy    , o);
-//                        }
-//                        if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
-//                            pixmap.drawPixel(hx + 1, hy    , o);
-//                        }
-//                        if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
-//                            pixmap.drawPixel(hx    , hy - 1, o);
-//                        }
-//                        if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
-//                            pixmap.drawPixel(hx    , hy + 1, o);
-//                        }
-                    }
-                }
-            }
-        }
-        if(dither) {
-            reducer.setDitherStrength(0.5f);
-            reducer.reduceBlueNoise(pixmap);
-//            color.reducer.reduceJimenez(pixmapHalf);
-        }
-
-        fill(render, 0);
-        fill(working, 0);
-        fill(depths, 0);
-        fill(outlines, 0);
-        fill(voxels, -1);
-        fill(shadeX, -1);
-        fill(shadeZ, -1);
-        return pixmap;
-    }
+//
+////                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
+////                            pixmap.drawPixel(hx, hy    , o);
+////                        }
+////                        else if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
+////                            pixmap.drawPixel(hx, hy    , o);
+////                        }
+////                        else if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
+////                            pixmap.drawPixel(hx    , hy, o);
+////                        }
+////                        else if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
+////                            pixmap.drawPixel(hx    , hy, o);
+////                        }
+//
+////                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
+////                            pixmap.drawPixel(hx - 1, hy    , o);
+////                        }
+////                        if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
+////                            pixmap.drawPixel(hx + 1, hy    , o);
+////                        }
+////                        if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
+////                            pixmap.drawPixel(hx    , hy - 1, o);
+////                        }
+////                        if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
+////                            pixmap.drawPixel(hx    , hy + 1, o);
+////                        }
+//                    }
+//                }
+//            }
+//        }
+//        if(dither) {
+//            reducer.setDitherStrength(0.5f);
+//            reducer.reduceBlueNoise(pixmap);
+////            color.reducer.reduceJimenez(pixmapHalf);
+//        }
+//
+//        fill(render, 0);
+//        fill(working, 0);
+//        fill(depths, 0);
+//        fill(outlines, 0);
+//        fill(voxels, -1);
+//        fill(shadeX, -1);
+//        fill(shadeZ, -1);
+//        return pixmap;
+//    }
 
     // To move one x+ in voxels is x + 2, y - 1 in pixels.
     // To move one x- in voxels is x - 2, y + 1 in pixels.

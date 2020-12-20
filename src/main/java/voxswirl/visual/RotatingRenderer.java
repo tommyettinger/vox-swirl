@@ -17,7 +17,6 @@ public class RotatingRenderer extends SplatRenderer {
         this.size = size;
         final int w = size * 6 + 4, h = size * 6 + 4;
         pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
-        working =  new int[w][h];
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
@@ -25,8 +24,12 @@ public class RotatingRenderer extends SplatRenderer {
         voxels = fill(-1, w, h);
         shadeX = fill(-1f, size * 4, size * 4);
         shadeZ = fill(-1f, size * 4, size * 4);
+        colorI = fill(-1f, w, h);
+        colorP = fill(-1f, w, h);
+        colorT = fill(-1f, w, h);
+        remade = new byte[size << 1][size << 1][size << 1];
     }
-    
+
     // To move one x+ in voxels is x + 2, y - 1 in pixels.
     // To move one x- in voxels is x - 2, y + 1 in pixels.
     // To move one y+ in voxels is x - 2, y - 1 in pixels.
