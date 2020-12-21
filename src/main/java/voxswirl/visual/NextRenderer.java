@@ -58,12 +58,22 @@ public class NextRenderer {
     }
 
     /**
-     * Ranges between -0.5f and 0.5f, both exclusive. Centrally biased.
+     * Ranges between -0.75f and 0.75f, both exclusive. Blue-noise distributed, but uniform.
+     * @param x x position, will wrap every 64
+     * @param y y position, will wrap every 64
+     * @return a float between -0.75f and 0.75f
+     */
+    protected float angle(int x, int y) {
+        return (PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) * 0x3p-9f;
+    }
+
+    /**
+     * Ranges between -0.5f and 0.5f, both exclusive. Blue-noise distributed and centrally biased.
      * @param x x position, will wrap every 64
      * @param y y position, will wrap every 64
      * @return a float between -0.5f and 0.5f
      */
-    protected float bnt(int x, int y) {
+    protected float biasedAngle(int x, int y) {
         return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) * 0x1p-8f;
     }
 
@@ -152,30 +162,52 @@ public class NextRenderer {
      * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, byte)}
      */
     public Pixmap blit() {
-        final int threshold = 8;
-        final int lightPasses = 16;
+        final int threshold = 12;
+        final int lightPasses = 24;
         pixmap.setColor(0);
         pixmap.fill();
         final int xSize = render.length - 1, ySize = render[0].length - 1,
-                rmxLength = remade.length, rmyLength = remade[0].length, rmzLength = remade[0][0].length;
-        final float rmxLimit = rmxLength - 0.5f, rmyLimit = rmyLength - 0.5f;
+                rmxLength = remade.length, rmyLength = remade[0].length, rmzLength = remade[0][0].length,
+                startRegion = size >> 1, endRegion = rmxLength - (size >> 1);
         int xx, yy, depth, voxel, vx, vy, vz;
         VoxMaterial m;
 
+        // top lighting
         int starting = size - 1;
-        for (int y = 0; y < rmyLength; y++) {
-            for (int x = 0; x < rmxLength; x++) {
-                float ox = x, oy = y, xAngle = bnt(x, y), yAngle = bnt(x + 23, y + 41);
+        for (int y = startRegion; y < endRegion; y++) {
+            for (int x = startRegion; x < endRegion; x++) {
+                float ox = x, oy = y, xAngle = biasedAngle(x, y), yAngle = biasedAngle(x + 23, y + 41);
                 for (int p = 0; p < lightPasses; p++) {
-                    xAngle = (xAngle + bnt(x + p, y + p)) * 0.5f;
-                    yAngle = (yAngle + bnt(x + p + 23, y + p + 41)) * 0.5f;
+                    xAngle = (xAngle + biasedAngle(x + p, y + p)) * 0.5f;
+                    yAngle = (yAngle + biasedAngle(x + p + 23, y + p + 41)) * 0.5f;
                     for (int z = starting;
-                         z >= 0 && ox >= 0 && oy >= 0 && ox < rmxLimit && oy < rmyLimit;
+                         z >= 0 && ox >= startRegion && oy >= startRegion && ox < endRegion && oy < endRegion;
                          z--, ox += xAngle, oy += yAngle) {
                         vx = (int)(ox + 0.5f);
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[vx][vy][z] & 255) != 0){
-                            lights[vx][vy][z] += 0.03125f;
+                            lights[vx][vy][z] += 0.025f;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        // side lighting
+        starting = endRegion;
+        for (int z = 0; z < size; z++) {
+            for (int y = startRegion; y < endRegion; y++) {
+                float oz = z, oy = y, zAngle = angle(y + 11, z + 47), yAngle = angle(y + 19, z + 13);
+                for (int p = 0; p < lightPasses; p++) {
+                    zAngle = (zAngle + angle(y + p + 11, z + p + 47)) * 0.5f;
+                    yAngle = (yAngle + angle(y + p + 19, z + p + 13)) * 0.5f;
+                    for (int x = starting;
+                         x >= 0 && oz >= 0 && oy >= startRegion && oz < size && oy < endRegion;
+                         x--, oz += zAngle, oy += yAngle) {
+                        vz = (int)(oz + 0.5f);
+                        vy = (int)(oy + 0.5f);
+                        if((voxel = remade[x][vy][vz] & 255) != 0){
+                            lights[x][vy][vz] += 0.0125f;
                             break;
                         }
                     }
