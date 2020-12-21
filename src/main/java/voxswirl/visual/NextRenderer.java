@@ -164,6 +164,10 @@ public class NextRenderer {
     public Pixmap blit() {
         final int threshold = 13;
         final int lightPasses = 24;
+        final float strongMain = 0.025f * 24f / lightPasses,
+        strongMinor = 0.001f * 24f / lightPasses,
+                weakMain = 0.02f * 24f / lightPasses,
+                weakMinor = 0.0075f * 24f / lightPasses;
         pixmap.setColor(0);
         pixmap.fill();
         final int xSize = render.length - 1, ySize = render[0].length - 1,
@@ -186,11 +190,11 @@ public class NextRenderer {
                         vx = (int)(ox + 0.5f);
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[vx][vy][z] & 255) != 0){
-                            lights[vx][vy][z] += 0.03f;
+                            lights[vx][vy][z] += strongMain;
                             for (int vxx = x - 1; vxx <= x + 1; vxx++) {
                                 for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
                                     for (int vzz = Math.max(0, z - 1); vzz < Math.min(starting, z + 1); vzz++) {
-                                        lights[vxx][vyy][vzz] += 0.01f;
+                                        lights[vxx][vyy][vzz] += strongMinor;
                                     }
                                 }
                             }
@@ -220,11 +224,11 @@ public class NextRenderer {
                         vz = (int)(oz + 0.5f);
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[x][vy][vz] & 255) != 0){
-                            lights[x][vy][vz] += 0.026f;
+                            lights[x][vy][vz] += weakMain;
                             for (int vxx = x - 1; vxx <= x + 1; vxx++) {
                                 for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
                                     for (int vzz = Math.max(0, vz - 1); vzz < Math.min(size, vz + 1); vzz++) {
-                                        lights[vxx][vyy][vzz] += 0.009f;
+                                        lights[vxx][vyy][vzz] += weakMinor;
                                     }
                                 }
                             }

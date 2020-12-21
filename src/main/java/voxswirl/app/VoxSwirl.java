@@ -37,7 +37,7 @@ public class VoxSwirl extends ApplicationAdapter {
         else 
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
-            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/libGDX_BadLogic_Half.vox"};
+//            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/IPT.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Infantry_Firing.vox"};
@@ -46,6 +46,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/IPT_Original.vox"};
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
+            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
             if(!new File(inputs[0]).exists()) 
@@ -62,7 +63,7 @@ public class VoxSwirl extends ApplicationAdapter {
         apng = new AnimatedPNG();
         gif.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
         png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
-        png8.palette = gif.palette = new PaletteReducer();
+        png8.palette = gif.palette = new PaletteReducer(Coloring.AURORA);
         gif.palette.setDitherStrength(0.75f);
         for (String s : inputs) {
             load(s);
