@@ -41,7 +41,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/IPT.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Infantry_Firing.vox"};
 //            inputs = new String[]{"vox/IPT_No_Pow.vox"};
-            inputs = new String[]{"vox/Box.vox", "vox/Direction_Cube.vox"};
+//            inputs = new String[]{"vox/Box.vox", "vox/Direction_Cube.vox"};
 //            inputs = new String[]{"vox/IPT_Original.vox"};
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
@@ -54,6 +54,7 @@ public class VoxSwirl extends ApplicationAdapter {
     @Override
     public void create() {
         if (inputs == null) Gdx.app.exit();
+        Gdx.files.local("out/vox/").mkdirs();
         png = new PixmapIO.PNG();
         png8 = new PNG8();
         gif = new AnimatedGif();
@@ -77,13 +78,13 @@ public class VoxSwirl extends ApplicationAdapter {
                         png8.palette.exact(Coloring.HALTONIC255, colorCount);
                         png8.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
                     }
+                    VoxIO.writeVOX("out/vox/" + s.substring(4, s.length() - 4) + "_angle"+i+".vox", renderer.remade, VoxIO.lastPalette);
                 }
                 for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
                     gif.palette.exact(Coloring.HALTONIC255, colorCount);
                     gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
                 }
                 apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
-                VoxIO.writeVOX("out/" + s.substring(4, s.length() - 4) + "_remade.vox", renderer.remade, VoxIO.lastPalette);
             } catch (IOException e) {
                 e.printStackTrace();
             }
