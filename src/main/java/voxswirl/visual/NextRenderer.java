@@ -21,6 +21,7 @@ public class NextRenderer {
     public int[][] depths, voxels, render, outlines;
     public VoxMaterial[][] materials;
     public byte[][][] remade;
+    public float[][][] lights;
     public float[][] colorI, colorP, colorT;
     public PaletteReducer reducer = new PaletteReducer();
     private int[] palette;
@@ -48,6 +49,8 @@ public class NextRenderer {
         colorP = fill(-1f, w, h);
         colorT = fill(-1f, w, h);
         remade = new byte[size << 1][size << 1][size << 1];
+        lights = new float[size << 1][size << 1][size << 1];
+        Tools3D.fill(lights, 1f);
     }
     
     protected float bn(int x, int y) {
@@ -138,6 +141,8 @@ public class NextRenderer {
         fill(colorI, -1f);
         fill(colorP, -1f);
         fill(colorT, -1f);
+        Tools3D.fill(remade, 0);
+        Tools3D.fill(lights, 1f);
         return this;
     }
 
@@ -148,18 +153,44 @@ public class NextRenderer {
      */
     public Pixmap blit() {
         final int threshold = 8;
+        final int lightPasses = 16;
         pixmap.setColor(0);
         pixmap.fill();
-        int xSize = render.length - 1, ySize = render[0].length - 1, xx, yy, depth;
+        final int xSize = render.length - 1, ySize = render[0].length - 1,
+                rmxLength = remade.length, rmyLength = remade[0].length, rmzLength = remade[0][0].length;
+        final float rmxLimit = rmxLength - 0.5f, rmyLimit = rmyLength - 0.5f;
+        int xx, yy, depth, voxel, vx, vy, vz;
         VoxMaterial m;
+
+        int starting = size - 1;
+        for (int y = 0; y < rmyLength; y++) {
+            for (int x = 0; x < rmxLength; x++) {
+                float ox = x, oy = y, xAngle = bnt(x, y), yAngle = bnt(x + 23, y + 41);
+                for (int p = 0; p < lightPasses; p++) {
+                    xAngle = (xAngle + bnt(x + p, y + p)) * 0.5f;
+                    yAngle = (yAngle + bnt(x + p + 23, y + p + 41)) * 0.5f;
+                    for (int z = starting;
+                         z >= 0 && ox >= 0 && oy >= 0 && ox < rmxLimit && oy < rmyLimit;
+                         z--, ox += xAngle, oy += yAngle) {
+                        vx = (int)(ox + 0.5f);
+                        vy = (int)(oy + 0.5f);
+                        if((voxel = remade[vx][vy][z] & 255) != 0){
+                            lights[vx][vy][z] += 0.03125f;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         for (int z = 0; z < remade[0][0].length; z++) {
             for (int y = 0; y < remade[0].length; y++) {
                 for (int x = 0; x < remade.length; x++) {
                     xx = (size + y - x) * 2 + 1;
                     if(xx < 0 || xx > xSize) continue;
-                    yy = (z * 3 + size * 4 - x - y) + 1;
+                    yy = (z * 3 + size * 3 - x - y) + 1;
                     if(yy < 0 || yy > ySize) continue;
-                    int voxel = remade[x][y][z] & 255;
+                    voxel = remade[x][y][z] & 255;
                     if(voxel == 0) continue;
                     depth = (x + y) * 2 + z * 3;
                     m = materialMap.get(voxel);
@@ -168,27 +199,21 @@ public class NextRenderer {
                     for (int lx = 0, ax = xx; lx < 4 && ax <= xSize; lx++, ax++) {
                         for (int ly = 0, ay = yy; ly < 4 && ay <= ySize; ly++, ay++) {
                             if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
-                                colorI[ax][ay] = paletteI[voxel];
+                                colorI[ax][ay] = paletteI[voxel] * lights[x][y][z];
                                 colorP[ax][ay] = paletteP[voxel];
                                 colorT[ax][ay] = paletteT[voxel];
                                 depths[ax][ay] = depth;
                                 materials[ax][ay] = m;
                                 voxels[ax][ay] = x | y << 10 | z << 20;
                                 if(alpha == 0f)
-                                    outlines[ax][ay] = Coloring.adjust(palette[voxel], 0.625f + emit, bigUp);
+                                    outlines[ax][ay] = ColorTools.toRGBA8888(ColorTools.ipt(
+                                            paletteI[voxel] - 0.375f + emit,
+                                            (paletteP[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f,
+                                            (paletteT[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f,
+                                            1f));
                             }
                         }
                     }
-
-                }
-            }
-        }
-
-        int starting = remade[0][0].length - 1;
-        for (int y = 0; y < remade[0].length; y++) {
-            for (int x = 0; x < remade.length; x++) {
-                float ox = x, oy = y;
-                for (int z = starting; z >= 0; z--, ox += bnt(x, y), oy -= bnt(x + 23, y + 41)) {
 
                 }
             }
@@ -241,6 +266,7 @@ public class NextRenderer {
         fill(colorI, -1f);
         fill(colorP, -1f);
         fill(colorT, -1f);
+        Tools3D.fill(lights, 1f);
         return pixmap;
     }
 

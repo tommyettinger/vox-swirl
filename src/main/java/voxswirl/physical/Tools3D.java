@@ -46,6 +46,22 @@ public class Tools3D {
             }
         }
     }
+    public static void fill(float[][][] array3d, float value) {
+        final int depth = array3d.length;
+        final int breadth = depth == 0 ? 0 : array3d[0].length;
+        final int height = breadth == 0 ? 0 : array3d[0][0].length;
+        if(depth > 0 && breadth > 0) {
+            Arrays.fill(array3d[0][0], value);
+        }
+        for (int y = 1; y < breadth; y++) {
+            System.arraycopy(array3d[0][0], 0, array3d[0][y], 0, height);
+        }
+        for (int x = 1; x < depth; x++) {
+            for (int y = 0; y < breadth; y++) {
+                System.arraycopy(array3d[0][0], 0, array3d[x][y], 0, height);
+            }
+        }
+    }
 
     public static byte[][][] rotate(byte[][][] voxels, int turns)
     {
