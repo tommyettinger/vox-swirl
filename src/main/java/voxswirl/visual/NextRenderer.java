@@ -50,7 +50,7 @@ public class NextRenderer {
         colorT = fill(-1f, w, h);
         remade = new byte[size << 1][size << 1][size << 1];
         lights = new float[size << 1][size << 1][size << 1];
-        Tools3D.fill(lights, 1f);
+        Tools3D.fill(lights, 0.9375f);
     }
     
     protected float bn(int x, int y) {
@@ -68,13 +68,13 @@ public class NextRenderer {
     }
 
     /**
-     * Ranges between -0.5f and 0.5f, both exclusive. Blue-noise distributed and centrally biased.
+     * Ranges between -0.625f and 0.625f, both exclusive. Blue-noise distributed and centrally biased.
      * @param x x position, will wrap every 64
      * @param y y position, will wrap every 64
-     * @return a float between -0.5f and 0.5f
+     * @return a float between -0.625f and 0.625f
      */
     protected float biasedAngle(int x, int y) {
-        return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) * 0x1p-8f;
+        return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6]) * 0x5p-11f;
     }
 
     protected float random(){
@@ -152,7 +152,7 @@ public class NextRenderer {
         fill(colorP, -1f);
         fill(colorT, -1f);
         Tools3D.fill(remade, 0);
-        Tools3D.fill(lights, 1f);
+        Tools3D.fill(lights, 0.9375f);
         return this;
     }
 
@@ -162,7 +162,7 @@ public class NextRenderer {
      * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, byte)}
      */
     public Pixmap blit() {
-        final int threshold = 12;
+        final int threshold = 13;
         final int lightPasses = 24;
         pixmap.setColor(0);
         pixmap.fill();
@@ -176,17 +176,30 @@ public class NextRenderer {
         int starting = size - 1;
         for (int y = startRegion; y < endRegion; y++) {
             for (int x = startRegion; x < endRegion; x++) {
-                float ox = x, oy = y, xAngle = biasedAngle(x, y), yAngle = biasedAngle(x + 23, y + 41);
+                float ox = x, oy = y, xAngle, yAngle;
                 for (int p = 0; p < lightPasses; p++) {
-                    xAngle = (xAngle + biasedAngle(x + p, y + p)) * 0.5f;
-                    yAngle = (yAngle + biasedAngle(x + p + 23, y + p + 41)) * 0.5f;
+                    xAngle = biasedAngle(x + p, y + p);
+                    yAngle = biasedAngle(x + p + 23, y + p + 41);
                     for (int z = starting;
                          z >= 0 && ox >= startRegion && oy >= startRegion && ox < endRegion && oy < endRegion;
                          z--, ox += xAngle, oy += yAngle) {
                         vx = (int)(ox + 0.5f);
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[vx][vy][z] & 255) != 0){
-                            lights[vx][vy][z] += 0.025f;
+                            lights[vx][vy][z] += 0.03f;
+                            for (int vxx = x - 1; vxx <= x + 1; vxx++) {
+                                for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
+                                    for (int vzz = Math.max(0, z - 1); vzz < Math.min(starting, z + 1); vzz++) {
+                                        lights[vxx][vyy][vzz] += 0.01f;
+                                    }
+                                }
+                            }
+//
+//                            lights[x+1][vy][z] += 0.02f;
+//                            lights[x-1][vy][z] += 0.02f;
+//                            lights[x][vy+1][z] += 0.02f;
+//                            lights[x][vy-1][z] += 0.02f;
+
                             break;
                         }
                     }
@@ -197,17 +210,28 @@ public class NextRenderer {
         starting = endRegion;
         for (int z = 0; z < size; z++) {
             for (int y = startRegion; y < endRegion; y++) {
-                float oz = z, oy = y, zAngle = angle(y + 11, z + 47), yAngle = angle(y + 19, z + 13);
+                float oz = z, oy = y, zAngle, yAngle;
                 for (int p = 0; p < lightPasses; p++) {
-                    zAngle = (zAngle + angle(y + p + 11, z + p + 47)) * 0.5f;
-                    yAngle = (yAngle + angle(y + p + 19, z + p + 13)) * 0.5f;
+                    zAngle = biasedAngle(y + p + 11, z + p + 47);
+                    yAngle = biasedAngle(y + p + 19, z + p + 13);
                     for (int x = starting;
                          x >= 0 && oz >= 0 && oy >= startRegion && oz < size && oy < endRegion;
                          x--, oz += zAngle, oy += yAngle) {
                         vz = (int)(oz + 0.5f);
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[x][vy][vz] & 255) != 0){
-                            lights[x][vy][vz] += 0.0125f;
+                            lights[x][vy][vz] += 0.026f;
+                            for (int vxx = x - 1; vxx <= x + 1; vxx++) {
+                                for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
+                                    for (int vzz = Math.max(0, vz - 1); vzz < Math.min(size, vz + 1); vzz++) {
+                                        lights[vxx][vyy][vzz] += 0.009f;
+                                    }
+                                }
+                            }
+//                            if(vz + 1 < size) lights[x][vy][vz+1] += 0.00625f;
+//                            if(vz > 0) lights[x][vy][vz-1] += 0.00625f;
+//                            lights[x][vy+1][vz] += 0.00625f;
+//                            lights[x][vy-1][vz] += 0.00625f;
                             break;
                         }
                     }
@@ -231,7 +255,7 @@ public class NextRenderer {
                     for (int lx = 0, ax = xx; lx < 4 && ax <= xSize; lx++, ax++) {
                         for (int ly = 0, ay = yy; ly < 4 && ay <= ySize; ly++, ay++) {
                             if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
-                                colorI[ax][ay] = paletteI[voxel] * lights[x][y][z];
+                                colorI[ax][ay] = paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]);
                                 colorP[ax][ay] = paletteP[voxel];
                                 colorT[ax][ay] = paletteT[voxel];
                                 depths[ax][ay] = depth;
@@ -239,10 +263,11 @@ public class NextRenderer {
                                 voxels[ax][ay] = x | y << 10 | z << 20;
                                 if(alpha == 0f)
                                     outlines[ax][ay] = ColorTools.toRGBA8888(ColorTools.ipt(
-                                            paletteI[voxel] - 0.375f + emit,
-                                            (paletteP[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f,
-                                            (paletteT[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f,
-                                            1f));
+                                            Math.max(0f, Math.min(1f, paletteI[voxel] - 0.25f + emit)),
+                                            Math.max(0f, Math.min(1f, (paletteP[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f)),
+                                            Math.max(0f, Math.min(1f, (paletteT[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f)),
+                                            1f
+                                    ));
                             }
                         }
                     }
@@ -255,7 +280,7 @@ public class NextRenderer {
             for (int y = 0; y <= ySize; y++) {
                 if (colorP[x][y] >= 0f) {
                     pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.ipt(
-                            Math.min(Math.max(colorI[x][y] - 0.11f, 0f), 1f),
+                            Math.min(Math.max(colorI[x][y], 0f), 1f),
                             (colorP[x][y] - 0.5f) * neutral + 0.5f,
                             (colorT[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
@@ -298,7 +323,7 @@ public class NextRenderer {
         fill(colorI, -1f);
         fill(colorP, -1f);
         fill(colorT, -1f);
-        Tools3D.fill(lights, 1f);
+        Tools3D.fill(lights, 0.9375f);
         return pixmap;
     }
 

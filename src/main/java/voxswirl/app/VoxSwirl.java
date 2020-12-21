@@ -12,6 +12,7 @@ import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
 import voxswirl.visual.Coloring;
+import voxswirl.visual.NextRenderer;
 import voxswirl.visual.SplatRenderer;
 
 import java.io.File;
@@ -22,7 +23,7 @@ import java.io.IOException;
 public class VoxSwirl extends ApplicationAdapter {
     public static final int SCREEN_WIDTH = 512;//640;
     public static final int SCREEN_HEIGHT = 512;//720;
-    private SplatRenderer renderer;
+    private NextRenderer renderer;
     private byte[][][] voxels;
     private String name;
     private String[] inputs;
@@ -36,7 +37,7 @@ public class VoxSwirl extends ApplicationAdapter {
         else 
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
-            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox"};
+            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/IPT.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Infantry_Firing.vox"};
@@ -120,7 +121,7 @@ public class VoxSwirl extends ApplicationAdapter {
             Tools3D.soakInPlace(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
-            renderer = new SplatRenderer(voxels.length);
+            renderer = new NextRenderer(voxels.length);
             renderer.palette(VoxIO.lastPalette);
             
         } catch (FileNotFoundException e) {
