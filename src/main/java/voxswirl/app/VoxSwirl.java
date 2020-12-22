@@ -63,7 +63,7 @@ public class VoxSwirl extends ApplicationAdapter {
         apng = new AnimatedPNG();
         gif.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
         png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
-        png8.palette = gif.palette = new PaletteReducer(Coloring.AURORA);
+        png8.palette = gif.palette = new PaletteReducer(Coloring.HALTONIC255);
         gif.palette.setDitherStrength(0.75f);
         for (String s : inputs) {
             load(s);

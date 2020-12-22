@@ -17,6 +17,7 @@ import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
 import voxswirl.physical.VoxMaterial;
+import voxswirl.visual.Coloring;
 import voxswirl.visual.NextRenderer;
 import voxswirl.visual.SplatRenderer;
 
@@ -36,6 +37,8 @@ public class NextVisualizer extends ApplicationAdapter {
     private NextRenderer renderer;
     private byte[][][] voxels;
     private float saturation;
+    private int[] colorCounts = {3, 8, 32, 64, 86, 128, 256};
+    private int countIndex = 6;
     private float time;
     private boolean play = true;
     
@@ -149,6 +152,18 @@ public class NextVisualizer extends ApplicationAdapter {
                     case Input.Keys.DOWN:
                         renderer.saturation(saturation = Math.max(-1f, saturation - 0.01f));
                         System.out.println(saturation);
+                        break;
+                    case Input.Keys.LEFT:
+                        if(renderer.dither){
+                            countIndex = (countIndex + 6) % 7;
+                            renderer.reducer.exact(Coloring.HALTONIC255, colorCounts[countIndex]);
+                        }
+                        break;
+                    case Input.Keys.RIGHT:
+                        if(renderer.dither){
+                            countIndex = (countIndex + 1) % 7;
+                            renderer.reducer.exact(Coloring.HALTONIC255, colorCounts[countIndex]);
+                        }
                         break;
                     case Input.Keys.SPACE:
                         play = !play;

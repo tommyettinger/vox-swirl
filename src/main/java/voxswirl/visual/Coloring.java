@@ -1043,17 +1043,16 @@ public class Coloring {
     };
 
     /**
-     * Like {@link #BASSTON255}, this uses a Halton sequence (the (3,5,7) sequence, specifically) to get 3D points, uses
-     * those as IPT channels, and rejects out-of-gamut colors. Like {@link #RANDO255}, this also rejects any color that
-     * is too similar to an existing color, which in this case made this try 130958 colors before finally getting 256
-     * that work. Using the Halton sequence provides one of the stronger guarantees that removing any sequential items
-     * (after the first 9, which are preset grayscale colors) will produce a similarly-distributed palette. Typically,
-     * 64 items from this are enough to make pixel art look good enough with dithering.
-     * <br>
-     * Current default in VoxSwirl.
+     * This 255-color (plus transparent) palette uses the (3,5,7) Halton sequence to get 3D points, treats those as IPT
+     * channel values, and rejects out-of-gamut colors. This also rejects any color that is too similar to an existing
+     * color, which in this case made this try 130958 colors before finally getting 256 that work. Using the Halton
+     * sequence provides one of the stronger guarantees that removing any sequential items (after the first 9, which are
+     * preset grayscale colors) will produce a similarly-distributed palette. Typically, 64 items from this are enough
+     * to make pixel art look good enough with dithering, and it continues to improve with more colors. It has exactly 8
+     * colors that are purely grayscale, all right at the start after transparent.
      */
     public static final int[] HALTONIC255 = new int[]{
-            0x00000000, 0x0B080FFF, 0xFAF7F0FF, 0x797577FF, 0x555555FF, 0xAAAAAAFF, 0x353336FF, 0xE0E0E0FF,
+            0x00000000, 0x010101FF, 0xFEFEFEFF, 0x7B7B7BFF, 0x555555FF, 0xAAAAAAFF, 0x333333FF, 0xE0E0E0FF,
             0xC8C8C8FF, 0xBEBB4EFF, 0x1FAE9AFF, 0xC2BBA9FF, 0xB46B58FF, 0x7C82C2FF, 0xF2825BFF, 0xD55193FF,
             0x8C525CFF, 0x6AEF59FF, 0x1F439BFF, 0x793210FF, 0x3B3962FF, 0x16D72EFF, 0xB53FC6FF, 0xB380C7FF,
             0xEDE389FF, 0x8420C6FF, 0x291710FF, 0x69D4D3FF, 0x76121CFF, 0x1FA92AFF, 0x64852CFF, 0x7A42DBFF,

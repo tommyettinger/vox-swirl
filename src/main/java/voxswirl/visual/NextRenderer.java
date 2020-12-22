@@ -23,7 +23,7 @@ public class NextRenderer {
     public byte[][][] remade;
     public float[][][] lights;
     public float[][] colorI, colorP, colorT;
-    public PaletteReducer reducer = new PaletteReducer(Coloring.AURORA);
+    public PaletteReducer reducer = new PaletteReducer(Coloring.HALTONIC255);
     private int[] palette;
     public float[] paletteI, paletteP, paletteT;
     public boolean dither = false, outline = true;
@@ -164,10 +164,10 @@ public class NextRenderer {
     public Pixmap blit() {
         final int threshold = 13;
         final int lightPasses = 20;
-        final float strongMain = 0.025f * 20f / lightPasses,
-        strongMinor = 0.01f * 20f / lightPasses,
-                weakMain = 0.01f * 20f / lightPasses,
-                weakMinor = 0.004f * 20f / lightPasses;
+        final float strongMain = 0.025f * 12f / lightPasses,
+        strongMinor = 0.08f * 12f / lightPasses,
+                weakMain = 0.01f * 12f / lightPasses,
+                weakMinor = 0.032f * 12f / lightPasses;
         pixmap.setColor(0);
         pixmap.fill();
         final int xSize = render.length - 1, ySize = render[0].length - 1,
@@ -189,11 +189,13 @@ public class NextRenderer {
                         vx = (int)(ox + 0.5f);
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[vx][vy][z] & 255) != 0){
+                            m = materialMap.get(voxel);
+                            float carry = strongMinor * m.getTrait(VoxMaterial.MaterialTrait._rough);
                             lights[vx][vy][z] += strongMain;
                             for (int vxx = x - 1; vxx <= x + 1; vxx++) {
                                 for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
                                     for (int vzz = Math.max(0, z - 1); vzz <= Math.min(starting, z + 1); vzz++) {
-                                        lights[vxx][vyy][vzz] += strongMinor;
+                                        lights[vxx][vyy][vzz] += carry;
                                     }
                                 }
                             }
@@ -221,11 +223,13 @@ public class NextRenderer {
                         vz = (int)(oz + 0.5f);
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[x][vy][vz] & 255) != 0){
+                            m = materialMap.get(voxel);
+                            float carry = weakMinor * m.getTrait(VoxMaterial.MaterialTrait._rough);
                             lights[x][vy][vz] += weakMain;
                             for (int vxx = x - 1; vxx <= x + 1; vxx++) {
                                 for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
                                     for (int vzz = Math.max(0, vz - 1); vzz <= Math.min(size, vz + 1); vzz++) {
-                                        lights[vxx][vyy][vzz] += weakMinor;
+                                        lights[vxx][vyy][vzz] += carry;
                                     }
                                 }
                             }
@@ -253,10 +257,12 @@ public class NextRenderer {
                     m = materialMap.get(voxel);
                     final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
                     final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
+                    final float reflect = m.getTrait(VoxMaterial.MaterialTrait._ior) + 1f;
+
                     for (int lx = 0, ax = xx; lx < 4 && ax <= xSize; lx++, ax++) {
                         for (int ly = 0, ay = yy; ly < 4 && ay <= ySize; ly++, ay++) {
                             if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
-                                colorI[ax][ay] = paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]);
+                                colorI[ax][ay] = (float)Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]), reflect);
                                 colorP[ax][ay] = paletteP[voxel];
                                 colorT[ax][ay] = paletteT[voxel];
                                 depths[ax][ay] = depth;
