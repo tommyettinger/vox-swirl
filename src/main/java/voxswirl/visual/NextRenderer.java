@@ -23,7 +23,7 @@ public class NextRenderer {
     public byte[][][] remade;
     public float[][][] lights;
     public float[][] colorI, colorP, colorT;
-    public PaletteReducer reducer = new PaletteReducer();
+    public PaletteReducer reducer = new PaletteReducer(Coloring.AURORA);
     private int[] palette;
     public float[] paletteI, paletteP, paletteT;
     public boolean dither = false, outline = true;
@@ -50,7 +50,7 @@ public class NextRenderer {
         colorT = fill(-1f, w, h);
         remade = new byte[size << 1][size << 1][size << 1];
         lights = new float[size << 1][size << 1][size << 1];
-        Tools3D.fill(lights, 0.9375f);
+        Tools3D.fill(lights, 0.875f);
     }
     
     protected float bn(int x, int y) {
@@ -68,13 +68,13 @@ public class NextRenderer {
     }
 
     /**
-     * Ranges between -0.625f and 0.625f, both exclusive. Blue-noise distributed and centrally biased.
+     * Ranges between -0.75f and 0.75f, both exclusive. Blue-noise distributed and centrally biased.
      * @param x x position, will wrap every 64
      * @param y y position, will wrap every 64
-     * @return a float between -0.625f and 0.625f
+     * @return a float between -0.75f and 0.75f
      */
     protected float biasedAngle(int x, int y) {
-        return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6]) * 0x5p-11f;
+        return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6]) * 0x3p-10f;
     }
 
     protected float random(){
@@ -152,7 +152,7 @@ public class NextRenderer {
         fill(colorP, -1f);
         fill(colorT, -1f);
         Tools3D.fill(remade, 0);
-        Tools3D.fill(lights, 0.9375f);
+        Tools3D.fill(lights, 0.875f);
         return this;
     }
 
@@ -163,11 +163,11 @@ public class NextRenderer {
      */
     public Pixmap blit() {
         final int threshold = 13;
-        final int lightPasses = 24;
-        final float strongMain = 0.025f * 24f / lightPasses,
-        strongMinor = 0.001f * 24f / lightPasses,
-                weakMain = 0.02f * 24f / lightPasses,
-                weakMinor = 0.0075f * 24f / lightPasses;
+        final int lightPasses = 20;
+        final float strongMain = 0.025f * 20f / lightPasses,
+        strongMinor = 0.01f * 20f / lightPasses,
+                weakMain = 0.01f * 20f / lightPasses,
+                weakMinor = 0.004f * 20f / lightPasses;
         pixmap.setColor(0);
         pixmap.fill();
         final int xSize = render.length - 1, ySize = render[0].length - 1,
@@ -177,23 +177,22 @@ public class NextRenderer {
         VoxMaterial m;
 
         // top lighting
-        int starting = size - 1;
+        int starting = size * 3 >> 1;
         for (int y = startRegion; y < endRegion; y++) {
             for (int x = startRegion; x < endRegion; x++) {
-                float ox = x, oy = y, xAngle, yAngle;
                 for (int p = 0; p < lightPasses; p++) {
-                    xAngle = biasedAngle(x + p, y + p);
-                    yAngle = biasedAngle(x + p + 23, y + p + 41);
+                    float ox = x, oy = y, xAngle = biasedAngle(x + p, y + p), yAngle = biasedAngle(x + p + 23, y + p + 41);
                     for (int z = starting;
                          z >= 0 && ox >= startRegion && oy >= startRegion && ox < endRegion && oy < endRegion;
                          z--, ox += xAngle, oy += yAngle) {
+                        if(z >= size) continue;
                         vx = (int)(ox + 0.5f);
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[vx][vy][z] & 255) != 0){
                             lights[vx][vy][z] += strongMain;
                             for (int vxx = x - 1; vxx <= x + 1; vxx++) {
                                 for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
-                                    for (int vzz = Math.max(0, z - 1); vzz < Math.min(starting, z + 1); vzz++) {
+                                    for (int vzz = Math.max(0, z - 1); vzz <= Math.min(starting, z + 1); vzz++) {
                                         lights[vxx][vyy][vzz] += strongMinor;
                                     }
                                 }
@@ -214,10 +213,8 @@ public class NextRenderer {
         starting = endRegion;
         for (int z = 0; z < size; z++) {
             for (int y = startRegion; y < endRegion; y++) {
-                float oz = z, oy = y, zAngle, yAngle;
                 for (int p = 0; p < lightPasses; p++) {
-                    zAngle = biasedAngle(y + p + 11, z + p + 47);
-                    yAngle = biasedAngle(y + p + 19, z + p + 13);
+                    float oz = z, oy = y, zAngle= biasedAngle(y + p + 11, z + p + 47), yAngle = biasedAngle(y + p + 19, z + p + 13);
                     for (int x = starting;
                          x >= 0 && oz >= 0 && oy >= startRegion && oz < size && oy < endRegion;
                          x--, oz += zAngle, oy += yAngle) {
@@ -227,7 +224,7 @@ public class NextRenderer {
                             lights[x][vy][vz] += weakMain;
                             for (int vxx = x - 1; vxx <= x + 1; vxx++) {
                                 for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
-                                    for (int vzz = Math.max(0, vz - 1); vzz < Math.min(size, vz + 1); vzz++) {
+                                    for (int vzz = Math.max(0, vz - 1); vzz <= Math.min(size, vz + 1); vzz++) {
                                         lights[vxx][vyy][vzz] += weakMinor;
                                     }
                                 }
@@ -327,7 +324,7 @@ public class NextRenderer {
         fill(colorI, -1f);
         fill(colorP, -1f);
         fill(colorT, -1f);
-        Tools3D.fill(lights, 0.9375f);
+        Tools3D.fill(lights, 0.875f);
         return pixmap;
     }
 
