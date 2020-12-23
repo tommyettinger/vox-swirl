@@ -50,7 +50,7 @@ public class NextRenderer {
         colorT = fill(-1f, w, h);
         remade = new byte[size << 1][size << 1][size << 1];
         lights = new float[size << 1][size << 1][size << 1];
-        Tools3D.fill(lights, 0.875f);
+        Tools3D.fill(lights, 0.75f);
     }
     
     protected float bn(int x, int y) {
@@ -75,6 +75,17 @@ public class NextRenderer {
      */
     protected float biasedAngle(int x, int y) {
         return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6]) * 0x3p-10f;
+    }
+
+    /**
+     * Ranges between -0.75f and 0.75f, both exclusive. Blue-noise distributed and centrally biased.
+     * @param x x position, will wrap every 64
+     * @param y y position, will wrap every 64
+     * @param v variant, typically from 0 to 64
+     * @return a float between -0.75f and 0.75f
+     */
+    protected float biasedAngle(int x, int y, int v) {
+        return (PaletteReducer.TRI_BLUE_NOISE[(x + v & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y + v & 63) << 6]) * 0x3p-10f;
     }
 
     protected float random(){
@@ -152,7 +163,7 @@ public class NextRenderer {
         fill(colorP, -1f);
         fill(colorT, -1f);
         Tools3D.fill(remade, 0);
-        Tools3D.fill(lights, 0.875f);
+        Tools3D.fill(lights, 0.75f);
         return this;
     }
 
@@ -166,8 +177,8 @@ public class NextRenderer {
         final int lightPasses = 20;
         final float strongMain = 0.025f * 12f / lightPasses,
         strongMinor = 0.08f * 12f / lightPasses,
-                weakMain = 0.01f * 12f / lightPasses,
-                weakMinor = 0.032f * 12f / lightPasses;
+                weakMain = 0.015f * 12f / lightPasses,
+                weakMinor = 0.05f * 12f / lightPasses;
         pixmap.setColor(0);
         pixmap.fill();
         final int xSize = render.length - 1, ySize = render[0].length - 1,
@@ -181,7 +192,7 @@ public class NextRenderer {
         for (int y = startRegion; y < endRegion; y++) {
             for (int x = startRegion; x < endRegion; x++) {
                 for (int p = 0; p < lightPasses; p++) {
-                    float ox = x, oy = y, xAngle = biasedAngle(x + p, y + p), yAngle = biasedAngle(x + p + 23, y + p + 41);
+                    float ox = x, oy = y, xAngle = biasedAngle(x, y, p), yAngle = biasedAngle(x + 23, y + 41, -p);
                     for (int z = starting;
                          z >= 0 && ox >= startRegion && oy >= startRegion && ox < endRegion && oy < endRegion;
                          z--, ox += xAngle, oy += yAngle) {
@@ -216,7 +227,7 @@ public class NextRenderer {
         for (int z = 0; z < size; z++) {
             for (int y = startRegion; y < endRegion; y++) {
                 for (int p = 0; p < lightPasses; p++) {
-                    float oz = z, oy = y, zAngle= biasedAngle(y + p + 11, z + p + 47), yAngle = biasedAngle(y + p + 19, z + p + 13);
+                    float oz = z, oy = y, zAngle= biasedAngle(y + 11, z + 47, -p), yAngle = biasedAngle(y + 19, z + 13, p);
                     for (int x = starting;
                          x >= 0 && oz >= 0 && oy >= startRegion && oz < size && oy < endRegion;
                          x--, oz += zAngle, oy += yAngle) {
@@ -257,7 +268,7 @@ public class NextRenderer {
                     m = materialMap.get(voxel);
                     final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
                     final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
-                    final float reflect = m.getTrait(VoxMaterial.MaterialTrait._ior) + 1f;
+                    final float reflect = m.getTrait(VoxMaterial.MaterialTrait._ior) + 0.9375f;
 
                     for (int lx = 0, ax = xx; lx < 4 && ax <= xSize; lx++, ax++) {
                         for (int ly = 0, ay = yy; ly < 4 && ay <= ySize; ly++, ay++) {
@@ -330,7 +341,7 @@ public class NextRenderer {
         fill(colorI, -1f);
         fill(colorP, -1f);
         fill(colorT, -1f);
-        Tools3D.fill(lights, 0.875f);
+        Tools3D.fill(lights, 0.75f);
         return pixmap;
     }
 
