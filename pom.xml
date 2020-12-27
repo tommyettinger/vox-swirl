@@ -69,7 +69,7 @@
         <junit.version>4.13.1</junit.version>
         <gdx.version>1.9.12</gdx.version>
         <anim8.version>0.2.4</anim8.version>
-        <colorful.version>0.4.0</colorful.version>
+        <colorful.version>8cda4d3fc8</colorful.version>
     </properties>
 
 
@@ -79,11 +79,18 @@
             <artifactId>anim8-gdx</artifactId>
             <version>${anim8.version}</version>
         </dependency>
+        <!-- JitPack -->
         <dependency>
-            <groupId>com.github.tommyettinger</groupId>
+            <groupId>com.github.tommyettinger.colorful-gdx</groupId>
             <artifactId>colorful</artifactId>
             <version>${colorful.version}</version>
         </dependency>
+        <!-- Maven Central -->
+<!--        <dependency>-->
+<!--            <groupId>com.github.tommyettinger</groupId>-->
+<!--            <artifactId>colorful</artifactId>-->
+<!--            <version>${colorful.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.badlogicgames.gdx</groupId>
             <artifactId>gdx</artifactId>
@@ -256,71 +263,8 @@
                                     <mainClass>voxswirl.app.VoxSwirl</mainClass>
                                 </transformer>
                             </transformers>
-                            <!-- Remove these filters if you expect users of the jar on ARM Linux (i.e. raspi). -->
-                            <!-- The ARM32 and ARM64 native libraries add about 2MB to the final 6MB jar. -->
-                            <!-- But libGDX doesn't currently work out-of-the-box on ARM, so... why have these? -->
+                            <!-- These filters remove dependencies on sound libraries; this doesn't use them. -->
                             <filters>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl:natives-linux-arm32</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl-glfw:natives-linux-arm32</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl-openal:natives-linux-arm32</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl-opengl:natives-linux-arm32</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl-jemalloc:natives-linux-arm32</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl:natives-linux-arm64</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl-glfw:natives-linux-arm64</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl-openal:natives-linux-arm64</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl-opengl:natives-linux-arm64</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.lwjgl:lwjgl-jemalloc:natives-linux-arm64</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-
                                 <filter>
                                     <artifact>org.jcraft:jorbis</artifact>
                                     <excludes>

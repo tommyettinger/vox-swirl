@@ -12,8 +12,8 @@ import voxswirl.physical.Tools3D;
 import voxswirl.physical.VoxMaterial;
 
 import static voxswirl.meta.ArrayTools.fill;
-import static voxswirl.meta.TrigTools.cos_;
-import static voxswirl.meta.TrigTools.sin_;
+import static com.github.tommyettinger.colorful.TrigTools.cos_;
+import static com.github.tommyettinger.colorful.TrigTools.sin_;
 
 /**
  * Renders {@code byte[][][]} voxel models to {@link Pixmap}s with arbitrary yaw rotation.

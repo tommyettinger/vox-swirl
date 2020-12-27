@@ -122,7 +122,7 @@ public class VoxSwirl extends ApplicationAdapter {
             Tools3D.soakInPlace(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
-            renderer = new NextRenderer(voxels.length);
+            renderer = new NextRenderer(voxels.length, 48);
             renderer.palette(VoxIO.lastPalette);
             
         } catch (FileNotFoundException e) {

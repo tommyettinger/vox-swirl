@@ -10,15 +10,15 @@ import voxswirl.physical.Tools3D;
 import voxswirl.physical.VoxMaterial;
 
 import static voxswirl.meta.ArrayTools.fill;
-import static voxswirl.meta.TrigTools.cos_;
-import static voxswirl.meta.TrigTools.sin_;
+import static com.github.tommyettinger.colorful.TrigTools.cos_;
+import static com.github.tommyettinger.colorful.TrigTools.sin_;
 
 /**
  * Renders {@code byte[][][]} voxel models to {@link Pixmap}s with arbitrary yaw rotation.
  */
 public class NextRenderer {
     public Pixmap pixmap;
-    public int[][] depths, voxels, render, outlines;
+    public int[][] depths, render, outlines;
     public VoxMaterial[][] materials;
     public byte[][][] remade;
     public float[][][] lights;
@@ -28,6 +28,7 @@ public class NextRenderer {
     public float[] paletteI, paletteP, paletteT;
     public boolean dither = false, outline = true;
     public int size;
+    public int quality = 24;
     public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
             smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
     public IntMap<VoxMaterial> materialMap;
@@ -37,14 +38,17 @@ public class NextRenderer {
 
     }
     public NextRenderer(final int size) {
+        this(size, 24);
+    }
+    public NextRenderer(final int size, final int quality) {
         this.size = size;
+        this.quality = Math.min(Math.max(quality, 0), 64);
         final int w = size * 4 + 4, h = size * 5 + 4;
         pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
         materials = new VoxMaterial[w][h];
-        voxels = fill(-1, w, h);
         colorI = fill(-1f, w, h);
         colorP = fill(-1f, w, h);
         colorT = fill(-1f, w, h);
@@ -85,6 +89,7 @@ public class NextRenderer {
      * @return a float between -0.75f and 0.75f
      */
     protected float biasedAngle(int x, int y, int v) {
+//        return (PaletteReducer.TRI_BLUE_NOISE[(x + v * 5 & 63) | (y + v * 3 & 63) << 6] + 0.5f) * 0x3p-9f;
         return (PaletteReducer.TRI_BLUE_NOISE[(x + v & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y + v & 63) << 6]) * 0x3p-10f;
     }
 
@@ -143,9 +148,10 @@ public class NextRenderer {
     }
     
     public void splat(float xPos, float yPos, float zPos, byte voxel) {
-        for (int xp = (int) xPos; xp < xPos + 0.25f; xp++) {
-            for (int yp = (int) yPos; yp < yPos + 0.25f; yp++) {
-                for (int zp = (int) zPos; zp < zPos + 0.25f; zp++) {
+//        remade[(int) ((xPos + 0x1p23f) - 0x1p23f)][(int) ((yPos + 0x1p23f) - 0x1p23f)][(int) ((zPos + 0x1p23f) - 0x1p23f)] = voxel;
+        for (int xp = (int) xPos; xp < xPos + 0.5f; xp++) {
+            for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
+                for (int zp = (int) zPos; zp < zPos + 0.5f; zp++) {
                     remade[xp][yp][zp] = voxel;
                 }
             }
@@ -158,7 +164,6 @@ public class NextRenderer {
         fill(depths, 0);
         fill(render, 0);
         fill(outlines, (byte) 0);
-        fill(voxels, -1);
         fill(colorI, -1f);
         fill(colorP, -1f);
         fill(colorT, -1f);
@@ -173,8 +178,8 @@ public class NextRenderer {
      * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, byte)}
      */
     public Pixmap blit() {
-        final int threshold = 13;
-        final int lightPasses = 20;
+        final int threshold = 15;
+        final int lightPasses = quality;
         final float strongMain = 0.025f * 12f / lightPasses,
         strongMinor = 0.08f * 12f / lightPasses,
                 weakMain = 0.015f * 12f / lightPasses,
@@ -278,10 +283,9 @@ public class NextRenderer {
                                 colorT[ax][ay] = paletteT[voxel];
                                 depths[ax][ay] = depth;
                                 materials[ax][ay] = m;
-                                voxels[ax][ay] = x | y << 10 | z << 20;
                                 if(alpha == 0f)
                                     outlines[ax][ay] = ColorTools.toRGBA8888(ColorTools.ipt(
-                                            Math.max(0f, Math.min(1f, paletteI[voxel] - 0.25f + emit)),
+                                            Math.max(0f, Math.min(1f, paletteI[voxel] - 0.2f + emit)),
                                             Math.max(0f, Math.min(1f, (paletteP[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f)),
                                             Math.max(0f, Math.min(1f, (paletteT[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f)),
                                             1f
@@ -337,7 +341,6 @@ public class NextRenderer {
         fill(render, 0);
         fill(depths, 0);
         fill(outlines, 0);
-        fill(voxels, -1);
         fill(colorI, -1f);
         fill(colorP, -1f);
         fill(colorT, -1f);
@@ -359,22 +362,29 @@ public class NextRenderer {
 //        seed = Tools3D.hash64(colors);
         final int size = colors.length;
         final float hs = (size) * 0.5f;
-        float minX = Float.POSITIVE_INFINITY, maxX = Float.NEGATIVE_INFINITY;
-        float minY = Float.POSITIVE_INFINITY, maxY = Float.NEGATIVE_INFINITY;
+        final float c = cos_(angleTurns), s = sin_(angleTurns);
+//        float minX = Float.POSITIVE_INFINITY, maxX = Float.NEGATIVE_INFINITY;
+//        float minY = Float.POSITIVE_INFINITY, maxY = Float.NEGATIVE_INFINITY;
         for (int z = 0; z < size; z++) {
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {
                     final byte v = colors[x][y][z];
                     if(v != 0)
                     {
-                        final float c = cos_(angleTurns), s = sin_(angleTurns);
-                        final float xPos = (x-hs) * c - (y-hs) * s + size;
-                        final float yPos = (x-hs) * s + (y-hs) * c + size;
-                        minX = Math.min(minX, xPos);
-                        maxX = Math.max(maxX, xPos);
-                        minY = Math.min(minY, yPos);
-                        maxY = Math.max(maxY, yPos);
-                        splat(xPos, yPos, z, v);
+//                        for (int m = 0; m < 2; m++) {
+//                            for (int n = 0; n < 2; n++) {
+//                                for (int o = 0; o < 2; o++) {
+                                    final float xPos = (x-hs) * c - (y-hs) * s + size;
+                                    final float yPos = (x-hs) * s + (y-hs) * c + size;
+                                    splat(xPos, yPos, z, v);
+//                                }
+//                            }
+//                        }
+//                        minX = Math.min(minX, xPos);
+//                        maxX = Math.max(maxX, xPos);
+//                        minY = Math.min(minY, yPos);
+//                        maxY = Math.max(maxY, yPos);
+//                        splat(xPos, yPos, z, v);
                     }
                 }
             }
