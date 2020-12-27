@@ -44,7 +44,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/IPT_No_Pow.vox"};
 //            inputs = new String[]{"vox/Box.vox", "vox/Direction_Cube.vox"};
 //            inputs = new String[]{"vox/IPT_Original.vox"};
-            inputs = new String[]{"vox/IPT.vox"};
+//            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
 //            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
@@ -121,8 +121,8 @@ public class VoxSwirl extends ApplicationAdapter {
             }
             Tools3D.soakInPlace(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
-            this.name = name.substring(nameStart, name.indexOf('.', nameStart)) + "_Experimental";
-            renderer = new NextRenderer(voxels.length, 28);
+            this.name = name.substring(nameStart, name.indexOf('.', nameStart));
+            renderer = new NextRenderer(voxels.length, 48);
             renderer.palette(VoxIO.lastPalette);
             
         } catch (FileNotFoundException e) {
