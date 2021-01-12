@@ -181,9 +181,9 @@ public class NextRenderer {
         final int threshold = 15;
         final int lightPasses = quality;
         final float strongMain = 0.05f * 12f / lightPasses,
-        strongMinor = 0.015f * 12f / lightPasses,
-                weakMain = 0.016f * 12f / lightPasses,
-                weakMinor = 0.005f * 12f / lightPasses;
+        strongMinor = 0.025f * 12f / lightPasses,
+                weakMain = 0.02f * 12f / lightPasses,
+                weakMinor = 0.01f * 12f / lightPasses;
         pixmap.setColor(0);
         pixmap.fill();
         final int xSize = render.length - 1, ySize = render[0].length - 1,
