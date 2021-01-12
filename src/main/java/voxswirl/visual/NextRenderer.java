@@ -215,7 +215,12 @@ public class NextRenderer {
                                     }
                                 }
                             }
-//
+                            z--;
+                            vx = (int)(ox + xAngle + 0.5f);
+                            vy = (int)(oy + yAngle + 0.5f);
+                            if(z >= 0 && vx >= startRegion && vy >= startRegion && vx < endRegion && vy < endRegion)
+                                lights[vx][vy][z] += strongMain;
+
 //                            lights[x+1][vy][z] += 0.02f;
 //                            lights[x-1][vy][z] += 0.02f;
 //                            lights[x][vy+1][z] += 0.02f;
@@ -249,6 +254,12 @@ public class NextRenderer {
                                     }
                                 }
                             }
+                            x--;
+                            vz = (int)(oz + zAngle + 0.5f);
+                            vy = (int)(oy + yAngle + 0.5f);
+                            if(x >= 0 && vz >= 0 && vy >= startRegion && vz < size && vy < endRegion)
+                                lights[x][vy][vz] += weakMain;
+
 //                            if(vz + 1 < size) lights[x][vy][vz+1] += 0.00625f;
 //                            if(vz > 0) lights[x][vy][vz-1] += 0.00625f;
 //                            lights[x][vy+1][vz] += 0.00625f;
@@ -277,23 +288,32 @@ public class NextRenderer {
 
                     for (int lx = 0, ax = xx; lx < 4 && ax <= xSize; lx++, ax++) {
                         for (int ly = 0, ay = yy; ly < 4 && ay <= ySize; ly++, ay++) {
-                            if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
-                                colorI[ax][ay] = (float)Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]), reflect);
+                            if (depth > depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
+                                colorI[ax][ay] = (float) Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]), reflect);
                                 colorP[ax][ay] = paletteP[voxel];
                                 colorT[ax][ay] = paletteT[voxel];
-                                depths[ax][ay] = depth;
                                 materials[ax][ay] = m;
-                                if(alpha == 0f)
-                                    outlines[ax][ay] = ColorTools.toRGBA8888(ColorTools.ipt(
-                                            Math.max(0f, Math.min(1f, paletteI[voxel] - 0.2f + emit)),
-                                            Math.max(0f, Math.min(1f, (paletteP[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f)),
-                                            Math.max(0f, Math.min(1f, (paletteT[voxel] - 0.5f) * (neutral + 0.125f) + 0.5f)),
-                                            1f
-                                    ));
+                                depths[ax][ay] = depth;
+                                if (alpha == 0f)
+                                    outlines[ax][ay] =
+                                            ColorTools.toRGBA8888(
+                                                    ColorTools.ipt(
+                                                            Math.max(0f, Math.min(1f, (float) Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z] * 0.4f), reflect - 0.25f) + emit)),
+                                                            Math.max(0f, Math.min(1f, (paletteP[voxel] - 0.5f) * (neutral + 0.0625f) + 0.5f)),
+                                                            Math.max(0f, Math.min(1f, (paletteT[voxel] - 0.5f) * (neutral + 0.0625f) + 0.5f)),
+                                                            1f)
+                                            );
                             }
                         }
                     }
-
+//                    if (alpha == 0f) {
+//                        for (int lx = 0, ax = xx - 1; lx < 6 && ax <= xSize; lx++, ax++) {
+//                            for (int ly = 0, ay = yy - 1; ly < 6 && ay <= ySize; ly++, ay++) {
+//                                if (ax >= 0 && ay >= 0 && depth > depths[ax][ay])
+//                                    depths[ax][ay] = depth;
+//                            }
+//                        }
+//                    }
                 }
             }
         }
