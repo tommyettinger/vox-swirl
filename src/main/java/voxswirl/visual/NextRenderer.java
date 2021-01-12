@@ -90,7 +90,7 @@ public class NextRenderer {
      */
     protected float biasedAngle(int x, int y, int v) {
 //        return (PaletteReducer.TRI_BLUE_NOISE[(x + v * 5 & 63) | (y + v * 3 & 63) << 6] + 0.5f) * 0x3p-9f;
-        return (PaletteReducer.TRI_BLUE_NOISE[(x + v & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y + v & 63) << 6]) * 0x3p-10f;
+        return (PaletteReducer.TRI_BLUE_NOISE[(x + v & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y + v & 63) << 6]) * 0x3p-12f;
     }
 
     protected float random(){
@@ -180,10 +180,10 @@ public class NextRenderer {
     public Pixmap blit() {
         final int threshold = 15;
         final int lightPasses = quality;
-        final float strongMain = 0.025f * 12f / lightPasses,
-        strongMinor = 0.08f * 12f / lightPasses,
-                weakMain = 0.015f * 12f / lightPasses,
-                weakMinor = 0.05f * 12f / lightPasses;
+        final float strongMain = 0.05f * 12f / lightPasses,
+        strongMinor = 0.015f * 12f / lightPasses,
+                weakMain = 0.016f * 12f / lightPasses,
+                weakMinor = 0.005f * 12f / lightPasses;
         pixmap.setColor(0);
         pixmap.fill();
         final int xSize = render.length - 1, ySize = render[0].length - 1,
