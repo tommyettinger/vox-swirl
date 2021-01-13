@@ -7,6 +7,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.anim8.*;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
@@ -29,15 +30,15 @@ public class VoxSwirl extends ApplicationAdapter {
     private String[] inputs;
     private PixmapIO.PNG png;
     private AnimatedGif gif;
-    private PNG8 png8;
-    private AnimatedPNG apng;
+//    private PNG8 png8;
+//    private AnimatedPNG apng;
     public VoxSwirl(String[] args){
         if(args != null && args.length > 0)
             inputs = args;
         else 
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
-            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox", "vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/Bear.vox", "vox/libGDX_BadLogic_Half.vox"};
+            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox", "vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/Bear.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/IPT.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Infantry_Firing.vox"};
@@ -48,6 +49,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/LAB.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
 //            inputs = new String[]{"vox/Bear.vox"};
+//            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
             if(!new File(inputs[0]).exists()) 
@@ -57,14 +59,16 @@ public class VoxSwirl extends ApplicationAdapter {
     @Override
     public void create() {
         if (inputs == null) Gdx.app.exit();
+        long startTime = TimeUtils.millis();
         Gdx.files.local("out/vox/").mkdirs();
         png = new PixmapIO.PNG();
-        png8 = new PNG8();
+//        png8 = new PNG8();
         gif = new AnimatedGif();
-        apng = new AnimatedPNG();
+//        apng = new AnimatedPNG();
         gif.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
-        png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
-        png8.palette = gif.palette = new PaletteReducer(Coloring.HALTONIC255);
+//        png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
+        gif.palette = new PaletteReducer();
+//        png8.palette = gif.palette;
         gif.palette.setDitherStrength(0.75f);
         for (String s : inputs) {
             load(s);
@@ -77,21 +81,26 @@ public class VoxSwirl extends ApplicationAdapter {
                     p.drawPixmap(pixmap, 0, 0);
                     pm.add(p);
                     png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
-                    for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
-                        png8.palette.exact(Coloring.HALTONIC255, colorCount);
-                        png8.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
-                    }
+//                    for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
+//                        png8.palette.exact(Coloring.HALTONIC255, colorCount);
+//                        png8.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
+//                    }
                     VoxIO.writeVOX("out/vox/" + s.substring(4, s.length() - 4) + "_angle"+i+".vox", renderer.remade, VoxIO.lastPalette);
                 }
-                for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
-                    gif.palette.exact(Coloring.HALTONIC255, colorCount);
-                    gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
+//                for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
+//                    gif.palette.exact(Coloring.HALTONIC255, colorCount);
+//                    gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
+//                }
+                gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
+//                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
+                for(Pixmap pix : pm) {
+                    pix.dispose();
                 }
-                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        System.out.println("Finished in " + TimeUtils.timeSinceMillis(startTime) * 0.001 + " seconds.");
         Gdx.app.exit();
     }
 
