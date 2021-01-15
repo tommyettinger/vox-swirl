@@ -29,8 +29,7 @@ public class NextRenderer {
     public boolean dither = false, outline = true;
     public int size;
     public int quality = 24;
-    public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
-            smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
+    public float neutral = 1f;
     public IntMap<VoxMaterial> materialMap;
     public long seed;
 
@@ -43,7 +42,7 @@ public class NextRenderer {
     public NextRenderer(final int size, final int quality) {
         this.size = size;
         this.quality = Math.min(Math.max(quality, 0), 64);
-        final int w = size * 4 + 4, h = size * 5 + 4;
+        final int w = size * 4 + 4 >>> 1, h = size * 5 + 5 >>> 1;
         pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
         render =   new int[w][h];
         outlines = new int[w][h];
@@ -52,8 +51,8 @@ public class NextRenderer {
         colorI = fill(-1f, w, h);
         colorP = fill(-1f, w, h);
         colorT = fill(-1f, w, h);
-        remade = new byte[size << 1][size << 1][size << 1];
-        lights = new float[size << 1][size << 1][size << 1];
+        remade = new byte[size * 3][size * 3][size * 3];
+        lights = new float[size * 3][size * 3][size * 3];
         Tools3D.fill(lights, 0.75f);
     }
     
@@ -109,13 +108,6 @@ public class NextRenderer {
     public NextRenderer saturation(float saturationModifier) {
         saturationModifier = MathUtils.clamp(saturationModifier, -1f, 0.5f);
         neutral = 1f + saturationModifier;
-        bigUp = 1.1f + saturationModifier;
-        midUp = 1.04f + saturationModifier;
-        midDown = 0.9f + saturationModifier;
-        smallUp = 1.02f + saturationModifier;
-        smallDown = 0.94f + saturationModifier;
-        tinyUp = 1.01f + saturationModifier;
-        tinyDown = 0.98f + saturationModifier;
         return this;
     }
 
@@ -148,14 +140,17 @@ public class NextRenderer {
     }
     
     public void splat(float xPos, float yPos, float zPos, byte voxel) {
+//        remade[(int) (xPos * 0.5f + 0.5f)][(int) (yPos * 0.5f + 0.5f)][(int) (zPos * 0.5f + 0.5f)] = voxel;
+        remade[(int) (xPos + 0.5f)][(int) (yPos + 0.5f)][(int) (zPos + 0.5f)] = voxel;
 //        remade[(int) ((xPos + 0x1p23f) - 0x1p23f)][(int) ((yPos + 0x1p23f) - 0x1p23f)][(int) ((zPos + 0x1p23f) - 0x1p23f)] = voxel;
-        for (int xp = (int) xPos; xp < xPos + 0.5f; xp++) {
-            for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
-                for (int zp = (int) zPos; zp < zPos + 0.5f; zp++) {
-                    remade[xp][yp][zp] = voxel;
-                }
-            }
-        }
+
+//        for (int xp = (int) xPos; xp < xPos + 0.5f; xp++) {
+//            for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
+//                for (int zp = (int) zPos; zp < zPos + 0.5f; zp++) {
+//                    remade[xp][yp][zp] = voxel;
+//                }
+//            }
+//        }
     }
     
     public NextRenderer clear() {
@@ -274,9 +269,9 @@ public class NextRenderer {
         for (int z = 0; z < remade[0][0].length; z++) {
             for (int y = 0; y < remade[0].length; y++) {
                 for (int x = 0; x < remade.length; x++) {
-                    xx = (size + y - x) * 2 + 1;
+                    xx = (size + y - x) * 2 + 1 >> 1;
                     if(xx < 0 || xx > xSize) continue;
-                    yy = (z * 3 + size * 3 - x - y) + 1;
+                    yy = (z * 3 + size * 3 - x - y) + 1 >> 1;
                     if(yy < 0 || yy > ySize) continue;
                     voxel = remade[x][y][z] & 255;
                     if(voxel == 0) continue;

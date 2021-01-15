@@ -48,7 +48,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
-            inputs = new String[]{"vox/Bear.vox"};
+//            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
@@ -60,7 +60,7 @@ public class VoxSwirl extends ApplicationAdapter {
     public void create() {
         if (inputs == null) Gdx.app.exit();
         long startTime = TimeUtils.millis();
-        Gdx.files.local("out/vox/").mkdirs();
+//        Gdx.files.local("out/vox/").mkdirs();
         png = new PixmapIO.PNG();
 //        png8 = new PNG8();
         gif = new AnimatedGif();
@@ -69,7 +69,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //        png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
         gif.palette = new PaletteReducer();
 //        png8.palette = gif.palette;
-        gif.palette.setDitherStrength(0.75f);
+        gif.palette.setDitherStrength(0.625f);
         for (String s : inputs) {
             load(s);
             try {
@@ -85,7 +85,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //                        png8.palette.exact(Coloring.HALTONIC255, colorCount);
 //                        png8.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
 //                    }
-                    VoxIO.writeVOX("out/vox/" + s.substring(4, s.length() - 4) + "_angle"+i+".vox", renderer.remade, VoxIO.lastPalette);
+//                    VoxIO.writeVOX("out/vox/" + s.substring(4, s.length() - 4) + "_angle"+i+".vox", renderer.remade, VoxIO.lastPalette);
                 }
 //                for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
 //                    gif.palette.exact(Coloring.HALTONIC255, colorCount);
@@ -129,11 +129,12 @@ public class VoxSwirl extends ApplicationAdapter {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
-            Tools3D.soakInPlace(voxels);
+            voxels = Tools3D.soakDouble(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
-            renderer = new NextRenderer(voxels.length, 48);
+            renderer = new NextRenderer(voxels.length, 40);
             renderer.palette(VoxIO.lastPalette);
+            renderer.saturation(-0.1f);
             
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}}; 

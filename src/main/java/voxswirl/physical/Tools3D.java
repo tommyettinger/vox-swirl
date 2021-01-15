@@ -564,6 +564,60 @@ public class Tools3D {
         }
     }
 
+    public static byte[][][] soak(byte[][][] voxels)
+    {
+        final int xs = voxels.length, ys = voxels[0].length, zs = voxels[0][0].length;
+        byte[][][] next = new byte[xs][ys][zs];
+        byte b;
+        for (int x = 0; x < xs; x++) {
+            for (int y = 0; y < ys; y++) {
+                for (int z = 0; z < zs; z++) {
+                    if(isSurface(voxels, x, y, z) > 0){
+                        next[x][y][z] = b = voxels[x][y][z];
+                        if(isSurface(voxels, x, y, z-1) == -1) next[x][y][z-1] = b;
+                        if(isSurface(voxels, x-1, y, z) == -1) next[x-1][y][z] = b;
+                        if(isSurface(voxels, x, y-1, z) == -1) next[x][y-1][z] = b;
+                        if(isSurface(voxels, x+1, y, z) == -1) next[x+1][y][z] = b;
+                        if(isSurface(voxels, x, y+1, z) == -1) next[x][y+1][z] = b;
+                        if(isSurface(voxels, x, y, z+1) == -1) next[x][y][z+1] = b;
+                    }
+                }
+            }
+        }
+        return next;
+    }
+
+    public static byte[][][] soakDouble(byte[][][] voxels)
+    {
+        final int xs = voxels.length, ys = voxels[0].length, zs = voxels[0][0].length;
+        final int x2 = xs << 1, y2 = ys << 1, z2 = zs << 1;
+        byte[][][] next = new byte[x2][y2][z2];
+        byte b;
+        for (int x = 0, xx = 0; x < xs; x++, xx += 2) {
+            for (int y = 0, yy = 0; y < ys; y++, yy += 2) {
+                for (int z = 0, zz = 0; z < zs; z++, zz += 2) {
+                    if(isSurface(voxels, x, y, z) > 0){
+                        next[xx][yy][zz] = b = voxels[x][y][z];
+                        if(isSurface(voxels, x-1, y, z) == -1) { next[xx-1][yy][zz] = b; next[xx-2][yy][zz] = b; }
+                        else if(isSurface(voxels, x-1, y, z) > 0) { next[xx-1][yy][zz] = (byte) Math.max(b & 255, voxels[x-1][y][z] & 255); }
+                        if(isSurface(voxels, x, y-1, z) == -1) { next[xx][yy-1][zz] = b; next[xx][yy-2][zz] = b; }
+                        else if(isSurface(voxels, x, y-1, z) > 0) { next[xx][yy-1][zz] = (byte) Math.max(b & 255, voxels[x][y-1][z] & 255); }
+                        if(isSurface(voxels, x, y, z-1) == -1) { next[xx][yy][zz-1] = b; next[xx][yy][zz-2] = b; }
+                        else if(isSurface(voxels, x, y, z-1) > 0) { next[xx][yy][zz-1] = (byte) Math.max(b & 255, voxels[x][y][z-1] & 255); }
+
+                        if(isSurface(voxels, x+1, y, z) == -1) { next[xx+1][yy][zz] = b; next[xx+2][yy][zz] = b; }
+                        else if(isSurface(voxels, x+1, y, z) > 0) { next[xx+1][yy][zz] = (byte) Math.max(b & 255, voxels[x+1][y][z] & 255); }
+                        if(isSurface(voxels, x, y+1, z) == -1) { next[xx][yy+1][zz] = b; next[xx][yy+2][zz] = b; }
+                        else if(isSurface(voxels, x, y+1, z) > 0) { next[xx][yy+1][zz] = (byte) Math.max(b & 255, voxels[x][y+1][z] & 255); }
+                        if(isSurface(voxels, x, y, z+1) == -1) { next[xx][yy][zz+1] = b; next[xx][yy][zz+2] = b; }
+                        else if(isSurface(voxels, x, y, z+1) > 0) { next[xx][yy][zz+1] = (byte) Math.max(b & 255, voxels[x][y][z+1] & 255); }
+                    }
+                }
+            }
+        }
+        return next;
+    }
+
     /**
      * Probably a pretty lousy hash; should be fast enough for a one-at-a-time hash with 64-bit output.
      * Higher bits should be better.
@@ -575,7 +629,7 @@ public class Tools3D {
         for (int x = 0; x < voxels.length; x++) {
             for (int y = 0; y < voxels[x].length; y++) {
                 for (int z = 0; z < voxels[x][y].length; z++) {
-                    r ^= (s += voxels[x][y][z] * (n += 0x9E3779B97F4A7C16L));
+                    r ^= (s += voxels[x][y][z] * (n += 0x9E3779B97F4A7C16L)) ^ r >>> 31;
                 }
             }
         }
