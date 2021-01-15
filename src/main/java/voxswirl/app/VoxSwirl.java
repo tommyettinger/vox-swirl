@@ -31,7 +31,7 @@ public class VoxSwirl extends ApplicationAdapter {
     private PixmapIO.PNG png;
     private AnimatedGif gif;
 //    private PNG8 png8;
-//    private AnimatedPNG apng;
+    private AnimatedPNG apng;
     public VoxSwirl(String[] args){
         if(args != null && args.length > 0)
             inputs = args;
@@ -48,7 +48,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
-//            inputs = new String[]{"vox/Bear.vox"};
+            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
@@ -64,7 +64,7 @@ public class VoxSwirl extends ApplicationAdapter {
         png = new PixmapIO.PNG();
 //        png8 = new PNG8();
         gif = new AnimatedGif();
-//        apng = new AnimatedPNG();
+        apng = new AnimatedPNG();
         gif.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
 //        png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
         gif.palette = new PaletteReducer();
@@ -91,8 +91,9 @@ public class VoxSwirl extends ApplicationAdapter {
 //                    gif.palette.exact(Coloring.HALTONIC255, colorCount);
 //                    gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
 //                }
+                gif.palette.analyze(pm);
                 gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
-//                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
+                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
                 for(Pixmap pix : pm) {
                     pix.dispose();
                 }
