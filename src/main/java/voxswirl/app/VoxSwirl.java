@@ -39,6 +39,7 @@ public class VoxSwirl extends ApplicationAdapter {
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
             inputs = new String[]{"vox/Eye_Tyrant_Floor.vox", "vox/Eye_Tyrant.vox", "vox/Bear.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox"};
+            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Bear.vox", "vox/Infantry_Firing.vox", "vox/Tree.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Lomuk.vox", "vox/Tree.vox", "vox/Eye_Tyrant.vox", "vox/IPT.vox", "vox/LAB.vox"};
 //            inputs = new String[]{"vox/Infantry_Firing.vox"};
@@ -48,7 +49,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
-            inputs = new String[]{"vox/Bear.vox"};
+//            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
@@ -64,7 +65,7 @@ public class VoxSwirl extends ApplicationAdapter {
         png = new PixmapIO.PNG();
 //        png8 = new PNG8();
         gif = new AnimatedGif();
-        apng = new AnimatedPNG();
+//        apng = new AnimatedPNG();
         gif.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
 //        png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
         gif.palette = new PaletteReducer();
@@ -93,7 +94,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //                }
                 gif.palette.analyze(pm);
                 gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
-                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
+//                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
                 for(Pixmap pix : pm) {
                     pix.dispose();
                 }
