@@ -633,6 +633,30 @@ public class Tools3D {
                         else if(isSurface(voxels, x, y+1, z) > 0) { next[xx][yy+1][zz] = choose(b, voxels[x][y+1][z]); }
                         if(isSurface(voxels, x, y, z+1) == -1) { next[xx][yy][zz+1] = choose(next[xx][yy][zz+1], b); next[xx][yy][zz+2] = choose(next[xx][yy][zz+2], b); }
                         else if(isSurface(voxels, x, y, z+1) > 0) { next[xx][yy][zz+1] = choose(b, voxels[x][y][z+1]); }
+
+//                        if(isSurface(voxels, x-1, y, z) == -1) {
+//                            if(isSurface(voxels, x-1, y-1, z) > 0) { next[xx-1][yy-1][zz] = choose(voxels[x-1][y-1][z], b); }
+//                            if(isSurface(voxels, x-1, y+1, z) > 0) { next[xx-1][yy+1][zz] = choose(voxels[x-1][y+1][z], b); }
+//                            if(isSurface(voxels, x-1, y, z-1) > 0) { next[xx-1][yy][zz-1] = choose(voxels[x-1][y][z-1], b); }
+//                            if(isSurface(voxels, x-1, y, z+1) > 0) { next[xx-1][yy][zz+1] = choose(voxels[x-1][y][z+1], b); }
+//                        }
+//
+//                        if(isSurface(voxels, x+1, y, z) == -1) {
+//                            if(isSurface(voxels, x+1, y-1, z) > 0) { next[xx+1][yy-1][zz] = choose(voxels[x+1][y-1][z], b); }
+//                            if(isSurface(voxels, x+1, y+1, z) > 0) { next[xx+1][yy+1][zz] = choose(voxels[x+1][y+1][z], b); }
+//                            if(isSurface(voxels, x+1, y, z-1) > 0) { next[xx+1][yy][zz-1] = choose(voxels[x+1][y][z-1], b); }
+//                            if(isSurface(voxels, x+1, y, z+1) > 0) { next[xx+1][yy][zz+1] = choose(voxels[x+1][y][z+1], b); }
+//                        }
+//
+//                        if(isSurface(voxels, x, y-1, z) == -1) {
+//                            if(isSurface(voxels, x, y-1, z-1) > 0) { next[xx][yy-1][zz-1] = choose(voxels[x][y-1][z-1], b); }
+//                            if(isSurface(voxels, x, y-1, z+1) > 0) { next[xx][yy-1][zz+1] = choose(voxels[x][y-1][z+1], b); }
+//                        }
+//
+//                        if(isSurface(voxels, x, y+1, z) == -1) {
+//                            if(isSurface(voxels, x, y+1, z-1) > 0) { next[xx][yy+1][zz-1] = choose(voxels[x][y+1][z-1], b); }
+//                            if(isSurface(voxels, x, y+1, z+1) > 0) { next[xx][yy+1][zz+1] = choose(voxels[x][y+1][z+1], b); }
+//                        }
                     }
                 }
             }
