@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.github.tommyettinger.anim8.OtherMath;
 import com.github.tommyettinger.anim8.PaletteReducer;
 import com.github.tommyettinger.colorful.ipt_hq.ColorTools;
 import voxswirl.physical.Tools3D;
@@ -32,6 +33,7 @@ public class NextRenderer {
     public float neutral = 1f;
     public IntMap<VoxMaterial> materialMap;
     public long seed;
+    public final float[] BLUE_NOISE = new float[64 * 64];
 
     protected NextRenderer() {
 
@@ -54,6 +56,12 @@ public class NextRenderer {
         remade = new byte[size * 3][size * 3][size * 3];
         lights = new float[size * 3][size * 3][size * 3];
         Tools3D.fill(lights, 0.75f);
+        for (int x = 0; x < 64; x++) {
+            for (int y = 0; y < 64; y++) {
+                BLUE_NOISE[(x & 63) | (y & 63) << 6] =
+                        (float) OtherMath.probit((PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(y & 63) | (x & 63) << 6] + 256) * 0x1p-9f) * 0x1p-8f;
+            }
+        }
     }
     
     protected float bn(int x, int y) {
@@ -89,7 +97,9 @@ public class NextRenderer {
      */
     protected float biasedAngle(int x, int y, int v) {
 //        return (PaletteReducer.TRI_BLUE_NOISE[(x + v * 5 & 63) | (y + v * 3 & 63) << 6] + 0.5f) * 0x3p-9f;
-        return (PaletteReducer.TRI_BLUE_NOISE[(x + v & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y + v & 63) << 6]) * 0x3p-12f;
+
+//        return (PaletteReducer.TRI_BLUE_NOISE[(x + v & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y + v & 63) << 6]) * 0x3p-12f;
+        return BLUE_NOISE[(x + v & 63) | (y - v & 63) << 6];
     }
 
     protected float random(){
