@@ -290,11 +290,12 @@ public class NextRenderer {
                     final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
                     final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
                     final float reflect = m.getTrait(VoxMaterial.MaterialTrait._ior) + 0.9375f;
+                    final float shimmer = m.getTrait(VoxMaterial.MaterialTrait._metal) * 20f;
 
                     for (int lx = 0, ax = xx; lx < 4 && ax <= xSize; lx++, ax++) {
                         for (int ly = 0, ay = yy; ly < 4 && ay <= ySize; ly++, ay++) {
                             if (depth > depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
-                                colorI[ax][ay] = (float) Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]), reflect);
+                                colorI[ax][ay] = (float) Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]), reflect) + (shimmer * Math.max(0f, bn(ax + x - y + z, ay - x + y - z) - 0.5f));
                                 colorP[ax][ay] = paletteP[voxel];
                                 colorT[ax][ay] = paletteT[voxel];
                                 materials[ax][ay] = m;
