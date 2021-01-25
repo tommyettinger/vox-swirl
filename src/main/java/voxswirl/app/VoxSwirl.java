@@ -48,8 +48,9 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/IPT_Original.vox"};
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
+            inputs = new String[]{"vox/Oklab.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
-            inputs = new String[]{"vox/Bear.vox"};
+//            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
@@ -134,7 +135,7 @@ public class VoxSwirl extends ApplicationAdapter {
             voxels = Tools3D.soakDouble(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
-            renderer = new NextRenderer(voxels.length, 10);
+            renderer = new NextRenderer(voxels.length, 8);
             renderer.palette(VoxIO.lastPalette);
             renderer.saturation(-0.1f);
             
