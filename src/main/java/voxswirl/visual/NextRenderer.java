@@ -279,9 +279,9 @@ public class NextRenderer {
         for (int z = 0; z < remade[0][0].length; z++) {
             for (int y = 0; y < remade[0].length; y++) {
                 for (int x = 0; x < remade.length; x++) {
-                    xx = ((size + y - x) * 2 + 1 >> 1) - 1;
+                    xx = ((size + y - x) * 2 + 1 >> 1);
                     if(xx < 0 || xx > xSize) continue;
-                    yy = ((z * 3 + size * 3 - x - y) + 1 >> 1) - 1;
+                    yy = ((z * 3 + size * 3 - x - y) + 1 >> 1);
                     if(yy < 0 || yy > ySize) continue;
                     voxel = remade[x][y][z] & 255;
                     if(voxel == 0) continue;
@@ -292,14 +292,15 @@ public class NextRenderer {
                     final float reflect = (m == null ? 0.3f : m.getTrait(VoxMaterial.MaterialTrait._ior)) + 0.9375f;
                     final float shimmer = (m == null ? 0f : m.getTrait(VoxMaterial.MaterialTrait._metal)) * 20f;
 
-                    for (int lx = 0, ax = xx; lx < 6 && ax <= xSize; lx++, ax++) {
-                        for (int ly = 0, ay = yy; ly < 6 && ay <= ySize; ly++, ay++) {
-                            if (depth > depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
+                    for (int lx = 0, ax = xx; lx < 4 && ax <= xSize; lx++, ax++) {
+                        for (int ly = 0, ay = yy; ly < 4 && ay <= ySize; ly++, ay++) {
+                            if (depth > depths[ax][ay] &&
+                                    (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
                                 colorI[ax][ay] = (float) Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]), reflect) + (shimmer * Math.max(0f, bn(ax + x - y + z, ay - x + y - z) - 0.5f));
                                 colorP[ax][ay] = paletteP[voxel];
                                 colorT[ax][ay] = paletteT[voxel];
                                 materials[ax][ay] = m;
-                                depths[ax][ay] = depth;
+                                depths[ax][ay] = depth;// - ((lx ^ lx >>> 1) & 1);
                                 if (alpha == 0f)
                                     outlines[ax][ay] =
                                             ColorTools.toRGBA8888(

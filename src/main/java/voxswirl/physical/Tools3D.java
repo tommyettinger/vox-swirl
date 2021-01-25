@@ -650,18 +650,34 @@ public class Tools3D {
                 for (int z = 0, zz = 0; z < zs; z++, zz += 2) {
                     if(isSurface(voxels, x, y, z) > 0){
                         next[xx][yy][zz] = b = voxels[x][y][z];
-                        if(isSurface(voxels, x-1, y, z) == -1) { next[xx-1][yy][zz] = choose(next[xx-1][yy][zz], b); next[xx-2][yy][zz] = choose(next[xx-2][yy][zz], b); }
+//                        if(isSurface(voxels, x-1, y, z) == -1) { next[xx-1][yy][zz] = choose(next[xx-1][yy][zz], b); next[xx-2][yy][zz] = choose(next[xx-2][yy][zz], b); }
+//                        else if(isSurface(voxels, x-1, y, z) > 0) { next[xx-1][yy][zz] = choose(b, voxels[x-1][y][z]); }
+//                        if(isSurface(voxels, x, y-1, z) == -1) { next[xx][yy-1][zz] = choose(next[xx][yy-1][zz], b); next[xx][yy-2][zz] = choose(next[xx][yy-2][zz], b); }
+//                        else if(isSurface(voxels, x, y-1, z) > 0) { next[xx][yy-1][zz] = choose(b, voxels[x][y-1][z]); }
+//                        if(isSurface(voxels, x, y, z-1) == -1) { next[xx][yy][zz-1] = choose(next[xx][yy][zz-1], b); next[xx][yy][zz-2] = choose(next[xx][yy][zz-2], b); }
+//                        else if(isSurface(voxels, x, y, z-1) > 0) { next[xx][yy][zz-1] = choose(b, voxels[x][y][z-1]); }
+//
+//                        if(isSurface(voxels, x+1, y, z) == -1) { next[xx+1][yy][zz] = choose(next[xx+1][yy][zz], b); next[xx+2][yy][zz] = choose(next[xx+2][yy][zz], b); }
+//                        else if(isSurface(voxels, x+1, y, z) > 0) { next[xx+1][yy][zz] = choose(b, voxels[x+1][y][z]); }
+//                        if(isSurface(voxels, x, y+1, z) == -1) { next[xx][yy+1][zz] = choose(next[xx][yy+1][zz], b); next[xx][yy+2][zz] = choose(next[xx][yy+2][zz], b); }
+//                        else if(isSurface(voxels, x, y+1, z) > 0) { next[xx][yy+1][zz] = choose(b, voxels[x][y+1][z]); }
+//                        if(isSurface(voxels, x, y, z+1) == -1) { next[xx][yy][zz+1] = choose(next[xx][yy][zz+1], b); next[xx][yy][zz+2] = choose(next[xx][yy][zz+2], b); }
+//                        else if(isSurface(voxels, x, y, z+1) > 0) { next[xx][yy][zz+1] = choose(b, voxels[x][y][z+1]); }
+
+                        // debugging with black interiors
+                        byte interior = 1;
+                        if(isSurface(voxels, x-1, y, z) == -1) { next[xx-1][yy][zz] = interior; next[xx-2][yy][zz] = interior; }
                         else if(isSurface(voxels, x-1, y, z) > 0) { next[xx-1][yy][zz] = choose(b, voxels[x-1][y][z]); }
-                        if(isSurface(voxels, x, y-1, z) == -1) { next[xx][yy-1][zz] = choose(next[xx][yy-1][zz], b); next[xx][yy-2][zz] = choose(next[xx][yy-2][zz], b); }
+                        if(isSurface(voxels, x, y-1, z) == -1) { next[xx][yy-1][zz] = interior; next[xx][yy-2][zz] = interior; }
                         else if(isSurface(voxels, x, y-1, z) > 0) { next[xx][yy-1][zz] = choose(b, voxels[x][y-1][z]); }
-                        if(isSurface(voxels, x, y, z-1) == -1) { next[xx][yy][zz-1] = choose(next[xx][yy][zz-1], b); next[xx][yy][zz-2] = choose(next[xx][yy][zz-2], b); }
+                        if(isSurface(voxels, x, y, z-1) == -1) { next[xx][yy][zz-1] = interior; next[xx][yy][zz-2] = interior; }
                         else if(isSurface(voxels, x, y, z-1) > 0) { next[xx][yy][zz-1] = choose(b, voxels[x][y][z-1]); }
 
-                        if(isSurface(voxels, x+1, y, z) == -1) { next[xx+1][yy][zz] = choose(next[xx+1][yy][zz], b); next[xx+2][yy][zz] = choose(next[xx+2][yy][zz], b); }
+                        if(isSurface(voxels, x+1, y, z) == +1) { next[xx+1][yy][zz] = interior; next[xx+2][yy][zz] = interior; }
                         else if(isSurface(voxels, x+1, y, z) > 0) { next[xx+1][yy][zz] = choose(b, voxels[x+1][y][z]); }
-                        if(isSurface(voxels, x, y+1, z) == -1) { next[xx][yy+1][zz] = choose(next[xx][yy+1][zz], b); next[xx][yy+2][zz] = choose(next[xx][yy+2][zz], b); }
+                        if(isSurface(voxels, x, y+1, z) == +1) { next[xx][yy+1][zz] = interior; next[xx][yy+2][zz] = interior; }
                         else if(isSurface(voxels, x, y+1, z) > 0) { next[xx][yy+1][zz] = choose(b, voxels[x][y+1][z]); }
-                        if(isSurface(voxels, x, y, z+1) == -1) { next[xx][yy][zz+1] = choose(next[xx][yy][zz+1], b); next[xx][yy][zz+2] = choose(next[xx][yy][zz+2], b); }
+                        if(isSurface(voxels, x, y, z+1) == +1) { next[xx][yy][zz+1] = interior; next[xx][yy][zz+2] = interior; }
                         else if(isSurface(voxels, x, y, z+1) > 0) { next[xx][yy][zz+1] = choose(b, voxels[x][y][z+1]); }
 
 //                        if(isSurface(voxels, x-1, y, z) == -1) {
