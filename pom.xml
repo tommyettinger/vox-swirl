@@ -68,8 +68,8 @@
         <jdk.version>1.8</jdk.version>
         <junit.version>4.13.1</junit.version>
         <gdx.version>1.9.13</gdx.version>
-        <anim8.version>0.2.5</anim8.version>
-        <colorful.version>8cda4d3fc8</colorful.version>
+        <anim8.version>0.2.6</anim8.version>
+        <colorful.version>0.4.2</colorful.version>
     </properties>
 
 
@@ -80,17 +80,17 @@
             <version>${anim8.version}</version>
         </dependency>
         <!-- JitPack -->
-        <dependency>
-            <groupId>com.github.tommyettinger.colorful-gdx</groupId>
-            <artifactId>colorful</artifactId>
-            <version>${colorful.version}</version>
-        </dependency>
-        <!-- Maven Central -->
 <!--        <dependency>-->
-<!--            <groupId>com.github.tommyettinger</groupId>-->
+<!--            <groupId>com.github.tommyettinger.colorful-gdx</groupId>-->
 <!--            <artifactId>colorful</artifactId>-->
 <!--            <version>${colorful.version}</version>-->
 <!--        </dependency>-->
+        <!-- Maven Central -->
+        <dependency>
+            <groupId>com.github.tommyettinger</groupId>
+            <artifactId>colorful</artifactId>
+            <version>${colorful.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.badlogicgames.gdx</groupId>
             <artifactId>gdx</artifactId>

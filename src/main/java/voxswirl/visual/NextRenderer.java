@@ -211,7 +211,7 @@ public class NextRenderer {
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[vx][vy][z] & 255) != 0){
                             m = materialMap.get(voxel);
-                            float carry = strongMinor * m.getTrait(VoxMaterial.MaterialTrait._rough);
+                            float carry = strongMinor * (m == null ? 0.1f : m.getTrait(VoxMaterial.MaterialTrait._rough));
                             lights[vx][vy][z] += strongMain;
                             for (int vxx = x - 1; vxx <= x + 1; vxx++) {
                                 for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
@@ -250,7 +250,7 @@ public class NextRenderer {
                         vy = (int)(oy + 0.5f);
                         if((voxel = remade[x][vy][vz] & 255) != 0){
                             m = materialMap.get(voxel);
-                            float carry = weakMinor * m.getTrait(VoxMaterial.MaterialTrait._rough);
+                            float carry = weakMinor * (m == null ? 0.1f : m.getTrait(VoxMaterial.MaterialTrait._rough));
                             lights[x][vy][vz] += weakMain;
                             for (int vxx = x - 1; vxx <= x + 1; vxx++) {
                                 for (int vyy = vy - 1; vyy <= vy + 1; vyy++) {
@@ -287,10 +287,10 @@ public class NextRenderer {
                     if(voxel == 0) continue;
                     depth = (x + y) * 2 + z * 3;
                     m = materialMap.get(voxel);
-                    final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
-                    final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
-                    final float reflect = m.getTrait(VoxMaterial.MaterialTrait._ior) + 0.9375f;
-                    final float shimmer = m.getTrait(VoxMaterial.MaterialTrait._metal) * 20f;
+                    final float emit = (m == null ? 0f : m.getTrait(VoxMaterial.MaterialTrait._emit)) * 1.25f;
+                    final float alpha = (m == null ? 0f : m.getTrait(VoxMaterial.MaterialTrait._alpha));
+                    final float reflect = (m == null ? 0.3f : m.getTrait(VoxMaterial.MaterialTrait._ior)) + 0.9375f;
+                    final float shimmer = (m == null ? 0f : m.getTrait(VoxMaterial.MaterialTrait._metal)) * 20f;
 
                     for (int lx = 0, ax = xx; lx < 4 && ax <= xSize; lx++, ax++) {
                         for (int ly = 0, ay = yy; ly < 4 && ay <= ySize; ly++, ay++) {
