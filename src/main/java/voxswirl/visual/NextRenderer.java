@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.anim8.OtherMath;
 import com.github.tommyettinger.anim8.PaletteReducer;
-import com.github.tommyettinger.colorful.ipt_hq.ColorTools;
+import com.github.tommyettinger.colorful.oklab.ColorTools;
 import voxswirl.physical.Tools3D;
 import voxswirl.physical.VoxMaterial;
 
@@ -23,14 +23,14 @@ public class NextRenderer {
     public VoxMaterial[][] materials;
     public byte[][][] remade;
     public float[][][] lights;
-    public float[][] colorI, colorP, colorT;
-    public PaletteReducer reducer = new PaletteReducer(Coloring.HALTONIC255);
+    public float[][] colorL, colorA, colorB;
+    public PaletteReducer reducer = new PaletteReducer();
     private int[] palette;
-    public float[] paletteI, paletteP, paletteT;
+    public float[] paletteL, paletteA, paletteB;
     public boolean dither = false, outline = true;
     public int size;
     public int quality = 24;
-    public float neutral = 1f;
+    public float neutral = 0.625f;
     public IntMap<VoxMaterial> materialMap;
     public long seed;
     public final float[] BLUE_NOISE = new float[64 * 64];
@@ -50,9 +50,9 @@ public class NextRenderer {
         outlines = new int[w][h];
         depths =   new int[w][h];
         materials = new VoxMaterial[w][h];
-        colorI = fill(-1f, w, h);
-        colorP = fill(-1f, w, h);
-        colorT = fill(-1f, w, h);
+        colorL = fill(-1f, w, h);
+        colorA = fill(-1f, w, h);
+        colorB = fill(-1f, w, h);
         remade = new byte[size * 3][size * 3][size * 3];
         lights = new float[size * 3][size * 3][size * 3];
         Tools3D.fill(lights, 0.75f);
@@ -131,19 +131,19 @@ public class NextRenderer {
 
     public NextRenderer palette(int[] color) {
         this.palette = color;
-        if(paletteI == null) paletteI = new float[256];
-        if(paletteP == null) paletteP = new float[256];
-        if(paletteT == null) paletteT = new float[256];
+        if(paletteL == null) paletteL = new float[256];
+        if(paletteA == null) paletteA = new float[256];
+        if(paletteB == null) paletteB = new float[256];
         for (int i = 0; i < color.length; i++) {
             if ((color[i] & 0x80) == 0) {
-                paletteI[i] = -1f;
-                paletteP[i] = -1f;
-                paletteT[i] = -1f;
+                paletteL[i] = -1f;
+                paletteA[i] = -1f;
+                paletteB[i] = -1f;
             } else {
                 float ipt = ColorTools.fromRGBA8888(color[i]);
-                paletteI[i] = ColorTools.intensity(ipt);
-                paletteP[i] = ColorTools.protan(ipt);
-                paletteT[i] = ColorTools.tritan(ipt);
+                paletteL[i] = ColorTools.channelL(ipt);
+                paletteA[i] = ColorTools.channelA(ipt);
+                paletteB[i] = ColorTools.channelB(ipt);
             }
         }
         return this;
@@ -169,9 +169,9 @@ public class NextRenderer {
         fill(depths, 0);
         fill(render, 0);
         fill(outlines, (byte) 0);
-        fill(colorI, -1f);
-        fill(colorP, -1f);
-        fill(colorT, -1f);
+        fill(colorL, -1f);
+        fill(colorA, -1f);
+        fill(colorB, -1f);
         Tools3D.fill(remade, 0);
         Tools3D.fill(lights, 0.75f);
         return this;
@@ -297,18 +297,18 @@ public class NextRenderer {
                             if((lx == 0 && (ly == 0 || ly == 5)) || (lx == 5 && (ly == 0 || ly == 5))) continue;
                             if (depth > depths[ax][ay] &&
                                     (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
-                                colorI[ax][ay] = (float) Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z]), reflect) + (shimmer * Math.max(0f, bn(ax + x - y + z, ay - x + y - z) - 0.5f));
-                                colorP[ax][ay] = paletteP[voxel];
-                                colorT[ax][ay] = paletteT[voxel];
+                                colorL[ax][ay] = (float) Math.pow(paletteL[voxel] * (float) Math.sqrt(lights[x][y][z]), reflect) + (shimmer * Math.max(0f, bn(ax + x - y + z, ay - x + y - z) - 0.5f));
+                                colorA[ax][ay] = paletteA[voxel];
+                                colorB[ax][ay] = paletteB[voxel];
                                 materials[ax][ay] = m;
                                 depths[ax][ay] = depth;// - ((lx ^ lx >>> 1) & 1);
                                 if (alpha == 0f)
                                     outlines[ax][ay] =
                                             ColorTools.toRGBA8888(
-                                                    ColorTools.ipt(
-                                                            Math.max(0f, Math.min(1f, (float) Math.pow(paletteI[voxel] * (float) Math.sqrt(lights[x][y][z] * 0.4f), reflect - 0.25f) + emit)),
-                                                            Math.max(0f, Math.min(1f, (paletteP[voxel] - 0.5f) * (neutral + 0.0625f) + 0.5f)),
-                                                            Math.max(0f, Math.min(1f, (paletteT[voxel] - 0.5f) * (neutral + 0.0625f) + 0.5f)),
+                                                    ColorTools.oklab(
+                                                            Math.max(0f, Math.min(1f, (float) Math.pow(paletteL[voxel] * (float) Math.sqrt(lights[x][y][z] * 0.4f), reflect - 0.25f) + emit)),
+                                                            Math.max(0f, Math.min(1f, (paletteA[voxel] - 0.5f) * (neutral + 0.0625f) + 0.5f)),
+                                                            Math.max(0f, Math.min(1f, (paletteB[voxel] - 0.5f) * (neutral + 0.0625f) + 0.5f)),
                                                             1f)
                                             );
                             }
@@ -328,11 +328,11 @@ public class NextRenderer {
 
         for (int x = 0; x <= xSize; x++) {
             for (int y = 0; y <= ySize; y++) {
-                if (colorP[x][y] >= 0f) {
-                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.ipt(
-                            Math.min(Math.max(colorI[x][y], 0f), 1f),
-                            (colorP[x][y] - 0.5f) * neutral + 0.5f,
-                            (colorT[x][y] - 0.5f) * neutral + 0.5f, 1f)));
+                if (colorA[x][y] >= 0f) {
+                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.oklab(
+                            Math.min(Math.max(colorL[x][y], 0f), 1f),
+                            (colorA[x][y] - 0.5f) * neutral + 0.5f,
+                            (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
             }
         }
@@ -369,9 +369,9 @@ public class NextRenderer {
         fill(render, 0);
         fill(depths, 0);
         fill(outlines, 0);
-        fill(colorI, -1f);
-        fill(colorP, -1f);
-        fill(colorT, -1f);
+        fill(colorL, -1f);
+        fill(colorA, -1f);
+        fill(colorB, -1f);
         Tools3D.fill(lights, 0.75f);
         return pixmap;
     }
