@@ -69,7 +69,7 @@
         <junit.version>4.13.1</junit.version>
         <gdx.version>1.9.13</gdx.version>
         <anim8.version>bc0fea0a08</anim8.version>
-        <colorful.version>094b3ee69a</colorful.version>
+        <colorful.version>a29f32b1f5</colorful.version>
     </properties>
 
 

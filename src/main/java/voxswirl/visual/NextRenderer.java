@@ -59,7 +59,7 @@ public class NextRenderer {
         for (int x = 0; x < 64; x++) {
             for (int y = 0; y < 64; y++) {
                 BLUE_NOISE[(x & 63) | (y & 63) << 6] =
-                        (float) OtherMath.probit((PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(y & 63) | (x & 63) << 6] + 256) * 0x1p-9f) * 0x1p-8f;
+                        (float) OtherMath.probit((PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(y & 63) | (x & 63) << 6] + 256) * 0x1p-9f) * 0x1p-9f;
             }
         }
     }
@@ -185,9 +185,9 @@ public class NextRenderer {
     public Pixmap blit() {
         final int threshold = 15999;
         final int lightPasses = quality;
-        final float strongMain = 0.05f * 12f / lightPasses,
+        final float strongMain = 0.04f * 12f / lightPasses,
         strongMinor = 0.025f * 12f / lightPasses,
-                weakMain = 0.02f * 12f / lightPasses,
+                weakMain = 0.016f * 12f / lightPasses,
                 weakMinor = 0.01f * 12f / lightPasses;
         pixmap.setColor(0);
         pixmap.fill();
