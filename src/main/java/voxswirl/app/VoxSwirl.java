@@ -6,6 +6,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
+import com.badlogic.gdx.math.RandomXS128;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.anim8.*;
@@ -25,6 +26,7 @@ public class VoxSwirl extends ApplicationAdapter {
     public static final int QUALITY = 8;
     public static final int SCREEN_WIDTH = 512;//640;
     public static final int SCREEN_HEIGHT = 512;//720;
+    public static boolean GLITCH = true;
     private NextRenderer renderer;
     private byte[][][] voxels;
     private String name;
@@ -65,6 +67,7 @@ public class VoxSwirl extends ApplicationAdapter {
     public void create() {
         if (inputs == null) Gdx.app.exit();
         long startTime = TimeUtils.millis();
+        RandomXS128 random = new RandomXS128(1, 1);
 //        Gdx.files.local("out/vox/").mkdirs();
         png = new PixmapIO.PNG();
 //        png8 = new PNG8();
@@ -77,11 +80,31 @@ public class VoxSwirl extends ApplicationAdapter {
         gif.palette.setDitherStrength(0.625f);
         for (String s : inputs) {
             load(s);
+            random.setSeed(s.hashCode());
             try {
                 Pixmap pixmap;
                 Array<Pixmap> pm = new Array<>(64);
                 for (int i = 0; i < 64; i++) {
-                    pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f, VoxIO.lastMaterials);
+                    // glitch mode
+                    if(GLITCH) {
+                        renderer.saturation(random.nextFloat() - 0.5f);
+                        for (int x = 0; x < voxels.length; x++) {
+                            for (int y = 0; y < voxels[0].length; y++) {
+                                for (int z = 0; z < voxels[0][0].length; z++) {
+                                    if(voxels[x][y][z] != 0 && (random.nextLong() & 62L) == 0L)
+                                        voxels[x][y][z] = (byte) (random.nextInt(256) & -random.nextInt(2) & -random.nextInt(2));
+                                }
+                            }
+                        }
+                        voxels = Tools3D.translateCopy(voxels,
+                                (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)),
+                                (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)),
+                                (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)));
+                        pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f + (random.nextFloat() - random.nextFloat()) * 0x1p-5f, VoxIO.lastMaterials);
+                    }
+                    else {
+                        pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f, VoxIO.lastMaterials);
+                    }
                     Pixmap p = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), pixmap.getFormat());
                     p.drawPixmap(pixmap, 0, 0);
                     pm.add(p);

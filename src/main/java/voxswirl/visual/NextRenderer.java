@@ -30,7 +30,7 @@ public class NextRenderer {
     public boolean dither = false, outline = true;
     public int size;
     public int quality = 24;
-    public float neutral = 0.625f;
+    public float neutral = 1f;
     public IntMap<VoxMaterial> materialMap;
     public long seed;
     public final float[] BLUE_NOISE = new float[64 * 64];

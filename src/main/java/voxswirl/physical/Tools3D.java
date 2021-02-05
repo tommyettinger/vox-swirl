@@ -519,12 +519,15 @@ public class Tools3D {
         xs = into.length;
         ys = into[0].length;
         zs = into[0][0].length;
-        final int xLimit = voxels.length, xStart = Math.max(0, xMove);
-        final int yLimit = voxels[0].length, yStart = Math.max(0, yMove);
-        final int zLimit = voxels[0][0].length, zStart = Math.max(0, zMove);
-        for (int x = xStart, xx = 0; x < xs && xx < xLimit && xx < xs; x++, xx++) {
-            for (int y = yStart, yy = 0; y < ys && yy < yLimit && yy < ys; y++, yy++) {
-                for (int z = zStart, zz = 0; z < zs && zz < zLimit && zz < zs; z++, zz++) {
+        final int xLimit = voxels.length;
+        final int yLimit = voxels[0].length;
+        final int zLimit = voxels[0][0].length;
+        for (int x = xMove, xx = 0; x < xs && xx < xLimit && xx < xs; x++, xx++) {
+            if(x < 0) continue;
+            for (int y = yMove, yy = 0; y < ys && yy < yLimit && yy < ys; y++, yy++) {
+                if(y < 0) continue;
+                for (int z = zMove, zz = 0; z < zs && zz < zLimit && zz < zs; z++, zz++) {
+                    if(z < 0) continue;
                     if (into[x][y][z] == 0 && voxels[xx][yy][zz] != 0)
                         into[x][y][z] = voxels[xx][yy][zz];
                 }
