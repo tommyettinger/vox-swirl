@@ -193,7 +193,7 @@ public class NextRenderer {
         pixmap.fill();
         final int xSize = render.length - 1, ySize = render[0].length - 1,
                 rmxLength = remade.length, rmyLength = remade[0].length, rmzLength = remade[0][0].length,
-                startRegion = size >> 1, endRegion = rmxLength - (size >> 1);
+                startRegion = size >> 2, endRegion = rmxLength - (size >> 2);
         int xx, yy, depth, voxel, vx, vy, vz;
         VoxMaterial m;
 
