@@ -5,9 +5,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.anim8.PaletteReducer;
-import com.github.tommyettinger.colorful.ipt_hq.ColorTools;
-import voxswirl.io.VoxIO;
-import voxswirl.meta.ArrayTools;
+import com.github.tommyettinger.colorful.oklab.ColorTools;
 import voxswirl.physical.Tools3D;
 import voxswirl.physical.VoxMaterial;
 
@@ -23,10 +21,10 @@ public class SplatRenderer {
     public int[][] depths, voxels, render, outlines;
     public VoxMaterial[][] materials;
     public byte[][][] remade;
-    public float[][] shadeX, shadeZ, colorI, colorP, colorT;
+    public float[][] shadeX, shadeZ, colorL, colorA, colorB;
     public PaletteReducer reducer = new PaletteReducer(Coloring.HALTONIC255);
     private int[] palette;
-    public float[] paletteI, paletteP, paletteT;
+    public float[] paletteL, paletteA, paletteB;
     public boolean dither = false, outline = true;
     public int size;
     public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
@@ -48,9 +46,9 @@ public class SplatRenderer {
         voxels = fill(-1, w, h);
         shadeX = fill(-1f, size * 4, size * 4);
         shadeZ = fill(-1f, size * 4, size * 4);
-        colorI = fill(-1f, w, h);
-        colorP = fill(-1f, w, h);
-        colorT = fill(-1f, w, h);
+        colorL = fill(-1f, w, h);
+        colorA = fill(-1f, w, h);
+        colorB = fill(-1f, w, h);
         remade = new byte[size << 1][size << 1][size << 1];
     }
     
@@ -99,25 +97,28 @@ public class SplatRenderer {
 
     public SplatRenderer palette(int[] color) {
         this.palette = color;
-        if(paletteI == null) paletteI = new float[256];
-        if(paletteP == null) paletteP = new float[256];
-        if(paletteT == null) paletteT = new float[256];
+        if(paletteL == null) paletteL = new float[256];
+        if(paletteA == null) paletteA = new float[256];
+        if(paletteB == null) paletteB = new float[256];
         for (int i = 0; i < color.length; i++) {
             if ((color[i] & 0x80) == 0) {
-                paletteI[i] = -1f;
-                paletteP[i] = -1f;
-                paletteT[i] = -1f;
+                paletteL[i] = -1f;
+                paletteA[i] = -1f;
+                paletteB[i] = -1f;
             } else {
                 float ipt = ColorTools.fromRGBA8888(color[i]);
-                paletteI[i] = ColorTools.intensity(ipt);
-                paletteP[i] = ColorTools.protan(ipt);
-                paletteT[i] = ColorTools.tritan(ipt);
+                paletteL[i] = ColorTools.channelL(ipt);
+                paletteA[i] = ColorTools.channelA(ipt);
+                paletteB[i] = ColorTools.channelB(ipt);
             }
         }
         return this;
     }
     
     public void splat(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
+        if(xPos <= -1f || yPos <= -1f || zPos <= -1f
+                || xPos >= remade.length || yPos >= remade[0].length || zPos >= remade[0][0].length)
+            return;
         final int 
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
                 yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 3 - xPos - yPos) + 1)),
@@ -131,9 +132,9 @@ public class SplatRenderer {
             for (int y = 0, ay = yy; y < 4 && ay < render[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax >>> 1, ay >>> 1) >= alpha)) {
                     drawn = true;
-                    colorI[ax][ay] = paletteI[voxel & 255];
-                    colorP[ax][ay] = paletteP[voxel & 255];
-                    colorT[ax][ay] = paletteT[voxel & 255];
+                    colorL[ax][ay] = paletteL[voxel & 255];
+                    colorA[ax][ay] = paletteA[voxel & 255];
+                    colorB[ax][ay] = paletteB[voxel & 255];
                     depths[ax][ay] = depth;
                     materials[ax][ay] = m;
                     if(alpha == 0f)
@@ -167,9 +168,9 @@ public class SplatRenderer {
         fill(voxels, -1);
         fill(shadeX, -1f);
         fill(shadeZ, -1f);
-        fill(colorI, -1f);
-        fill(colorP, -1f);
-        fill(colorT, -1f);
+        fill(colorL, -1f);
+        fill(colorA, -1f);
+        fill(colorB, -1f);
         return this;
     }
 
@@ -263,7 +264,7 @@ public class SplatRenderer {
 //        for (int sx = 0; sx <= xSize; sx++) {
 //            for (int sy = 0; sy <= ySize; sy++) {
 //                if((working[sx][sy] & 0x80) == 0x80)
-//                    render[sx][sy] = ColorTools.toRGBA8888(ColorTools.ipt(Math.min(Math.max(colorI[sx][sy] - 0.09375f, 0f), 1f), colorP[sx][sy], colorT[sx][sy], 1f));
+//                    render[sx][sy] = ColorTools.toRGBA8888(ColorTools.oklab(Math.min(Math.max(colorL[sx][sy] - 0.09375f, 0f), 1f), colorA[sx][sy], colorB[sx][sy], 1f));
 //            }
 //        }
         for (int sx = 0; sx <= xSize; sx++) {
@@ -284,32 +285,32 @@ public class SplatRenderer {
                     m = materials[sx][sy];
                     double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if (Math.abs(shadeX[fy][fz] - tx) <= limit || ((fy > 1 && Math.abs(shadeX[fy - 2][fz] - tx) <= limit) || (fy < shadeX.length - 2 && Math.abs(shadeX[fy + 2][fz] - tx) <= limit))) {
-                        colorI[sx][sy] += 0.06f;
-                        float spread = MathUtils.lerp(0.016f, 0.0018f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                        if (sx > 0) colorI[sx - 1][sy] += spread;
-                        if (sy > 0) colorI[sx][sy - 1] += spread;
-                        if (sx < xSize) colorI[sx + 1][sy] += spread;
-                        if (sy < ySize) colorI[sx][sy + 1] += spread;
+                        colorL[sx][sy] += 0.05f;
+                        float spread = MathUtils.lerp(0.012f, 0.004f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        if (sx > 0) colorL[sx - 1][sy] += spread;
+                        if (sy > 0) colorL[sx][sy - 1] += spread;
+                        if (sx < xSize) colorL[sx + 1][sy] += spread;
+                        if (sy < ySize) colorL[sx][sy + 1] += spread;
 
-                        if (sx > 1) colorI[sx - 2][sy] += spread;
-                        if (sy > 1) colorI[sx][sy - 2] += spread;
-                        if (sx < xSize - 1) colorI[sx + 2][sy] += spread;
-                        if (sy < ySize - 1) colorI[sx][sy + 2] += spread;
+                        if (sx > 1) colorL[sx - 2][sy] += spread;
+                        if (sy > 1) colorL[sx][sy - 2] += spread;
+                        if (sx < xSize - 1) colorL[sx + 2][sy] += spread;
+                        if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
 
                     }
 //                    if ((shadeX[fy][fz] - tx) > limit || ((fy > 1 && shadeX[fy - 2][fz] - tx > limit) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > limit))) {
                         if (Math.abs(shadeZ[fx][fy] - tz) < 1) {
-                            colorI[sx][sy] += 0.075f;
-                            float spread = MathUtils.lerp(0.02f, 0.002f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                            if (sx > 0) colorI[sx - 1][sy] += spread;
-                            if (sy > 0) colorI[sx][sy - 1] += spread;
-                            if (sx < xSize) colorI[sx + 1][sy] += spread;
-                            if (sy < ySize) colorI[sx][sy + 1] += spread;
+                            colorL[sx][sy] += 0.0625f;
+                            float spread = MathUtils.lerp(0.015f, 0.005f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                            if (sx > 0) colorL[sx - 1][sy] += spread;
+                            if (sy > 0) colorL[sx][sy - 1] += spread;
+                            if (sx < xSize) colorL[sx + 1][sy] += spread;
+                            if (sy < ySize) colorL[sx][sy + 1] += spread;
 
-                            if (sx > 1) colorI[sx - 2][sy] += spread;
-                            if (sy > 1) colorI[sx][sy - 2] += spread;
-                            if (sx < xSize - 1) colorI[sx + 2][sy] += spread;
-                            if (sy < ySize - 1) colorI[sx][sy + 2] += spread;
+                            if (sx > 1) colorL[sx - 2][sy] += spread;
+                            if (sy > 1) colorL[sx][sy - 2] += spread;
+                            if (sx < xSize - 1) colorL[sx + 2][sy] += spread;
+                            if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
 //                            render[sx][sy] = Coloring.adjust(working[sx][sy], 1.25f, midUp);
 //                            float spread = MathUtils.lerp(1.22f, 1.03f, m.getTrait(VoxMaterial.MaterialTrait._rough));
 //                            if (sx > 0) render[sx - 1][sy] = Coloring.adjust(working[sx - 1][sy], spread, smallUp);
@@ -387,11 +388,11 @@ public class SplatRenderer {
 
         for (int x = 0; x <= xSize; x++) {
             for (int y = 0; y <= ySize; y++) {
-                if (colorP[x][y] >= 0f) {
-                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.ipt(
-                            Math.min(Math.max(colorI[x][y] - 0.11f, 0f), 1f),
-                            (colorP[x][y] - 0.5f) * neutral + 0.5f,
-                            (colorT[x][y] - 0.5f) * neutral + 0.5f, 1f)));
+                if (colorA[x][y] >= 0f) {
+                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
+                            Math.min(Math.max(colorL[x][y] - 0.125f, 0f), 1f),
+                            (colorA[x][y] - 0.5f) * neutral + 0.5f,
+                            (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
             }
         }
@@ -470,9 +471,9 @@ public class SplatRenderer {
         fill(voxels, -1);
         fill(shadeX, -1);
         fill(shadeZ, -1);
-        fill(colorI, -1f);
-        fill(colorP, -1f);
-        fill(colorT, -1f);
+        fill(colorL, -1f);
+        fill(colorA, -1f);
+        fill(colorB, -1f);
         return pixmap;
     }
 

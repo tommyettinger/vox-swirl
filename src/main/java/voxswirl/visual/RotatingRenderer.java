@@ -24,9 +24,9 @@ public class RotatingRenderer extends SplatRenderer {
         voxels = fill(-1, w, h);
         shadeX = fill(-1f, size * 4, size * 4);
         shadeZ = fill(-1f, size * 4, size * 4);
-        colorI = fill(-1f, w, h);
-        colorP = fill(-1f, w, h);
-        colorT = fill(-1f, w, h);
+        colorL = fill(-1f, w, h);
+        colorA = fill(-1f, w, h);
+        colorB = fill(-1f, w, h);
         remade = new byte[size << 1][size << 1][size << 1];
     }
 

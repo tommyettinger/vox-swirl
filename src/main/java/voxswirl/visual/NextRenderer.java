@@ -43,7 +43,7 @@ public class NextRenderer {
     }
     public NextRenderer(final int size, final int quality) {
         this.size = size;
-        this.quality = Math.min(Math.max(quality, 0), 64);
+        this.quality = Math.min(Math.max(quality, 1), 64);
         final int w = size * 4 + 4 >>> 1, h = size * 5 + 5 >>> 1;
         pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
         render =   new int[w][h];
@@ -59,7 +59,7 @@ public class NextRenderer {
         for (int x = 0; x < 64; x++) {
             for (int y = 0; y < 64; y++) {
                 BLUE_NOISE[(x & 63) | (y & 63) << 6] =
-                        (float) OtherMath.probit((PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.TRI_BLUE_NOISE[(y & 63) | (x & 63) << 6] + 256) * 0x1p-9f) * 0x1p-3f;
+                        (float) OtherMath.probit((PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.TRI_BLUE_NOISE[(y & 63) | (x & 63) << 6] + 256) * 0x1p-9f) * 0x1p-9f * this.quality;
             }
         }
     }

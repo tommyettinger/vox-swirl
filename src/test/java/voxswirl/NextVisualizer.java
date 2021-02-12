@@ -53,7 +53,7 @@ public class NextVisualizer extends ApplicationAdapter {
         screenView.getCamera().position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
-        pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
+//        pmTexture = new Texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
 //        load("vox/Tree.vox");
 //        load("vox/IPT_No_Pow.vox");
 //        load("vox/libGDX_BadLogic_Logo.vox");
@@ -186,11 +186,11 @@ public class NextVisualizer extends ApplicationAdapter {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
-            Tools3D.soakInPlace(v);
+            v = Tools3D.soakDouble(v);
 //            voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
 //            Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, 0);
             voxels = v;
-            renderer = new NextRenderer(voxels.length);
+            renderer = new NextRenderer(voxels.length, 8);
             renderer.palette(VoxIO.lastPalette);
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}};

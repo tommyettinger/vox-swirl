@@ -47,10 +47,11 @@ public class RotationVisualizer extends ApplicationAdapter {
         screenView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.enableBlending();
 //        load("vox/libGDX_BadLogic_Logo.vox");
-        load("vox/Infantry_Firing.vox");
+//        load("vox/Infantry_Firing.vox");
 //        load("vox/CrazyBox.vox");
 //        load("vox/Lomuk.vox");
 //        load("vox/Tree.vox");
+        load("vox/Eye_Tyrant_Floor.vox");
 //        renderer.dither = true;
 
         for(IntMap.Entry<VoxMaterial> m : VoxIO.lastMaterials){
