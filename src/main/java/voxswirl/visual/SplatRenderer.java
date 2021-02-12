@@ -38,7 +38,8 @@ public class SplatRenderer {
     public SplatRenderer (final int size) {
         this.size = size;
         final int w = size * 4 + 4, h = size * 5 + 4;
-        pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
+        pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+//        pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
@@ -343,19 +344,31 @@ public class SplatRenderer {
         for (int x = 0; x <= xSize; x++) {
             for (int y = 0; y <= ySize; y++) {
                 if (colorA[x][y] >= 0f) {
-                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
+                    pixmap.drawPixel(x, y, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
                             Math.min(Math.max(colorL[x][y] - 0.125f, 0f), 1f),
                             (colorA[x][y] - 0.5f) * neutral + 0.5f,
                             (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
             }
         }
+//        for (int x = 0; x <= xSize; x++) {
+//            for (int y = 0; y <= ySize; y++) {
+//                if (colorA[x][y] >= 0f) {
+//                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
+//                            Math.min(Math.max(colorL[x][y] - 0.125f, 0f), 1f),
+//                            (colorA[x][y] - 0.5f) * neutral + 0.5f,
+//                            (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
+//                }
+//            }
+//        }
         if (outline) {
             int o;
             for (int x = 2; x < xSize - 1; x++) {
-                final int hx = x >>> 1;
+                final int hx = x;
+//                final int hx = x >>> 1;
                 for (int y = 2; y < ySize - 1; y++) {
-                    int hy = y >>> 1;
+                    int hy = y;
+//                    int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
 //                        if (outlines[x - 1][y] == 0) {
