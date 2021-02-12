@@ -283,10 +283,10 @@ public class SplatRenderer {
                     tz = ox * x_z + oy * y_z + oz * z_z + hs + hs;
                     fz = (int)(tz);
                     m = materials[sx][sy];
-                    double limit = 2 + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
+                    double limit = 2;// + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if (Math.abs(shadeX[fy][fz] - tx) <= limit || ((fy > 1 && Math.abs(shadeX[fy - 2][fz] - tx) <= limit) || (fy < shadeX.length - 2 && Math.abs(shadeX[fy + 2][fz] - tx) <= limit))) {
-                        colorL[sx][sy] += 0.05f;
-                        float spread = MathUtils.lerp(0.012f, 0.004f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        float spread = MathUtils.lerp(0.008f, 0.002f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        colorL[sx][sy] += spread + spread;
                         if (sx > 0) colorL[sx - 1][sy] += spread;
                         if (sy > 0) colorL[sx][sy - 1] += spread;
                         if (sx < xSize) colorL[sx + 1][sy] += spread;
@@ -299,9 +299,9 @@ public class SplatRenderer {
 
                     }
 //                    if ((shadeX[fy][fz] - tx) > limit || ((fy > 1 && shadeX[fy - 2][fz] - tx > limit) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > limit))) {
-                        if (Math.abs(shadeZ[fx][fy] - tz) < 1) {
-                            colorL[sx][sy] += 0.0625f;
-                            float spread = MathUtils.lerp(0.015f, 0.005f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        if (Math.abs(shadeZ[fx][fy] - tz) < limit) {
+                            float spread = MathUtils.lerp(0.012f, 0.003f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                            colorL[sx][sy] += spread + spread;
                             if (sx > 0) colorL[sx - 1][sy] += spread;
                             if (sy > 0) colorL[sx][sy - 1] += spread;
                             if (sx < xSize) colorL[sx + 1][sy] += spread;
