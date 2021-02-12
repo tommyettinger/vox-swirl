@@ -68,8 +68,8 @@
         <jdk.version>1.8</jdk.version>
         <junit.version>4.13.1</junit.version>
         <gdx.version>1.9.13</gdx.version>
-        <anim8.version>bc0fea0a08</anim8.version>
-        <colorful.version>a29f32b1f5</colorful.version>
+        <anim8.version>91d065a48f</anim8.version>
+        <colorful.version>9df20640e4</colorful.version>
     </properties>
 
 

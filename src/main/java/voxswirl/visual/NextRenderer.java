@@ -59,7 +59,7 @@ public class NextRenderer {
         for (int x = 0; x < 64; x++) {
             for (int y = 0; y < 64; y++) {
                 BLUE_NOISE[(x & 63) | (y & 63) << 6] =
-                        (float) OtherMath.probit((PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(y & 63) | (x & 63) << 6] + 256) * 0x1p-9f) * 0x1p-9f;
+                        (float) OtherMath.probit((PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.TRI_BLUE_NOISE[(y & 63) | (x & 63) << 6] + 256) * 0x1p-9f) * 0x1p-3f;
             }
         }
     }

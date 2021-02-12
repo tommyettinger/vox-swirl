@@ -23,10 +23,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class VoxSwirl extends ApplicationAdapter {
-    public static final int QUALITY = 8;
+    public static final int QUALITY = 48;
     public static final int SCREEN_WIDTH = 512;//640;
     public static final int SCREEN_HEIGHT = 512;//720;
-    public static boolean GLITCH = true;
+    public static boolean GLITCH = false;
     private NextRenderer renderer;
     private byte[][][] voxels;
     private String name;
@@ -53,8 +53,9 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/IPT.vox"};
 //            inputs = new String[]{"vox/LAB.vox"};
 //            inputs = new String[]{"vox/Oklab.vox"};
-//            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
-            inputs = new String[]{"vox/Bear.vox"};
+            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
+            inputs = new String[]{"vox/Floor.vox"};
+//            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/teapot.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
