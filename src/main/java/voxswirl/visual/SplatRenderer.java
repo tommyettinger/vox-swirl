@@ -283,9 +283,11 @@ public class SplatRenderer {
                     tz = ox * x_z + oy * y_z + oz * z_z + hs + hs;
                     fz = (int)(tz);
                     m = materials[sx][sy];
-                    double limit = 2;// + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
+                    float rough = m.getTrait(VoxMaterial.MaterialTrait._rough);
+                    float emit = m.getTrait(VoxMaterial.MaterialTrait._emit);
+                    float limit = 2;// + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if (Math.abs(shadeX[fy][fz] - tx) <= limit || ((fy > 1 && Math.abs(shadeX[fy - 2][fz] - tx) <= limit) || (fy < shadeX.length - 2 && Math.abs(shadeX[fy + 2][fz] - tx) <= limit))) {
-                        float spread = MathUtils.lerp(0.008f, 0.002f, m.getTrait(VoxMaterial.MaterialTrait._rough));
+                        float spread = MathUtils.lerp(0.008f, 0.002f, rough);
                         colorL[sx][sy] += spread + spread;
                         if (sx > 0) colorL[sx - 1][sy] += spread;
                         if (sy > 0) colorL[sx][sy - 1] += spread;
@@ -298,89 +300,41 @@ public class SplatRenderer {
                         if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
 
                     }
-//                    if ((shadeX[fy][fz] - tx) > limit || ((fy > 1 && shadeX[fy - 2][fz] - tx > limit) || (fy < shadeX.length - 2 && shadeX[fy + 2][fz] - tx > limit))) {
-                        if (Math.abs(shadeZ[fx][fy] - tz) < limit) {
-                            float spread = MathUtils.lerp(0.012f, 0.003f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-                            colorL[sx][sy] += spread + spread;
-                            if (sx > 0) colorL[sx - 1][sy] += spread;
-                            if (sy > 0) colorL[sx][sy - 1] += spread;
-                            if (sx < xSize) colorL[sx + 1][sy] += spread;
-                            if (sy < ySize) colorL[sx][sy + 1] += spread;
+                    if (Math.abs(shadeZ[fx][fy] - tz) < limit) {
+                        float spread = MathUtils.lerp(0.012f, 0.003f, rough);
+                        colorL[sx][sy] += spread + spread;
+                        if (sx > 0) colorL[sx - 1][sy] += spread;
+                        if (sy > 0) colorL[sx][sy - 1] += spread;
+                        if (sx < xSize) colorL[sx + 1][sy] += spread;
+                        if (sy < ySize) colorL[sx][sy + 1] += spread;
 
-                            if (sx > 1) colorL[sx - 2][sy] += spread;
-                            if (sy > 1) colorL[sx][sy - 2] += spread;
-                            if (sx < xSize - 1) colorL[sx + 2][sy] += spread;
-                            if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
-//                            render[sx][sy] = Coloring.adjust(working[sx][sy], 1.25f, midUp);
-//                            float spread = MathUtils.lerp(1.22f, 1.03f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-//                            if (sx > 0) render[sx - 1][sy] = Coloring.adjust(working[sx - 1][sy], spread, smallUp);
-//                            if (sy > 0) render[sx][sy - 1] = Coloring.adjust(working[sx][sy - 1], spread, smallUp);
-//                            if (sx < xSize) render[sx + 1][sy] = Coloring.adjust(working[sx + 1][sy], spread, smallUp);
-//                            if (sy < ySize) render[sx][sy + 1] = Coloring.adjust(working[sx][sy + 1], spread, smallUp);
+                        if (sx > 1) colorL[sx - 2][sy] += spread;
+                        if (sy > 1) colorL[sx][sy - 2] += spread;
+                        if (sx < xSize - 1) colorL[sx + 2][sy] += spread;
+                        if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
+                    }
+                    if (emit > 0) {
+                        float spread = emit * 0.1f;
+                        for (int i = -4, si = sx + i; i <= 4; i++, si++) {
+                            for (int j = -4, sj = sy + j; j <= 4; j++, sj++) {
+                                if(Math.abs(i + j) > 4 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
+                                colorL[si][sj] += spread;
+                            }
+                        }
+//                        if (sx > 0) colorL[sx - 1][sy] += spread;
+//                        if (sy > 0) colorL[sx][sy - 1] += spread;
+//                        if (sx < xSize) colorL[sx + 1][sy] += spread;
+//                        if (sy < ySize) colorL[sx][sy + 1] += spread;
 //
-//                            if (sx > 1) render[sx - 2][sy] = Coloring.adjust(working[sx - 2][sy], spread, smallUp);
-//                            if (sy > 1) render[sx][sy - 2] = Coloring.adjust(working[sx][sy - 2], spread, smallUp);
-//                            if (sx < xSize - 1)
-//                                render[sx + 2][sy] = Coloring.adjust(working[sx + 2][sy], spread, smallUp);
-//                            if (sy < ySize - 1)
-//                                render[sx][sy + 2] = Coloring.adjust(working[sx][sy + 2], spread, smallUp);
-//                        } else {
-//                            colorI[sx][sy] += -0.35f;
-//                            float spread = MathUtils.lerp(-0.34f, -0.12f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-//                            if (sx > 0) colorI[sx - 1][sy] += spread;
-//                            if (sy > 0) colorI[sx][sy - 1] += spread;
-//                            if (sx < xSize) colorI[sx + 1][sy] += spread;
-//                            if (sy < ySize) colorI[sx][sy + 1] += spread;
+//                        if (sx > 0 && sy > 0) colorL[sx - 1][sy - 1] += spread;
+//                        if (sx < xSize && sy > 0) colorL[sx + 1][sy - 1] += spread;
+//                        if (sx < xSize && sy < ySize) colorL[sx + 1][sy + 1] += spread;
+//                        if (sx > 0 && sy < ySize) colorL[sx - 1][sy + 1] += spread;
 //
-//                            if (sx > 1) colorI[sx - 2][sy] += spread;
-//                            if (sy > 1) colorI[sx][sy - 2] += spread;
-//                            if (sx < xSize - 1) colorI[sx + 2][sy] += spread;
-//                            if (sy < ySize - 1) colorI[sx][sy + 2] += spread;
-//
-////                            render[sx][sy] = Coloring.adjust(working[sx][sy], 0.65f, smallDown);
-////                            float spread = MathUtils.lerp(0.66f, 0.88f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-////                            if (sx > 0) render[sx - 1][sy] = Coloring.adjust(working[sx - 1][sy], spread, smallDown);
-////                            if (sy > 0) render[sx][sy - 1] = Coloring.adjust(working[sx][sy - 1], spread, smallDown);
-////                            if (sx < xSize)
-////                                render[sx + 1][sy] = Coloring.adjust(working[sx + 1][sy], spread, smallDown);
-////                            if (sy < ySize)
-////                                render[sx][sy + 1] = Coloring.adjust(working[sx][sy + 1], spread, smallDown);
-////
-////                            if (sx > 1) render[sx - 2][sy] = Coloring.adjust(working[sx - 2][sy], spread, smallDown);
-////                            if (sy > 1) render[sx][sy - 2] = Coloring.adjust(working[sx][sy - 2], spread, smallDown);
-////                            if (sx < xSize - 1)
-////                                render[sx + 2][sy] = Coloring.adjust(working[sx + 2][sy], spread, smallDown);
-////                            if (sy < ySize - 1)
-////                                render[sx][sy + 2] = Coloring.adjust(working[sx][sy + 2], spread, smallDown);
-//                        }
-//                    }
-//                    else if (Math.abs(shadeZ[fx][fy] - tz) < 1)
-//                    {
-//                        colorI[sx][sy] += 0.25f;
-//                        float spread = MathUtils.lerp(0.22f, 0.03f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-//                        if (sx > 0) colorI[sx - 1][sy] += spread;
-//                        if (sy > 0) colorI[sx][sy - 1] += spread;
-//                        if (sx < xSize) colorI[sx + 1][sy] += spread;
-//                        if (sy < ySize) colorI[sx][sy + 1] += spread;
-//
-//                        if (sx > 1) colorI[sx - 2][sy] += spread;
-//                        if (sy > 1) colorI[sx][sy - 2] += spread;
-//                        if (sx < xSize - 1) colorI[sx + 2][sy] += spread;
-//                        if (sy < ySize - 1) colorI[sx][sy + 2] += spread;
-//
-////                        render[sx][sy] = Coloring.adjust(working[sx][sy], 1.3f, bigUp);
-////                        float spread = MathUtils.lerp(1.27f, 1.05f, m.getTrait(VoxMaterial.MaterialTrait._rough));
-////                        if(sx > 0) render[sx-1][sy] = Coloring.adjust(working[sx-1][sy], spread, midUp);
-////                        if(sy > 0) render[sx][sy-1] = Coloring.adjust(working[sx][sy-1], spread, midUp);
-////                        if(sx < xSize) render[sx+1][sy] = Coloring.adjust(working[sx+1][sy], spread, midUp);
-////                        if(sy < ySize) render[sx][sy+1] = Coloring.adjust(working[sx][sy+1], spread, midUp);
-////
-////                        if(sx > 1) render[sx-2][sy] = Coloring.adjust(working[sx-2][sy], spread, midUp);
-////                        if(sy > 1) render[sx][sy-2] = Coloring.adjust(working[sx][sy-2], spread, midUp);
-////                        if(sx < xSize-1) render[sx+2][sy] = Coloring.adjust(working[sx+2][sy], spread, midUp);
-////                        if(sy < ySize-1) render[sx][sy+2] = Coloring.adjust(working[sx][sy+2], spread, midUp);
-////
-////                        render[sx][sy] = Coloring.adjust(render[sx][sy], 0.85f + m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.5f, m.getTrait(VoxMaterial.MaterialTrait._metal) * 0.375f + 1f);
+//                        if (sx > 1) colorL[sx - 2][sy] += spread;
+//                        if (sy > 1) colorL[sx][sy - 2] += spread;
+//                        if (sx < xSize - 1) colorL[sx + 2][sy] += spread;
+//                        if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
                     }
                 }
             }
