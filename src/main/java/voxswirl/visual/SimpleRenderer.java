@@ -8,14 +8,14 @@ import com.github.tommyettinger.anim8.PaletteReducer;
 import com.github.tommyettinger.colorful.oklab.ColorTools;
 import voxswirl.physical.VoxMaterial;
 
-import static voxswirl.meta.ArrayTools.fill;
 import static com.github.tommyettinger.colorful.TrigTools.cos_;
 import static com.github.tommyettinger.colorful.TrigTools.sin_;
+import static voxswirl.meta.ArrayTools.fill;
 
 /**
- * Renders {@code byte[][][]} voxel models to {@link Pixmap}s with arbitrary yaw rotation.
+ * Renders {@code byte[][][]} voxel models to {@link Pixmap}s with only 90 degree yaw rotation.
  */
-public class SplatRenderer {
+public class SimpleRenderer {
     public Pixmap pixmap;
     public int[][] depths, voxels, render, outlines;
     public VoxMaterial[][] materials;
@@ -25,19 +25,17 @@ public class SplatRenderer {
     public float[] paletteL, paletteA, paletteB;
     public boolean dither = false, outline = true;
     public int size;
-    public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
-            smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
+    public float neutral = 1f;
     public IntMap<VoxMaterial> materialMap;
     public long seed;
 
-    protected SplatRenderer() {
-        
+    protected SimpleRenderer() {
+
     }
-    public SplatRenderer (final int size) {
+    public SimpleRenderer(final int size) {
         this.size = size;
-        final int w = size * 4 + 4, h = size * 5 + 4;
+        final int w = size * 4 + 4, h = size * 4 + 4;
         pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-//        pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
@@ -48,7 +46,6 @@ public class SplatRenderer {
         colorL = fill(-1f, w, h);
         colorA = fill(-1f, w, h);
         colorB = fill(-1f, w, h);
-//        remade = new byte[size << 1][size << 1][size << 1];
     }
     
     protected float bn(int x, int y) {
@@ -67,16 +64,8 @@ public class SplatRenderer {
      * @param saturationModifier a float between -0.5f and 0.2f; negative decreases saturation, positive increases
      * @return this, for chaining
      */
-    public SplatRenderer saturation(float saturationModifier) {
-        saturationModifier = MathUtils.clamp(saturationModifier, -1f, 0.5f);
-        neutral = 1f + saturationModifier;
-        bigUp = 1.1f + saturationModifier;
-        midUp = 1.04f + saturationModifier;
-        midDown = 0.9f + saturationModifier;
-        smallUp = 1.02f + saturationModifier;
-        smallDown = 0.94f + saturationModifier;
-        tinyUp = 1.01f + saturationModifier;
-        tinyDown = 0.98f + saturationModifier;
+    public SimpleRenderer saturation(float saturationModifier) {
+        neutral = 1f + MathUtils.clamp(saturationModifier, -1f, 0.5f);
         return this;
     }
 
@@ -84,11 +73,11 @@ public class SplatRenderer {
         return palette;
     }
 
-    public SplatRenderer palette(PaletteReducer color) {
+    public SimpleRenderer palette(PaletteReducer color) {
         return palette(color.paletteArray);
     }
 
-    public SplatRenderer palette(int[] color) {
+    public SimpleRenderer palette(int[] color) {
         this.palette = color;
         if(paletteL == null) paletteL = new float[256];
         if(paletteA == null) paletteA = new float[256];
@@ -99,10 +88,10 @@ public class SplatRenderer {
                 paletteA[i] = -1f;
                 paletteB[i] = -1f;
             } else {
-                float ipt = ColorTools.fromRGBA8888(color[i]);
-                paletteL[i] = ColorTools.channelL(ipt);
-                paletteA[i] = ColorTools.channelA(ipt);
-                paletteB[i] = ColorTools.channelB(ipt);
+                float lab = ColorTools.fromRGBA8888(color[i]);
+                paletteL[i] = ColorTools.channelL(lab);
+                paletteA[i] = ColorTools.channelA(lab);
+                paletteB[i] = ColorTools.channelB(lab);
             }
         }
         return this;
@@ -114,15 +103,15 @@ public class SplatRenderer {
             return;
         final int 
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
-                yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 3 - xPos - yPos) + 1)),
-                depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
+                yy = (int)(0.5f + Math.max(0, (zPos * 2 + size * 3 - xPos - yPos) + 1)),
+                depth = (int)(0.5f + (xPos + yPos + zPos) * 2);
         boolean drawn = false;
         final VoxMaterial m = materialMap.get(voxel & 255);
         final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
         final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
         final float hs = size * 0.5f;
-        for (int x = 0, ax = xx; x < 4 && ax < render.length; x++, ax++) {
-            for (int y = 0, ay = yy; y < 4 && ay < render[0].length; y++, ay++) {
+        for (int x = 0, ax = xx; x < 2 && ax < render.length; x++, ax++) {
+            for (int y = 0, ay = yy; y < 2 && ay < render[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax, ay) >= alpha)) {
                     drawn = true;
                     colorL[ax][ay] = paletteL[voxel & 255];
@@ -156,7 +145,7 @@ public class SplatRenderer {
         }
     }
     
-    public SplatRenderer clear() {
+    public SimpleRenderer clear() {
         pixmap.setColor(0);
         pixmap.fill();
         fill(depths, 0);
@@ -222,7 +211,7 @@ public class SplatRenderer {
                     fx = (int)(tx);
                     ty = ox * x_y + oy * y_y + oz * z_y + size + hs;
                     fy = (int)(ty);
-                    tz = ox * x_z + oy * y_z + oz * z_z + hs + hs;
+                    tz = ox * x_z + oy * y_z + oz * z_z + size;
                     fz = (int)(tz);
                     m = materials[sx][sy];
                     float rough = m.getTrait(VoxMaterial.MaterialTrait._rough);
@@ -257,8 +246,8 @@ public class SplatRenderer {
                     }
                     if (emit > 0) {
                         float spread = emit * 0.1f;
-                        for (int i = -4, si = sx + i; i <= 4; i++, si++) {
-                            for (int j = -4, sj = sy + j; j <= 4; j++, sj++) {
+                        for (int i = -3, si = sx + i; i <= 3; i++, si++) {
+                            for (int j = -3, sj = sy + j; j <= 3; j++, sj++) {
                                 if(Math.abs(i + j) > 4 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
                                 colorL[si][sj] += spread;
                             }
@@ -290,10 +279,10 @@ public class SplatRenderer {
 //        }
         if (outline) {
             int o;
-            for (int x = 2; x < xSize - 1; x++) {
+            for (int x = 1; x < xSize; x++) {
                 final int hx = x;
 //                final int hx = x >>> 1;
-                for (int y = 2; y < ySize - 1; y++) {
+                for (int y = 1; y < ySize; y++) {
                     final int hy = y;
 //                    int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
@@ -335,8 +324,8 @@ public class SplatRenderer {
     // To move one x- in voxels is x - 2, y + 1 in pixels.
     // To move one y+ in voxels is x - 2, y - 1 in pixels.
     // To move one y- in voxels is x + 2, y + 1 in pixels.
-    // To move one z+ in voxels is y + 3 in pixels.
-    // To move one z- in voxels is y - 3 in pixels.
+    // To move one z+ in voxels is y + 2 in pixels.
+    // To move one z- in voxels is y - 2 in pixels.
 
     public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
