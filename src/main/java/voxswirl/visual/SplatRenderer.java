@@ -226,6 +226,7 @@ public class SplatRenderer {
                     fz = (int)(tz);
                     m = materials[sx][sy];
                     float rough = m.getTrait(VoxMaterial.MaterialTrait._rough);
+                    float reflect = 0f;
                     float emit = m.getTrait(VoxMaterial.MaterialTrait._emit);
                     float limit = 2;// + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if (Math.abs(shadeX[fy][fz] - tx) <= limit || ((fy > 1 && Math.abs(shadeX[fy - 2][fz] - tx) <= limit) || (fy < shadeX.length - 2 && Math.abs(shadeX[fy + 2][fz] - tx) <= limit))) {
@@ -240,11 +241,12 @@ public class SplatRenderer {
                         if (sy > 1) colorL[sx][sy - 2] += spread;
                         if (sx < xSize - 1) colorL[sx + 2][sy] += spread;
                         if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
+                        reflect += m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.375f;
 
                     }
                     if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
                         float spread = MathUtils.lerp(0.012f, 0.003f, rough);
-                        colorL[sx][sy] += spread + spread;
+                        colorL[sx][sy] += spread + spread + reflect;
                         if (sx > 0) colorL[sx - 1][sy] += spread;
                         if (sy > 0) colorL[sx][sy - 1] += spread;
                         if (sx < xSize) colorL[sx + 1][sy] += spread;

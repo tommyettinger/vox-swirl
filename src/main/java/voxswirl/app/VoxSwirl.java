@@ -15,7 +15,6 @@ import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
 import voxswirl.visual.Coloring;
 import voxswirl.visual.NextRenderer;
-import voxswirl.visual.SimpleRenderer;
 import voxswirl.visual.SplatRenderer;
 
 import java.io.File;
@@ -28,7 +27,7 @@ public class VoxSwirl extends ApplicationAdapter {
     public static final int SCREEN_WIDTH = 512;//640;
     public static final int SCREEN_HEIGHT = 512;//720;
     public static boolean GLITCH = false;
-    private SimpleRenderer renderer;
+    private SplatRenderer renderer;
     private byte[][][] voxels;
     private String name;
     private String[] inputs;
@@ -57,7 +56,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
 //            inputs = new String[]{"vox/Floor.vox"};
 //            inputs = new String[]{"vox/Bear.vox"};
-//            inputs = new String[]{"vox/teapot.vox"};
+            inputs = new String[]{"vox/teapot.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
@@ -164,8 +163,7 @@ public class VoxSwirl extends ApplicationAdapter {
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
 //            renderer = new NextRenderer(voxels.length, QUALITY);
-//            renderer = new SplatRenderer(voxels.length);
-            renderer = new SimpleRenderer(voxels.length);
+            renderer = new SplatRenderer(voxels.length);
             renderer.palette(VoxIO.lastPalette);
             renderer.saturation(0f);
             
