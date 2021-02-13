@@ -50,7 +50,7 @@ public class SplatRenderer {
         colorL = fill(-1f, w, h);
         colorA = fill(-1f, w, h);
         colorB = fill(-1f, w, h);
-        remade = new byte[size << 1][size << 1][size << 1];
+//        remade = new byte[size << 1][size << 1][size << 1];
     }
     
     protected float bn(int x, int y) {
@@ -118,7 +118,7 @@ public class SplatRenderer {
     
     public void splat(float xPos, float yPos, float zPos, int vx, int vy, int vz, byte voxel) {
         if(xPos <= -1f || yPos <= -1f || zPos <= -1f
-                || xPos >= remade.length || yPos >= remade[0].length || zPos >= remade[0][0].length)
+                || xPos >= size * 2 || yPos >= size * 2 || zPos >= size * 2)
             return;
         final int 
                 xx = (int)(0.5f + Math.max(0, (size + yPos - xPos) * 2 + 1)),
@@ -139,16 +139,23 @@ public class SplatRenderer {
                     depths[ax][ay] = depth;
                     materials[ax][ay] = m;
                     if(alpha == 0f)
-                        outlines[ax][ay] = Coloring.adjust(palette[voxel & 255], 0.625f + emit, bigUp);
+                        outlines[ax][ay] =
+//                                ColorTools.toRGBA8888(ColorTools.limitToGamut(
+//                                paletteL[voxel & 255] * (0.625f + emit),
+//                                paletteA[voxel & 255], paletteB[voxel & 255]));
+                                Coloring.darken(palette[voxel & 255], 0.375f - emit);
+//                                Coloring.adjust(palette[voxel & 255], 0.625f + emit, neutral);
+                    else
+                        outlines[ax][ay] = palette[voxel & 255];
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
 //                    remade[(int)xPos][(int)yPos][(int)zPos] = voxel;
-                    for (int xp = (int)xPos; xp < xPos + 0.5f; xp++) {
-                        for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
-                            for (int zp = (int) zPos; zp < zPos + 0.5f; zp++) {
-                                remade[xp][yp][zp] = voxel;
-                            }
-                        }
-                    }
+//                    for (int xp = (int)xPos; xp < xPos + 0.5f; xp++) {
+//                        for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
+//                            for (int zp = (int) zPos; zp < zPos + 0.5f; zp++) {
+//                                remade[xp][yp][zp] = voxel;
+//                            }
+//                        }
+//                    }
                 }
             }
         }
@@ -197,7 +204,7 @@ public class SplatRenderer {
      * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, int, int, int, byte)}
      */
     public Pixmap blit(float yaw, float pitch, float roll) {
-        final int threshold = 8;
+        final int threshold = 12;
         pixmap.setColor(0);
         pixmap.fill();
         int xSize = render.length - 1, ySize = render[0].length - 1, depth;
@@ -301,7 +308,7 @@ public class SplatRenderer {
                         if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
 
                     }
-                    if (Math.abs(shadeZ[fx][fy] - tz) < limit) {
+                    if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
                         float spread = MathUtils.lerp(0.012f, 0.003f, rough);
                         colorL[sx][sy] += spread + spread;
                         if (sx > 0) colorL[sx - 1][sy] += spread;
@@ -367,60 +374,34 @@ public class SplatRenderer {
                 final int hx = x;
 //                final int hx = x >>> 1;
                 for (int y = 2; y < ySize - 1; y++) {
-                    int hy = y;
+                    final int hy = y;
 //                    int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
-//                        if (outlines[x - 1][y] == 0) {
-//                            pixmap.drawPixel(hx - 1, hy    , o);
-//                        }
-//                        if (outlines[x + 1][y] == 0) {
-//                            pixmap.drawPixel(hx + 1, hy    , o);
-//                        }
-//                        if (outlines[x][y - 1] == 0) {
-//                            pixmap.drawPixel(hx    , hy - 1, o);
-//                        }
-//                        if (outlines[x][y + 1] == 0) {
-//                            pixmap.drawPixel(hx    , hy + 1, o);
-//                        }
-
                         if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
-                            pixmap.drawPixel(hx, hy    , o);
+                            pixmap.drawPixel(hx - 1, hy    , o);
                         }
-                        else if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
-                            pixmap.drawPixel(hx, hy    , o);
+                        if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
+                            pixmap.drawPixel(hx + 1, hy    , o);
                         }
-                        else if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
-                            pixmap.drawPixel(hx    , hy, o);
+                        if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
+                            pixmap.drawPixel(hx    , hy - 1, o);
                         }
-                        else if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
-                            pixmap.drawPixel(hx    , hy, o);
+                        if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
+                            pixmap.drawPixel(hx    , hy + 1, o);
                         }
-
-//                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
+//
+//                        if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
 //                            pixmap.drawPixel(hx, hy    , o);
 //                        }
-//                        else if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
+//                        else if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
 //                            pixmap.drawPixel(hx, hy    , o);
 //                        }
-//                        else if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
+//                        else if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
 //                            pixmap.drawPixel(hx    , hy, o);
 //                        }
-//                        else if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
+//                        else if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
 //                            pixmap.drawPixel(hx    , hy, o);
-//                        }
-                        
-//                        if (outlines[x - 1][y] == 0 || depths[x - 2][y] < depth - threshold) {
-//                            pixmap.drawPixel(hx - 1, hy    , o);
-//                        }
-//                        if (outlines[x + 1][y] == 0 || depths[x + 2][y] < depth - threshold) {
-//                            pixmap.drawPixel(hx + 1, hy    , o);
-//                        }
-//                        if (outlines[x][y - 1] == 0 || depths[x][y - 2] < depth - threshold) {
-//                            pixmap.drawPixel(hx    , hy - 1, o);
-//                        }
-//                        if (outlines[x][y + 1] == 0 || depths[x][y + 2] < depth - threshold) {
-//                            pixmap.drawPixel(hx    , hy + 1, o);
 //                        }
                     }
                 }
@@ -636,7 +617,7 @@ public class SplatRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
-        Tools3D.fill(remade, 0);
+//        Tools3D.fill(remade, 0);
         seed += TimeUtils.millis() * 0x632BE59BD9B4E019L;
 //        seed = Tools3D.hash64(colors);
         final int size = colors.length;

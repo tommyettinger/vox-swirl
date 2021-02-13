@@ -27,7 +27,7 @@ public class RotatingRenderer extends SplatRenderer {
         colorL = fill(-1f, w, h);
         colorA = fill(-1f, w, h);
         colorB = fill(-1f, w, h);
-        remade = new byte[size << 1][size << 1][size << 1];
+//        remade = new byte[size << 1][size << 1][size << 1];
     }
 
     // To move one x+ in voxels is x + 2, y - 1 in pixels.
