@@ -230,8 +230,11 @@ public class SplatRenderer {
                     float emit = m.getTrait(VoxMaterial.MaterialTrait._emit);
                     float limit = 2;// + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if (Math.abs(shadeX[fy][fz] - tx) <= limit || ((fy > 1 && Math.abs(shadeX[fy - 2][fz] - tx) <= limit) || (fy < shadeX.length - 2 && Math.abs(shadeX[fy + 2][fz] - tx) <= limit))) {
-                        float spread = MathUtils.lerp(0.01f * 0.25f, 0.004f * 0.25f, rough);
-//                        colorL[sx][sy] += spread;
+                        float spread = MathUtils.lerp(0.0025f, 0.001f, rough);
+                        if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
+                            spread *= 2f;
+                            colorL[sx][sy] += m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.2f;
+                        }
                         int dist;
                         for (int i = -3, si = sx + i; i <= 3; i++, si++) {
                             for (int j = -3, sj = sy + j; j <= 3; j++, sj++) {
@@ -249,13 +252,9 @@ public class SplatRenderer {
 //                        if (sy > 1) colorL[sx][sy - 2] += spread;
 //                        if (sx < xSize - 1) colorL[sx + 2][sy] += spread;
 //                        if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
-
-                        reflect += m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.125f;
-
                     }
-                    if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
-                        float spread = MathUtils.lerp(0.015f * 0.25f, 0.006f * 0.25f, rough);
-                        colorL[sx][sy] += reflect;
+                    else if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
+                        float spread = MathUtils.lerp(0.005f, 0.002f, rough);
                         int dist;
                         for (int i = -3, si = sx + i; i <= 3; i++, si++) {
                             for (int j = -3, sj = sy + j; j <= 3; j++, sj++) {
@@ -263,22 +262,12 @@ public class SplatRenderer {
                                 colorL[si][sj] += spread * (4 - dist);
                             }
                         }
-
-//                        if (sx > 0) colorL[sx - 1][sy] += spread;
-//                        if (sy > 0) colorL[sx][sy - 1] += spread;
-//                        if (sx < xSize) colorL[sx + 1][sy] += spread;
-//                        if (sy < ySize) colorL[sx][sy + 1] += spread;
-//
-//                        if (sx > 1) colorL[sx - 2][sy] += spread;
-//                        if (sy > 1) colorL[sx][sy - 2] += spread;
-//                        if (sx < xSize - 1) colorL[sx + 2][sy] += spread;
-//                        if (sy < ySize - 1) colorL[sx][sy + 2] += spread;
                     }
                     if (emit > 0) {
                         float spread = emit * 0.1f;
-                        for (int i = -4, si = sx + i; i <= 4; i++, si++) {
-                            for (int j = -4, sj = sy + j; j <= 4; j++, sj++) {
-                                if(Math.abs(i) + Math.abs(j) > 4 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
+                        for (int i = -5, si = sx + i; i <= 5; i++, si++) {
+                            for (int j = -5, sj = sy + j; j <= 5; j++, sj++) {
+                                if(Math.abs(i) + Math.abs(j) > 5 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
                                 colorL[si][sj] += spread;
                             }
                         }
@@ -291,7 +280,7 @@ public class SplatRenderer {
             for (int y = 0; y <= ySize; y++) {
                 if (colorA[x][y] >= 0f) {
                     pixmap.drawPixel(x, y, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
-                            (float) Math.sqrt(Math.min(Math.max(colorL[x][y] - 0.25f, 0f), 1f)),
+                            Math.min(Math.max(colorL[x][y], 0f), 1f),
                             (colorA[x][y] - 0.5f) * neutral + 0.5f,
                             (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
