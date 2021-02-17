@@ -6,16 +6,18 @@ import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.anim8.PaletteReducer;
 import com.github.tommyettinger.colorful.oklab.ColorTools;
+import voxswirl.physical.Tools3D;
 import voxswirl.physical.VoxMaterial;
 
-import static voxswirl.meta.ArrayTools.fill;
 import static com.github.tommyettinger.colorful.TrigTools.cos_;
 import static com.github.tommyettinger.colorful.TrigTools.sin_;
+import static voxswirl.meta.ArrayTools.fill;
 
 /**
  * Renders {@code byte[][][]} voxel models to {@link Pixmap}s with arbitrary yaw rotation.
+ * Calculates the approximate slope of visible voxels and uses only that to calculate (faked) lighting.
  */
-public class SplatRenderer {
+public class AngledRenderer {
     public Pixmap pixmap;
     public int[][] depths, voxels, render, outlines;
     public VoxMaterial[][] materials;
@@ -25,15 +27,15 @@ public class SplatRenderer {
     public float[] paletteL, paletteA, paletteB;
     public boolean dither = false, outline = true;
     public int size;
-    public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
-            smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
+    public float neutral = 1f;
     public IntMap<VoxMaterial> materialMap;
     public long seed;
+    public byte[][][] remade;
 
-    protected SplatRenderer() {
-        
+    protected AngledRenderer() {
+
     }
-    public SplatRenderer (final int size) {
+    public AngledRenderer(final int size) {
         this.size = size;
         final int w = size * 4 + 4, h = size * 5 + 4;
         pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
@@ -48,7 +50,7 @@ public class SplatRenderer {
         colorL = fill(-1f, w, h);
         colorA = fill(-1f, w, h);
         colorB = fill(-1f, w, h);
-//        remade = new byte[size << 1][size << 1][size << 1];
+        remade = new byte[size << 2][size << 2][size << 2];
     }
     
     protected float bn(int x, int y) {
@@ -67,16 +69,8 @@ public class SplatRenderer {
      * @param saturationModifier a float between -0.5f and 0.2f; negative decreases saturation, positive increases
      * @return this, for chaining
      */
-    public SplatRenderer saturation(float saturationModifier) {
-        saturationModifier = MathUtils.clamp(saturationModifier, -1f, 0.5f);
-        neutral = 1f + saturationModifier;
-        bigUp = 1.1f + saturationModifier;
-        midUp = 1.04f + saturationModifier;
-        midDown = 0.9f + saturationModifier;
-        smallUp = 1.02f + saturationModifier;
-        smallDown = 0.94f + saturationModifier;
-        tinyUp = 1.01f + saturationModifier;
-        tinyDown = 0.98f + saturationModifier;
+    public AngledRenderer saturation(float saturationModifier) {
+        neutral = 1f + MathUtils.clamp(saturationModifier, -1f, 0.5f);;
         return this;
     }
 
@@ -84,11 +78,11 @@ public class SplatRenderer {
         return palette;
     }
 
-    public SplatRenderer palette(PaletteReducer color) {
+    public AngledRenderer palette(PaletteReducer color) {
         return palette(color.paletteArray);
     }
 
-    public SplatRenderer palette(int[] color) {
+    public AngledRenderer palette(int[] color) {
         this.palette = color;
         if(paletteL == null) paletteL = new float[256];
         if(paletteA == null) paletteA = new float[256];
@@ -99,10 +93,10 @@ public class SplatRenderer {
                 paletteA[i] = -1f;
                 paletteB[i] = -1f;
             } else {
-                float ipt = ColorTools.fromRGBA8888(color[i]);
-                paletteL[i] = ColorTools.channelL(ipt);
-                paletteA[i] = ColorTools.channelA(ipt);
-                paletteB[i] = ColorTools.channelB(ipt);
+                float lab = ColorTools.fromRGBA8888(color[i]);
+                paletteL[i] = ColorTools.channelL(lab);
+                paletteA[i] = ColorTools.channelA(lab);
+                paletteB[i] = ColorTools.channelB(lab);
             }
         }
         return this;
@@ -121,6 +115,7 @@ public class SplatRenderer {
         final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
         final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
         final float hs = size * 0.5f;
+        final float hx = hs + xPos, hy = hs + yPos, hz = hs + zPos;
         for (int x = 0, ax = xx; x < 4 && ax < render.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < render[0].length; y++, ay++) {
                 if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax, ay) >= alpha)) {
@@ -137,13 +132,13 @@ public class SplatRenderer {
                     else
                         outlines[ax][ay] = palette[voxel & 255];
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
-//                    for (int xp = (int)xPos; xp < xPos + 0.5f; xp++) {
-//                        for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
-//                            for (int zp = (int) zPos; zp < zPos + 0.5f; zp++) {
-//                                remade[xp][yp][zp] = voxel;
-//                            }
-//                        }
-//                    }
+                    for (int xp = (int)hx; xp < hx + 0.5f; xp++) {
+                        for (int yp = (int) hy; yp < hy + 0.5f; yp++) {
+                            for (int zp = (int) hz; zp < hz + 0.5f; zp++) {
+                                remade[xp][yp][zp] = voxel;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -155,7 +150,7 @@ public class SplatRenderer {
         }
     }
     
-    public SplatRenderer clear() {
+    public AngledRenderer clear() {
         pixmap.setColor(0);
         pixmap.fill();
         fill(depths, 0);
@@ -226,23 +221,103 @@ public class SplatRenderer {
                     m = materials[sx][sy];
                     float rough = m.getTrait(VoxMaterial.MaterialTrait._rough);
                     float emit = m.getTrait(VoxMaterial.MaterialTrait._emit);
-                    float limit = 2;// + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
-                    if (Math.abs(shadeX[fy][fz] - tx) <= limit || ((fy > 1 && Math.abs(shadeX[fy - 2][fz] - tx) <= limit) || (fy < shadeX.length - 2 && Math.abs(shadeX[fy + 2][fz] - tx) <= limit))) {
-                        float spread = MathUtils.lerp(0.0025f, 0.001f, rough);
-                        if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
-                            spread *= 2f;
-                            colorL[sx][sy] += m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.2f;
-                        }
-                        int dist;
-                        for (int i = -3, si = sx + i; i <= 3; i++, si++) {
-                            for (int j = -3, sj = sy + j; j <= 3; j++, sj++) {
-                                if((dist = Math.abs(i) + Math.abs(j)) > 3 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
-                                colorL[si][sj] += spread * (4 - dist);
+                    final float limit = 2;
+
+                    float top = 0f, side = 0f, refract = 0f;
+                    int depthA = -4, depthB = -4, depthC = -4, depthD = -4;
+                    int frontA = -4, frontB = -4, frontC = -4, frontD = -4;
+                    if(fx > 1) {
+                        for (int probe = 3; probe >= -3; probe--) {
+                            if(fz + probe < 0) break;
+                            if(fz + probe >= remade.length) continue;
+                            if(remade[fx - 2][fy][fz + probe] != 0) {
+                                depthA = probe;
+                                break;
                             }
                         }
                     }
-                    else if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
-                        float spread = MathUtils.lerp(0.005f, 0.002f, rough);
+                    if(fx > 0) {
+                        for (int probe = 3; probe >= -3; probe--) {
+                            if(fz + probe < 0) break;
+                            if(fz + probe >= remade.length) continue;
+                            if(remade[fx - 1][fy][fz + probe] != 0) {
+                                depthB = probe;
+                                break;
+                            }
+                        }
+                    }
+                    if(fx < remade.length - 1) {
+                        for (int probe = 3; probe >= -3; probe--) {
+                            if(fz + probe < 0) break;
+                            if(fz + probe >= remade.length) continue;
+                            if(remade[fx + 1][fy][fz + probe] != 0) {
+                                depthC = probe;
+                                break;
+                            }
+                        }
+                    }
+                    if(fx < remade.length - 2) {
+                        for (int probe = 3; probe >= -3; probe--) {
+                            if(fz + probe < 0) break;
+                            if(fz + probe >= remade.length) continue;
+                            if(remade[fx + 2][fy][fz + probe] != 0) {
+                                depthD = probe;
+                                break;
+                            }
+                        }
+                    }
+                    top = (depthB - depthC) * 0.375f + (depthA - depthD) * 0.1875f + 0.375f;
+
+                    if(depthD < -1 && depthC < 0 && depthB < 1 && depthA < 1)
+                        refract = m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.5f;
+
+                    if(fy > 1) {
+                        for (int probe = 3; probe >= -3; probe--) {
+                            if(fx + probe < 0) break;
+                            if(fx + probe >= remade.length) continue;
+                            if(remade[fx + probe][fy - 2][fz] != 0) {
+                                frontA = probe;
+                                break;
+                            }
+                        }
+                    }
+                    if(fy > 0) {
+                        for (int probe = 3; probe >= -3; probe--) {
+                            if(fx + probe < 0) break;
+                            if(fx + probe >= remade.length) continue;
+                            if(remade[fx + probe][fy - 1][fz] != 0) {
+                                frontB = probe;
+                                break;
+                            }
+                        }
+                    }
+                    if(fy < remade.length - 1) {
+                        for (int probe = 3; probe >= -3; probe--) {
+                            if(fx + probe < 0) break;
+                            if(fx + probe >= remade.length) continue;
+                            if(remade[fx + probe][fy + 1][fz] != 0) {
+                                frontC = probe;
+                                break;
+                            }
+                        }
+                    }
+                    if(fy < remade.length - 2) {
+                        for (int probe = 3; probe >= -3; probe--) {
+                            if(fx + probe < 0) break;
+                            if(fx + probe >= remade.length) continue;
+                            if(remade[fx + probe][fy + 2][fz] != 0) {
+                                frontD = probe;
+                                break;
+                            }
+                        }
+                    }
+
+                    side = Math.max(top, (frontB - frontC) * 0.25f + (frontA - frontD) * 0.125f + 0.25f);
+
+                    if(side > 0f){
+                        float spread = MathUtils.lerp(0.001f, 0.00025f, rough) * side;
+                        if(bn(sx, sy) > 0.75f)
+                            colorL[sx][sy] += refract;
                         int dist;
                         for (int i = -3, si = sx + i; i <= 3; i++, si++) {
                             for (int j = -3, sj = sy + j; j <= 3; j++, sj++) {
@@ -336,7 +411,7 @@ public class SplatRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
-//        Tools3D.fill(remade, 0);
+        Tools3D.fill(remade, 0);
         seed += TimeUtils.millis() * 0x632BE59BD9B4E019L;
 //        seed = Tools3D.hash64(colors);
         final int size = colors.length;
