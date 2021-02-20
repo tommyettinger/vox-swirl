@@ -267,18 +267,17 @@ public class SmudgeRenderer {
         for (int x = 0; x <= xSize; x++) {
             for (int y = 0; y <= ySize; y++) {
                 if (colorA[x][y] >= 0f) {
-                    float avgL = 0f;//, div = 0f;
+                    float maxL = 0f, minL = 1f, self = colorL[x][y];
                     for (int xx = -distance; xx <= distance; xx++) {
                         if(x + xx < 0 || x + xx > xSize) continue;
                         for (int yy = -distance; yy <= distance; yy++) {
                             if((xx & yy) != 0 || y + yy < 0 || y + yy > ySize || colorA[x + xx][y + yy] <= 0f) continue;
-                            avgL = Math.max(avgL, colorL[x + xx][y + yy]);
-//                            div++;
+                            maxL = Math.max(maxL, colorL[x + xx][y + yy]);
+                            minL = Math.min(minL, colorL[x + xx][y + yy]);
                         }
                     }
                     pixmap.drawPixel(x, y, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
-                            Math.min(avgL, 1f),
-//                            Math.min(Math.max(avgL / div, 0f), 1f),
+                            Math.min(Math.max((self - minL) < (maxL - self) ? minL : maxL, 0f), 1f),
                             (colorA[x][y] - 0.5f) * neutral + 0.5f,
                             (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
