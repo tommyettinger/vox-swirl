@@ -192,7 +192,7 @@ public class SmudgeRenderer {
      * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, int, int, int, byte)}
      */
     public Pixmap blit(float yaw, float pitch, float roll) {
-        final int threshold = 12;
+        final int threshold = 9;
         pixmap.setColor(0);
         pixmap.fill();
         int xSize = render.length - 1, ySize = render[0].length - 1, depth;
@@ -267,17 +267,24 @@ public class SmudgeRenderer {
         for (int x = 0; x <= xSize; x++) {
             for (int y = 0; y <= ySize; y++) {
                 if (colorA[x][y] >= 0f) {
-                    float maxL = 0f, minL = 1f, self = colorL[x][y];
+                    float maxL = 0f, minL = 1f,
+                            avg = 0f, div = 0f,
+                            current;
+                            //self = colorL[x][y] + (x + y & 1) * 0.1f - 0.05f;
                     for (int xx = -distance; xx <= distance; xx++) {
                         if(x + xx < 0 || x + xx > xSize) continue;
                         for (int yy = -distance; yy <= distance; yy++) {
                             if((xx & yy) != 0 || y + yy < 0 || y + yy > ySize || colorA[x + xx][y + yy] <= 0f) continue;
-                            maxL = Math.max(maxL, colorL[x + xx][y + yy]);
-                            minL = Math.min(minL, colorL[x + xx][y + yy]);
+                            current = colorL[x + xx][y + yy];
+                            maxL = Math.max(maxL, current);
+                            minL = Math.min(minL, current);
+                            avg += current;
+                            div++;
                         }
                     }
+                    avg = avg / div + (x + y & 1) * 0.05f - 0.025f;
                     pixmap.drawPixel(x, y, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
-                            Math.min(Math.max((self - minL) < (maxL - self) ? minL : maxL, 0f), 1f),
+                            Math.min(Math.max((avg - minL) < (maxL - avg) ? minL : maxL, 0f), 1f),
                             (colorA[x][y] - 0.5f) * neutral + 0.5f,
                             (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
