@@ -99,10 +99,10 @@ public class SmudgeRenderer {
                 paletteA[i] = -1f;
                 paletteB[i] = -1f;
             } else {
-                float ipt = ColorTools.fromRGBA8888(color[i]);
-                paletteL[i] = ColorTools.channelL(ipt);
-                paletteA[i] = ColorTools.channelA(ipt);
-                paletteB[i] = ColorTools.channelB(ipt);
+                float lab = ColorTools.fromRGBA8888(color[i]);
+                paletteL[i] = ColorTools.channelL(lab);
+                paletteA[i] = ColorTools.channelA(lab);
+                paletteB[i] = ColorTools.channelB(lab);
             }
         }
         return this;
@@ -228,7 +228,7 @@ public class SmudgeRenderer {
                     float emit = m.getTrait(VoxMaterial.MaterialTrait._emit);
                     float limit = 2;// + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if (Math.abs(shadeX[fy][fz] - tx) <= limit || ((fy > 1 && Math.abs(shadeX[fy - 2][fz] - tx) <= limit) || (fy < shadeX.length - 2 && Math.abs(shadeX[fy + 2][fz] - tx) <= limit))) {
-                        float spread = MathUtils.lerp(0.0025f * 0.5f, 0.001f * 0.5f, rough);
+                        float spread = MathUtils.lerp(0.0025f, 0.001f, rough);
                         if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
                             spread *= 2f;
                             colorL[sx][sy] += m.getTrait(VoxMaterial.MaterialTrait._ior) * 0.2f;
@@ -242,7 +242,7 @@ public class SmudgeRenderer {
                         }
                     }
                     else if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
-                        float spread = MathUtils.lerp(0.005f * 0.5f, 0.002f * 0.5f, rough);
+                        float spread = MathUtils.lerp(0.005f, 0.002f, rough);
                         int dist;
                         for (int i = -3, si = sx + i; i <= 3; i++, si++) {
                             for (int j = -3, sj = sy + j; j <= 3; j++, sj++) {
@@ -284,7 +284,7 @@ public class SmudgeRenderer {
                     }
                     avg = avg / div + (x + y & 1) * 0.05f - 0.025f;
                     pixmap.drawPixel(x, y, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
-                            Math.min(Math.max((avg - minL) < (maxL - avg) ? minL : maxL, 0f), 1f),
+                            Math.min(Math.max(((avg - minL) < (maxL - avg) ? minL : maxL) - 0.15625f, 0f), 1f),
                             (colorA[x][y] - 0.5f) * neutral + 0.5f,
                             (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
                 }
