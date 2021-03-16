@@ -192,7 +192,7 @@ public class SmudgeRenderer {
      * @return {@link #pixmap}, edited to contain the render of all the voxels put in this with {@link #splat(float, float, float, int, int, int, byte)}
      */
     public Pixmap blit(float yaw, float pitch, float roll) {
-        final int threshold = 9;
+        final int threshold = 13;
         pixmap.setColor(0);
         pixmap.fill();
         int xSize = render.length - 1, ySize = render[0].length - 1, depth;

@@ -55,7 +55,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Oklab.vox", "vox/LAB.vox", "vox/IPT.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
 //            inputs = new String[]{"vox/Floor.vox"};
-//            inputs = new String[]{"vox/Bear.vox"};
+            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/teapot.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
@@ -159,7 +159,7 @@ public class VoxSwirl extends ApplicationAdapter {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
-            voxels = Tools3D.smoothScale(voxels);
+            voxels = Tools3D.simpleScale(voxels);
             Tools3D.soakInPlace(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
