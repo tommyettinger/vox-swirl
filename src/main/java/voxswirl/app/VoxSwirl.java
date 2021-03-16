@@ -159,6 +159,7 @@ public class VoxSwirl extends ApplicationAdapter {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
+            voxels = Tools3D.smoothScale(voxels);
             Tools3D.soakInPlace(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
