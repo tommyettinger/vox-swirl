@@ -118,7 +118,7 @@ public class SmudgeRenderer {
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
         boolean drawn = false;
         final VoxMaterial m = materialMap.get(voxel & 255);
-        final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 1.25f;
+        final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 0.75f;
         final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
         final float hs = size * 0.5f;
         for (int x = 0, ax = xx; x < 4 && ax < render.length; x++, ax++) {
@@ -131,11 +131,11 @@ public class SmudgeRenderer {
                     depths[ax][ay] = depth;
                     materials[ax][ay] = m;
                     if(alpha == 0f)
-                        outlines[ax][ay] =
-                                Coloring.darken(palette[voxel & 255], 0.375f - emit);
+                        outlines[ax][ay] = ColorTools.toRGBA8888(ColorTools.limitToGamut(paletteL[voxel & 255] * (0.8f + emit), paletteA[voxel & 255], paletteB[voxel & 255], 1f));
+//                                Coloring.darken(palette[voxel & 255], 0.375f - emit);
 //                                Coloring.adjust(palette[voxel & 255], 0.625f + emit, neutral);
-                    else
-                        outlines[ax][ay] = palette[voxel & 255];
+//                    else
+//                        outlines[ax][ay] = palette[voxel & 255];
                     voxels[ax][ay] = vx | vy << 10 | vz << 20;
 //                    for (int xp = (int)xPos; xp < xPos + 0.5f; xp++) {
 //                        for (int yp = (int) yPos; yp < yPos + 0.5f; yp++) {
