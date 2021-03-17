@@ -55,7 +55,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Oklab.vox", "vox/LAB.vox", "vox/IPT.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
 //            inputs = new String[]{"vox/Floor.vox"};
-            inputs = new String[]{"vox/Bear.vox"};
+//            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/teapot.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
@@ -81,13 +81,13 @@ public class VoxSwirl extends ApplicationAdapter {
         gif.palette.setDitherStrength(0.625f);
         for (String s : inputs) {
             load(s);
-            random.setSeed(s.hashCode());
             try {
                 Pixmap pixmap;
                 Array<Pixmap> pm = new Array<>(64);
                 for (int i = 0; i < 64; i++) {
                     // glitch mode
                     if(GLITCH) {
+                        random.setSeed(s.hashCode() + i);
                         renderer.saturation(random.nextFloat() - 0.5f);
                         for (int x = 0; x < voxels.length; x++) {
                             for (int y = 0; y < voxels[0].length; y++) {

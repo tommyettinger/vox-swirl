@@ -36,8 +36,8 @@ public class SmudgeRenderer {
     public SmudgeRenderer(final int size) {
         this.size = size;
         final int w = size * 4 + 4, h = size * 5 + 4;
-        pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-//        pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
+//        pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
@@ -267,29 +267,78 @@ public class SmudgeRenderer {
         for (int x = 0; x <= xSize; x++) {
             for (int y = 0; y <= ySize; y++) {
                 if (colorA[x][y] >= 0f) {
-                    float maxL = 0f, minL = 1f,
-                            avg = 0f, div = 0f,
-                            current;
-                            //self = colorL[x][y] + (x + y & 1) * 0.1f - 0.05f;
+                    float maxL = 0f, minL = 1f, avgL = 0f,
+                            maxA = 0f, minA = 1f, avgA = 0f,
+                            maxB = 0f, minB = 1f, avgB = 0f,
+                            div = 0f, current;
                     for (int xx = -distance; xx <= distance; xx++) {
-                        if(x + xx < 0 || x + xx > xSize) continue;
+                        if (x + xx < 0 || x + xx > xSize) continue;
                         for (int yy = -distance; yy <= distance; yy++) {
-                            if((xx & yy) != 0 || y + yy < 0 || y + yy > ySize || colorA[x + xx][y + yy] <= 0f) continue;
+                            if ((xx & yy) != 0 || y + yy < 0 || y + yy > ySize || colorA[x + xx][y + yy] <= 0f)
+                                continue;
                             current = colorL[x + xx][y + yy];
                             maxL = Math.max(maxL, current);
                             minL = Math.min(minL, current);
-                            avg += current;
+                            avgL += current;
+                            current = colorA[x + xx][y + yy];
+                            maxA = Math.max(maxA, current);
+                            minA = Math.min(minA, current);
+                            avgA += current;
+                            current = colorB[x + xx][y + yy];
+                            maxB = Math.max(maxB, current);
+                            minB = Math.min(minB, current);
+                            avgB += current;
                             div++;
                         }
                     }
-                    avg = avg / div + (x + y & 1) * 0.05f - 0.025f;
-                    pixmap.drawPixel(x, y, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
-                            Math.min(Math.max(((avg - minL) < (maxL - avg) ? minL : maxL) - 0.15625f, 0f), 1f),
-                            (colorA[x][y] - 0.5f) * neutral + 0.5f,
-                            (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
+//                    avg = avg / div + (x + y & 1) * 0.05f - 0.025f;
+//                    pixmap.drawPixel(x, y, render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
+//                            Math.min(Math.max(((avg - minL) < (maxL - avg) ? minL : maxL) - 0.15625f, 0f), 1f),
+//                            (colorA[x][y] - 0.5f) * neutral + 0.5f,
+//                            (colorB[x][y] - 0.5f) * neutral + 0.5f, 1f)));
+//                    avgL = avgL / div + (x + y & 2) * 0.004f - 0.004f;
+                    avgL /= div;
+                    avgA /= div;
+                    avgB /= div;
+                    render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
+                            colorL[x][y] = Math.min(Math.max(((avgL - minL) < (maxL - avgL) ? minL : maxL) - 0.15625f, 0f), 1f),
+                            colorA[x][y] = (avgA - 0.5f) * neutral + 0.5f,
+                            colorB[x][y] = (avgB - 0.5f) * neutral + 0.5f, 1f));
+//                    avg /= div;
+//                    colorL[x][y] = Math.min(Math.max(((avg - minL) < (maxL - avg) ? minL : maxL) - 0.15625f, 0f), 1f);
+//                    if (neutral != 1f) {
+//                        colorA[x][y] = (colorA[x][y] - 0.5f) * neutral + 0.5f;
+//                        colorB[x][y] = (colorB[x][y] - 0.5f) * neutral + 0.5f;
+//                    }
                 }
             }
         }
+//        for (int x = 0; x <= xSize; x+=2) {
+//            for (int y = 0; y <= ySize; y+=2) {
+//                float maxL = 0f, minL = 1f,
+//                        avg = 0f, div = 0f,
+//                        current;
+//                int sx, sy;
+//                for (int xx = -2; xx <= 3; xx++) {
+//                    sx = x + xx;
+//                    if (sx < 0 || sx > xSize) continue;
+//                    for (int yy = -2; yy <= 3; yy++) {
+//                        sy = y + yy;
+//                        if (sy < 0 || sy > ySize || colorA[sx][sy] <= 0f)
+//                            continue;
+//                        current = colorL[x + xx][y + yy];
+//                        maxL = Math.max(maxL, current);
+//                        minL = Math.min(minL, current);
+//                        avg += current;
+//                        div++;
+//                    }
+//                }
+//                    avg = avg / div + (x + y & 2) * 0.025f - 0.025f;
+//                    pixmap.drawPixel(x>>>1, y>>>1, ColorTools.toRGBA8888(ColorTools.limitToGamut(
+//                            Math.min(Math.max(((avg - minL) < (maxL - avg) ? minL : maxL), 0f), 1f),
+//                            colorA[x][y], colorB[x][y], 1f)));
+//            }
+//        }
 //        for (int x = 0; x <= xSize; x++) {
 //            for (int y = 0; y <= ySize; y++) {
 //                if (colorA[x][y] >= 0f) {
@@ -300,26 +349,33 @@ public class SmudgeRenderer {
 //                }
 //            }
 //        }
+        for (int x = 0; x <= xSize; x++) {
+            for (int y = 0; y <= ySize; y++) {
+                if (colorA[x][y] >= 0f) {
+                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y]);
+                }
+            }
+        }
         if (outline) {
             int o;
             for (int x = 2; x < xSize - 1; x++) {
-                final int hx = x;
-//                final int hx = x >>> 1;
+//                final int hx = x;
+                final int hx = x >>> 1;
                 for (int y = 2; y < ySize - 1; y++) {
-                    final int hy = y;
-//                    int hy = y >>> 1;
+//                    final int hy = y;
+                    int hy = y >>> 1;
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
-                        if (outlines[x - 1][y] == 0 || depths[x - 1][y] < depth - threshold) {
+                        if (outlines[x - 2][y] == 0 || depths[x - 2][y] < depth - threshold) {
                             pixmap.drawPixel(hx - 1, hy    , o);
                         }
-                        if (outlines[x + 1][y] == 0 || depths[x + 1][y] < depth - threshold) {
+                        if (outlines[x + 2][y] == 0 || depths[x + 2][y] < depth - threshold) {
                             pixmap.drawPixel(hx + 1, hy    , o);
                         }
-                        if (outlines[x][y - 1] == 0 || depths[x][y - 1] < depth - threshold) {
+                        if (outlines[x][y - 2] == 0 || depths[x][y - 2] < depth - threshold) {
                             pixmap.drawPixel(hx    , hy - 1, o);
                         }
-                        if (outlines[x][y + 1] == 0 || depths[x][y + 1] < depth - threshold) {
+                        if (outlines[x][y + 2] == 0 || depths[x][y + 2] < depth - threshold) {
                             pixmap.drawPixel(hx    , hy + 1, o);
                         }
                     }
