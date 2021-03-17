@@ -252,10 +252,10 @@ public class SmudgeRenderer {
                         }
                     }
                     if (emit > 0) {
-                        float spread = emit * 0.1f;
-                        for (int i = -5, si = sx + i; i <= 5; i++, si++) {
-                            for (int j = -5, sj = sy + j; j <= 5; j++, sj++) {
-                                if(Math.abs(i) + Math.abs(j) > 5 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
+                        float spread = emit * 0.05f;
+                        for (int i = -10, si = sx + i; i <= 10; i++, si++) {
+                            for (int j = -10, sj = sy + j; j <= 10; j++, sj++) {
+                                if(i * i + j * j > 100 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
                                 colorL[si][sj] += spread;
                             }
                         }
