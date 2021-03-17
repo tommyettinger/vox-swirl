@@ -301,9 +301,9 @@ public class SmudgeRenderer {
                     avgA /= div;
                     avgB /= div;
                     render[x][y] = ColorTools.toRGBA8888(ColorTools.limitToGamut(
-                            colorL[x][y] = Math.min(Math.max(((avgL - minL) < (maxL - avgL) ? minL : maxL) - 0.15625f, 0f), 1f),
-                            colorA[x][y] = (avgA - 0.5f) * neutral + 0.5f,
-                            colorB[x][y] = (avgB - 0.5f) * neutral + 0.5f, 1f));
+                            Math.min(Math.max(((avgL - minL) < (maxL - avgL) ? minL : maxL) - 0.15625f, 0f), 1f),
+                            (avgA - 0.5f) * neutral + 0.5f,
+                            (avgB - 0.5f) * neutral + 0.5f, 1f));
 //                    avg /= div;
 //                    colorL[x][y] = Math.min(Math.max(((avg - minL) < (maxL - avg) ? minL : maxL) - 0.15625f, 0f), 1f);
 //                    if (neutral != 1f) {
@@ -349,8 +349,8 @@ public class SmudgeRenderer {
 //                }
 //            }
 //        }
-        for (int x = 0; x <= xSize; x++) {
-            for (int y = 0; y <= ySize; y++) {
+        for (int x = xSize; x >= 0; x--) {
+            for (int y = ySize; y >= 0; y--) {
                 if (colorA[x][y] >= 0f) {
                     pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y]);
                 }
