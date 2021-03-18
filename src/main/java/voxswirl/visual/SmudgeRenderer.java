@@ -25,6 +25,7 @@ public class SmudgeRenderer {
     public float[] paletteL, paletteA, paletteB;
     public boolean dither = false, outline = true;
     public int size;
+    public int shrink = 2;
     public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
             smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
     public IntMap<VoxMaterial> materialMap;
@@ -37,7 +38,7 @@ public class SmudgeRenderer {
         this.size = size;
         final int w = size * 4 + 4, h = size * 5 + 4;
 //        pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
-        pixmap = new Pixmap(w>>>1, h>>>1, Pixmap.Format.RGBA8888);
+        pixmap = new Pixmap(w>>>shrink, h>>>shrink, Pixmap.Format.RGBA8888);
         render =   new int[w][h];
         outlines = new int[w][h];
         depths =   new int[w][h];
@@ -208,6 +209,7 @@ public class SmudgeRenderer {
         final float x_y = sYaw * cPitch, y_y = sYaw * sPitch * sRoll + cYaw * cRoll, z_y = sYaw * sPitch * cRoll - cYaw * sRoll;
         final float x_z = -sPitch, y_z = cPitch * sRoll, z_z = cPitch * cRoll;
         VoxMaterial m;
+        final int aura = 4, step = 1 << shrink, range = 5 * step, bound = range * range;
         for (int sx = 0; sx <= xSize; sx++) {
             for (int sy = 0; sy <= ySize; sy++) {
                 if((v = voxels[sx][sy]) != -1) {
@@ -226,7 +228,8 @@ public class SmudgeRenderer {
                     m = materials[sx][sy];
                     float rough = m.getTrait(VoxMaterial.MaterialTrait._rough);
                     float emit = m.getTrait(VoxMaterial.MaterialTrait._emit);
-                    float limit = 2;// + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
+                    float limit = 2;
+                    // + (PaletteReducer.TRI_BLUE_NOISE[(sx & 63) + (sy << 6) + (fx + fy + fz >>> 2) & 4095] + 0.5) * 0x1p-7;
                     if (Math.abs(shadeX[fy][fz] - tx) <= limit || ((fy > 1 && Math.abs(shadeX[fy - 2][fz] - tx) <= limit) || (fy < shadeX.length - 2 && Math.abs(shadeX[fy + 2][fz] - tx) <= limit))) {
                         float spread = MathUtils.lerp(0.0025f, 0.001f, rough);
                         if (Math.abs(shadeZ[fx][fy] - tz) <= limit) {
@@ -352,30 +355,30 @@ public class SmudgeRenderer {
         for (int x = xSize; x >= 0; x--) {
             for (int y = ySize; y >= 0; y--) {
                 if (colorA[x][y] >= 0f) {
-                    pixmap.drawPixel(x >>> 1, y >>> 1, render[x][y]);
+                    pixmap.drawPixel(x >>> shrink, y >>> shrink, render[x][y]);
                 }
             }
         }
         if (outline) {
             int o;
-            for (int x = 2; x < xSize - 1; x++) {
+            for (int x = step; x <= xSize - step; x++) {
 //                final int hx = x;
-                final int hx = x >>> 1;
-                for (int y = 2; y < ySize - 1; y++) {
+                final int hx = x >>> shrink;
+                for (int y = step; y <= ySize - step; y++) {
 //                    final int hy = y;
-                    int hy = y >>> 1;
+                    int hy = y >>> shrink;
                     if ((o = outlines[x][y]) != 0) {
                         depth = depths[x][y];
-                        if (outlines[x - 2][y] == 0 || depths[x - 2][y] < depth - threshold) {
+                        if (outlines[x - step][y] == 0 || depths[x - 1][y] < depth - threshold) {
                             pixmap.drawPixel(hx - 1, hy    , o);
                         }
-                        if (outlines[x + 2][y] == 0 || depths[x + 2][y] < depth - threshold) {
+                        if (outlines[x + step][y] == 0 || depths[x + 1][y] < depth - threshold) {
                             pixmap.drawPixel(hx + 1, hy    , o);
                         }
-                        if (outlines[x][y - 2] == 0 || depths[x][y - 2] < depth - threshold) {
+                        if (outlines[x][y - step] == 0 || depths[x][y - 1] < depth - threshold) {
                             pixmap.drawPixel(hx    , hy - 1, o);
                         }
-                        if (outlines[x][y + 2] == 0 || depths[x][y + 2] < depth - threshold) {
+                        if (outlines[x][y + step] == 0 || depths[x][y + 1] < depth - threshold) {
                             pixmap.drawPixel(hx    , hy + 1, o);
                         }
                     }
