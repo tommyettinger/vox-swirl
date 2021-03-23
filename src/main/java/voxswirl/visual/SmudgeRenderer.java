@@ -3,7 +3,6 @@ package voxswirl.visual;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.IntMap;
-import com.badlogic.gdx.utils.TimeUtils;
 import com.github.tommyettinger.anim8.PaletteReducer;
 import com.github.tommyettinger.colorful.oklab.ColorTools;
 import voxswirl.physical.VoxMaterial;
@@ -29,7 +28,7 @@ public class SmudgeRenderer {
     public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
             smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
     public IntMap<VoxMaterial> materialMap;
-    public long seed;
+//    public long seed;
 
     protected SmudgeRenderer() {
 
@@ -255,10 +254,10 @@ public class SmudgeRenderer {
                         }
                     }
                     if (emit > 0) {
-                        float spread = emit * 0.05f;
-                        for (int i = -10, si = sx + i; i <= 10; i++, si++) {
-                            for (int j = -10, sj = sy + j; j <= 10; j++, sj++) {
-                                if(i * i + j * j > 100 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
+                        float spread = emit * 0.03f;
+                        for (int i = -12, si = sx + i; i <= 12; i++, si++) {
+                            for (int j = -12, sj = sy + j; j <= 12; j++, sj++) {
+                                if(i * i + j * j > 144 || si < 0 || sj < 0 || si > xSize || sj > ySize) continue;
                                 colorL[si][sj] += spread;
                             }
                         }
@@ -412,8 +411,7 @@ public class SmudgeRenderer {
     public Pixmap drawSplats(byte[][][] colors, float angleTurns, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
 //        Tools3D.fill(remade, 0);
-        seed += TimeUtils.millis() * 0x632BE59BD9B4E019L;
-//        seed = Tools3D.hash64(colors);
+//        seed = Tools3D.hash64(colors) + NumberUtils.floatToRawIntBits(angleTurns);
         final int size = colors.length;
         final float hs = (size) * 0.5f;
         final float c = cos_(angleTurns), s = sin_(angleTurns);

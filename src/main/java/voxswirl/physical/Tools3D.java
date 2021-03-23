@@ -700,24 +700,24 @@ public class Tools3D {
         if(b == 0) return (byte) a;
         int ac = PaletteReducer.shrink(VoxIO.lastPalette[a &= 255]);
         int bc = PaletteReducer.shrink(VoxIO.lastPalette[b &= 255]);
-//        return PaletteReducer.IPT[1][ac] * PaletteReducer.IPT[1][ac] + PaletteReducer.IPT[2][ac] * PaletteReducer.IPT[2][ac]
-//                < PaletteReducer.IPT[1][bc] * PaletteReducer.IPT[1][bc] + PaletteReducer.IPT[2][bc] * PaletteReducer.IPT[2][bc]
+//        return PaletteReducer.OKLAB[1][ac] * PaletteReducer.OKLAB[1][ac] + PaletteReducer.OKLAB[2][ac] * PaletteReducer.OKLAB[2][ac]
+//                < PaletteReducer.OKLAB[1][bc] * PaletteReducer.OKLAB[1][bc] + PaletteReducer.OKLAB[2][bc] * PaletteReducer.OKLAB[2][bc]
 //                ? (byte) a : (byte) b;
-        return PaletteReducer.IPT[0][ac] < PaletteReducer.IPT[0][bc]
+        return PaletteReducer.OKLAB[0][ac] < PaletteReducer.OKLAB[0][bc]
             ? (byte) a : (byte) b;
 
 //        VoxMaterial am = VoxIO.lastMaterials.get(a);
 //        VoxMaterial bm = VoxIO.lastMaterials.get(b);
 //        if(am == null && bm == null)
-//            return PaletteReducer.IPT[0][PaletteReducer.shrink(ac)] > PaletteReducer.IPT[0][PaletteReducer.shrink(bc)]
+//            return PaletteReducer.OKLAB[0][PaletteReducer.shrink(ac)] > PaletteReducer.OKLAB[0][PaletteReducer.shrink(bc)]
 //            ? (byte) a : (byte) b;
 //        if(am == null)
-//            return PaletteReducer.IPT[0][PaletteReducer.shrink(ac)] > (PaletteReducer.IPT[0][PaletteReducer.shrink(bc)] + bm.getTrait(VoxMaterial.MaterialTrait._emit) * 4)
+//            return PaletteReducer.OKLAB[0][PaletteReducer.shrink(ac)] > (PaletteReducer.OKLAB[0][PaletteReducer.shrink(bc)] + bm.getTrait(VoxMaterial.MaterialTrait._emit) * 4)
 //                    ? (byte) a : (byte) b;
 //        if(bm == null)
-//            return (PaletteReducer.IPT[0][PaletteReducer.shrink(ac)] + am.getTrait(VoxMaterial.MaterialTrait._emit) * 4) > PaletteReducer.IPT[0][PaletteReducer.shrink(bc)]
+//            return (PaletteReducer.OKLAB[0][PaletteReducer.shrink(ac)] + am.getTrait(VoxMaterial.MaterialTrait._emit) * 4) > PaletteReducer.OKLAB[0][PaletteReducer.shrink(bc)]
 //                    ? (byte) a : (byte) b;
-//        return (PaletteReducer.IPT[0][PaletteReducer.shrink(ac)] + am.getTrait(VoxMaterial.MaterialTrait._emit) * 4) > (PaletteReducer.IPT[0][PaletteReducer.shrink(bc)] + bm.getTrait(VoxMaterial.MaterialTrait._emit) * 4)
+//        return (PaletteReducer.OKLAB[0][PaletteReducer.shrink(ac)] + am.getTrait(VoxMaterial.MaterialTrait._emit) * 4) > (PaletteReducer.OKLAB[0][PaletteReducer.shrink(bc)] + bm.getTrait(VoxMaterial.MaterialTrait._emit) * 4)
 //                    ? (byte) a : (byte) b;
     }
 
@@ -733,15 +733,15 @@ public class Tools3D {
 //        VoxMaterial am = VoxIO.lastMaterials.get(a);
 //        VoxMaterial bm = VoxIO.lastMaterials.get(b);
         if(am == null && bm == null)
-            return PaletteReducer.IPT[0][PaletteReducer.shrink(ac)] > PaletteReducer.IPT[0][PaletteReducer.shrink(bc)]
+            return PaletteReducer.OKLAB[0][PaletteReducer.shrink(ac)] > PaletteReducer.OKLAB[0][PaletteReducer.shrink(bc)]
             ? (byte) a : (byte) b;
         if(am == null)
-            return PaletteReducer.IPT[0][PaletteReducer.shrink(ac)] > (PaletteReducer.IPT[0][PaletteReducer.shrink(bc)] + bm.getTrait(VoxMaterial.MaterialTrait._emit) * 4)
+            return PaletteReducer.OKLAB[0][PaletteReducer.shrink(ac)] > (PaletteReducer.OKLAB[0][PaletteReducer.shrink(bc)] + bm.getTrait(VoxMaterial.MaterialTrait._emit) * 4)
                     ? (byte) a : (byte) b;
         if(bm == null)
-            return (PaletteReducer.IPT[0][PaletteReducer.shrink(ac)] + am.getTrait(VoxMaterial.MaterialTrait._emit) * 4) > PaletteReducer.IPT[0][PaletteReducer.shrink(bc)]
+            return (PaletteReducer.OKLAB[0][PaletteReducer.shrink(ac)] + am.getTrait(VoxMaterial.MaterialTrait._emit) * 4) > PaletteReducer.OKLAB[0][PaletteReducer.shrink(bc)]
                     ? (byte) a : (byte) b;
-        return (PaletteReducer.IPT[0][PaletteReducer.shrink(ac)] + am.getTrait(VoxMaterial.MaterialTrait._emit) * 4) > (PaletteReducer.IPT[0][PaletteReducer.shrink(bc)] + bm.getTrait(VoxMaterial.MaterialTrait._emit) * 4)
+        return (PaletteReducer.OKLAB[0][PaletteReducer.shrink(ac)] + am.getTrait(VoxMaterial.MaterialTrait._emit) * 4) > (PaletteReducer.OKLAB[0][PaletteReducer.shrink(bc)] + bm.getTrait(VoxMaterial.MaterialTrait._emit) * 4)
                     ? (byte) a : (byte) b;
     }
     public static byte[][][] soakDouble(byte[][][] voxels)
@@ -831,6 +831,6 @@ public class Tools3D {
                 }
             }
         }
-        return (n = (r ^ r >>> 27) * 0xAEF17502108EF2D9L + s) ^ n >>> 25;
+        return (s += (r ^ r >>> 27) * 0xAEF17502108EF2D9L ^ n) ^ s >>> 25;
     }
 }
