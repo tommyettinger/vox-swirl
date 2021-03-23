@@ -20,8 +20,8 @@ public class SmudgeRenderer {
     public int[][] depths, voxels, render, outlines;
     public VoxMaterial[][] materials;
     public float[][] shadeX, shadeZ, colorL, colorA, colorB;
-    public PaletteReducer reducer = new PaletteReducer(Coloring.HALTONIC255);
-    private int[] palette;
+    public PaletteReducer reducer = new PaletteReducer();
+    public int[] palette;
     public float[] paletteL, paletteA, paletteB;
     public boolean dither = false, outline = true;
     public int size;
@@ -416,32 +416,20 @@ public class SmudgeRenderer {
 //        seed = Tools3D.hash64(colors);
         final int size = colors.length;
         final float hs = (size) * 0.5f;
-//        System.out.printf("%dx%dx%d model:\n", size, size, size);
-//        float minX = Float.POSITIVE_INFINITY, maxX = Float.NEGATIVE_INFINITY;
-//        float minY = Float.POSITIVE_INFINITY, maxY = Float.NEGATIVE_INFINITY;
+        final float c = cos_(angleTurns), s = sin_(angleTurns);
         for (int z = 0; z < size; z++) {
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {
                     final byte v = colors[x][y][z];
                     if(v != 0)
                     {
-                        final float c = cos_(angleTurns), s = sin_(angleTurns);
                         final float xPos = (x-hs) * c - (y-hs) * s + size;
                         final float yPos = (x-hs) * s + (y-hs) * c + size;
-//                        minX = Math.min(minX, xPos);
-//                        maxX = Math.max(maxX, xPos);
-//                        minY = Math.min(minY, yPos);
-//                        maxY = Math.max(maxY, yPos);
                         splat(xPos, yPos, z, x, y, z, v);
                     }
                 }
             }
         }
-//        final int size2 = size << 1;
-//        if(minX < 0 || minY < 0 || maxX >= size2 || maxY >= size2) {
-//            System.out.println("UH OH on angle " + angleTurns + " for size " + size + " model!");
-//            System.out.printf("min X: %f, max X: %f, min Y: %f, max Y: %f\n", minX, maxX, minY, maxY);
-//        }
         return blit(angleTurns);
     }
 

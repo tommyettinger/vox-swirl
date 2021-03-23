@@ -16,7 +16,7 @@ import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
 import voxswirl.physical.VoxMaterial;
-import voxswirl.visual.RotatingRenderer;
+import voxswirl.visual.RotatingSmudgeRenderer;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,7 +31,7 @@ public class RotationVisualizer extends ApplicationAdapter {
     protected Viewport screenView;
     protected FrameBuffer buffer;
     protected Texture screenTexture, pmTexture;
-    private RotatingRenderer renderer;
+    private RotatingSmudgeRenderer renderer;
     private byte[][][] voxels;
     private float saturation;
     public float yaw, pitch, roll;
@@ -178,11 +178,11 @@ public class RotationVisualizer extends ApplicationAdapter {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
-            Tools3D.soakInPlace(v);
+            Tools3D.soakInPlace(v = Tools3D.simpleScale(v));
 //            voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
 //            Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, v.length >> 2);
             voxels = v;
-            renderer = new RotatingRenderer(voxels.length);
+            renderer = new RotatingSmudgeRenderer(voxels.length);
             renderer.palette(VoxIO.lastPalette);
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}};
