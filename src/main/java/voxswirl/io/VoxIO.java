@@ -1,11 +1,14 @@
 package voxswirl.io;
 
+import com.badlogic.gdx.utils.IntFloatMap;
 import com.badlogic.gdx.utils.IntMap;
-import voxswirl.meta.GwtIncompatible;
 import voxswirl.physical.VoxMaterial;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 
 
 /**
@@ -127,8 +130,8 @@ public class VoxIO {
     {
         bin.writeInt(Integer.reverseBytes(value));
     }
-    @GwtIncompatible
-    public static void writeVOX(String filename, byte[][][] voxelData, int[] palette) {
+
+    public static void writeVOX(String filename, byte[][][] voxelData, int[] palette, IntMap<VoxMaterial> materials) {
         // check out http://voxel.codeplex.com/wikipage?title=VOX%20Format&referringTitle=Home for the file format used below
         try {
             int xSize = voxelData.length, ySize = voxelData[0].length, zSize = voxelData[0][0].length;
@@ -184,7 +187,36 @@ public class VoxIO {
                 bin.writeInt(lastPalette[i]);
             }
             writeInt(bin,  0);
-
+            if(materials != null && materials.notEmpty()) {
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream(128);
+                DataOutputStream dos = new DataOutputStream(bytes);
+                for(IntMap.Entry<VoxMaterial> ent : materials) {
+                    bin.writeBytes("MATL");
+                    dos.flush();
+                    bytes.reset();
+                    // here we write to dos, which writes to bytes, so we know the length of the chunk.
+                    writeInt(dos, ent.key);
+                    writeInt(dos, ent.value.traits.size + 1);
+                    writeInt(dos, 5);
+                    dos.writeBytes("_type");
+                    String term = ent.value.type.name();
+                    writeInt(dos, term.length());
+                    dos.writeBytes(term);
+                    for(IntFloatMap.Entry et : ent.value.traits) {
+                        VoxMaterial.MaterialTrait mt = VoxMaterial.ALL_TRAITS[et.key];
+                        term = mt.name();
+                        writeInt(dos, term.length());
+                        dos.writeBytes(term);
+                        term = Float.toString(et.value);
+                        if(term.length() > 8) term = term.substring(0, 8);
+                        writeInt(dos, term.length());
+                        dos.writeBytes(term);
+                    }
+                    writeInt(bin, bytes.size());
+                    writeInt(bin, 0);
+                    bytes.writeTo(bin);
+                }
+            }
             bin.flush();
             bin.close();
             fos.flush();
@@ -193,7 +225,7 @@ public class VoxIO {
             e.printStackTrace();
         }
     }
-    @GwtIncompatible
+
     public static void writeAnimatedVOX(String filename, byte[][][][] voxelData, int[] palette) {
         // check out http://voxel.codeplex.com/wikipage?title=VOX%20Format&referringTitle=Home for the file format used below
         try {

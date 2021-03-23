@@ -80,8 +80,11 @@ public class VoxSwirl extends ApplicationAdapter {
         gif.palette = new PaletteReducer();
 //        png8.palette = gif.palette;
         gif.palette.setDitherStrength(0.625f);
+        Gdx.files.local("out/vox").mkdirs();
         for (String s : inputs) {
             load(s);
+            VoxIO.writeVOX("out/" + s, voxels, renderer.palette, VoxIO.lastMaterials);
+            load("out/"+s);
             try {
                 Pixmap pixmap;
                 Array<Pixmap> pm = new Array<>(64);
