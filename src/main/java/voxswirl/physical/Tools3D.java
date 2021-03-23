@@ -374,7 +374,7 @@ public class Tools3D {
     }
 
 
-    public static byte[][][] simpleScale(byte[][][] voxels){
+    public static byte[][][] simpleScale(byte[][][] voxels) {
         final int limitX = voxels.length - 1;
         final int limitY = voxels[0].length - 1;
         final int limitZ = voxels[0][0].length - 1;
@@ -693,6 +693,12 @@ public class Tools3D {
             }
         }
         return next;
+    }
+
+    public static byte[][][] scaleAndSoak(byte[][][] voxels) {
+        voxels = simpleScale(voxels);
+        soakInPlace(voxels);
+        return voxels;
     }
 
     public static byte choose(int a, int b){

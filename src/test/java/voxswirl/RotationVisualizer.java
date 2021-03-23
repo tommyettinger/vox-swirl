@@ -178,7 +178,7 @@ public class RotationVisualizer extends ApplicationAdapter {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
-            Tools3D.soakInPlace(v = Tools3D.simpleScale(v));
+            v = Tools3D.scaleAndSoak(v);
 //            voxels = new byte[v.length * 3 >> 1][v.length * 3 >> 1][v.length * 3 >> 1];
 //            Tools3D.translateCopyInto(v, voxels, v.length >> 2, v.length >> 2, v.length >> 2);
             voxels = v;

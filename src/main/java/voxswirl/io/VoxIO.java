@@ -47,9 +47,7 @@ public class VoxIO {
             0xbbbbbbff, 0xaaaaaaff, 0x888888ff, 0x777777ff, 0x555555ff, 0x444444ff, 0x222222ff, 0x111111ff
     };
     public static final IntMap<VoxMaterial> lastMaterials = new IntMap<>(64);
-    
-    public static final byte[] DIFFUSE_BYTES = "_diffuse".getBytes(StandardCharsets.UTF_8);
-    
+
     public static byte[][][] readVox(InputStream stream) {
         return readVox(new LittleEndianDataInputStream(stream));
     }
@@ -64,6 +62,8 @@ public class VoxIO {
             //int version = 
             stream.readInt();
             int sizeX = 16, sizeY = 16, size = 16, sizeZ = 16, offX = 0, offY = 0;
+            byte[] key = new byte[6]; // used for MaterialTrait
+            byte[] val = new byte[8]; // used for MaterialType and numbers
             // a MagicaVoxel .vox file starts with a 'magic' 4 character 'VOX ' identifier
             if (chunkId[0] == 'V' && chunkId[1] == 'O' && chunkId[2] == 'X' && chunkId[3] == ' ') {
                 while (stream.available() > 0) {
@@ -101,15 +101,15 @@ public class VoxIO {
                         int materialID = stream.readInt();
                         int dictSize = stream.readInt();
                         for (int i = 0; i < dictSize; i++) {
-                            byte[] key = new byte[stream.readInt()];
-                            stream.read(key);
-                            byte[] val = new byte[stream.readInt()];
-                            stream.read(val);
+                            int keyLen = stream.readInt();
+                            stream.read(key, 0, keyLen);
+                            int valLen = stream.readInt();
+                            stream.read(val, 0, valLen);
                             VoxMaterial vm;
                             if ((vm = lastMaterials.get(materialID)) == null)
-                                lastMaterials.put(materialID, new VoxMaterial(new String(val, StandardCharsets.UTF_8)));
+                                lastMaterials.put(materialID, new VoxMaterial(new String(val, 0, valLen, StandardCharsets.UTF_8)));
                             else
-                                vm.putTrait(new String(key, StandardCharsets.UTF_8), Float.parseFloat(new String(val, StandardCharsets.UTF_8)));
+                                vm.putTrait(new String(key, 0, keyLen, StandardCharsets.UTF_8), Float.parseFloat(new String(val, 0, valLen, StandardCharsets.UTF_8)));
                         }
                     }
                     else stream.skipBytes(chunkSize);   // read any excess bytes
