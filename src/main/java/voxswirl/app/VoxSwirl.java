@@ -56,7 +56,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox"};
 //            inputs = new String[]{"vox/Floor.vox"};
 //            inputs = new String[]{"vox/Bear.vox"};
-            inputs = new String[]{"vox/Lomuk.vox"};
+//            inputs = new String[]{"vox/Lomuk.vox"};
 //            inputs = new String[]{"vox/teapot.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
@@ -82,9 +82,10 @@ public class VoxSwirl extends ApplicationAdapter {
         gif.palette.setDitherStrength(0.625f);
         Gdx.files.local("out/vox").mkdirs();
         for (String s : inputs) {
+            System.out.println("Rendering " + s);
             load(s);
-            VoxIO.writeVOX("out/" + s, voxels, renderer.palette, VoxIO.lastMaterials);
-            load("out/"+s);
+//            VoxIO.writeVOX("out/" + s, voxels, renderer.palette, VoxIO.lastMaterials);
+//            load("out/"+s);
             try {
                 Pixmap pixmap;
                 Array<Pixmap> pm = new Array<>(64);
@@ -126,6 +127,8 @@ public class VoxSwirl extends ApplicationAdapter {
 //                }
                 gif.palette.analyze(pm);
                 gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
+                gif.palette.setDefaultPalette();
+                gif.write(Gdx.files.local("out/" + name + '/' + name + "-256-color.gif"), pm, 12);
 //                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
                 for(Pixmap pix : pm) {
                     pix.dispose();

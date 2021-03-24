@@ -5,13 +5,14 @@ import com.badlogic.gdx.utils.IntMap;
 import voxswirl.physical.VoxMaterial;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 
 
 /**
+ * Handles reading MagicaVoxel .vox files from file to byte[][][], and vice versa.
+ * The palette and, if present, materials of the latest .vox file read are available
+ * in {@link #lastPalette} and {@link #lastMaterials}.
+ * <br>
  * Created by Tommy Ettinger on 12/12/2017.
  */
 public class VoxIO {
@@ -49,7 +50,7 @@ public class VoxIO {
             0x000088ff, 0x000077ff, 0x000055ff, 0x000044ff, 0x000022ff, 0x000011ff, 0xeeeeeeff, 0xddddddff,
             0xbbbbbbff, 0xaaaaaaff, 0x888888ff, 0x777777ff, 0x555555ff, 0x444444ff, 0x222222ff, 0x111111ff
     };
-    public static final IntMap<VoxMaterial> lastMaterials = new IntMap<>(64);
+    public static final IntMap<VoxMaterial> lastMaterials = new IntMap<>(256);
 
     public static byte[][][] readVox(InputStream stream) {
         return readVox(new LittleEndianDataInputStream(stream));
@@ -66,7 +67,7 @@ public class VoxIO {
             stream.readInt();
             int sizeX = 16, sizeY = 16, size = 16, sizeZ = 16, offX = 0, offY = 0;
             byte[] key = new byte[6]; // used for MaterialTrait
-            byte[] val = new byte[8]; // used for MaterialType and numbers
+            byte[] val = new byte[10]; // used for MaterialType and numbers
             // a MagicaVoxel .vox file starts with a 'magic' 4 character 'VOX ' identifier
             if (chunkId[0] == 'V' && chunkId[1] == 'O' && chunkId[2] == 'X' && chunkId[3] == ' ') {
                 while (stream.available() > 0) {
@@ -129,6 +130,10 @@ public class VoxIO {
     private static void writeInt(DataOutputStream bin, int value) throws IOException
     {
         bin.writeInt(Integer.reverseBytes(value));
+    }
+
+    public static void writeVOX(String filename, byte[][][] voxelData, int[] palette) {
+        writeVOX(filename, voxelData, palette, null);
     }
 
     public static void writeVOX(String filename, byte[][][] voxelData, int[] palette, IntMap<VoxMaterial> materials) {
