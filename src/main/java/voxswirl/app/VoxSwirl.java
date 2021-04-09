@@ -13,7 +13,6 @@ import com.github.tommyettinger.anim8.*;
 import voxswirl.io.LittleEndianDataInputStream;
 import voxswirl.io.VoxIO;
 import voxswirl.physical.Tools3D;
-import voxswirl.visual.AngledRenderer;
 import voxswirl.visual.SmudgeRenderer;
 
 import java.io.File;
@@ -22,7 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class VoxSwirl extends ApplicationAdapter {
-    public static final int QUALITY = 48;
+//    public static final int QUALITY = 48;
     public static final int SCREEN_WIDTH = 512;//640;
     public static final int SCREEN_HEIGHT = 512;//720;
     public static boolean GLITCH = false;
@@ -84,57 +83,62 @@ public class VoxSwirl extends ApplicationAdapter {
         for (String s : inputs) {
             System.out.println("Rendering " + s);
             load(s);
+            for (int shrink = 0; shrink < 3; shrink++) {
+                if (!renderer.pixmap.isDisposed()) renderer.pixmap.dispose();
+                renderer.shrink = shrink;
+                renderer.pixmap = new Pixmap(voxels.length * 4 + 4 >> shrink, voxels.length * 5 + 4 >> shrink, Pixmap.Format.RGBA8888);
+
 //            VoxIO.writeVOX("out/" + s, voxels, renderer.palette, VoxIO.lastMaterials);
 //            load("out/"+s);
-            try {
-                Pixmap pixmap;
-                Array<Pixmap> pm = new Array<>(64);
-                for (int i = 0; i < 64; i++) {
-                    // glitch mode
-                    if(GLITCH) {
-                        random.setSeed(s.hashCode() + i);
-                        renderer.saturation(random.nextFloat() - 0.5f);
-                        for (int x = 0; x < voxels.length; x++) {
-                            for (int y = 0; y < voxels[0].length; y++) {
-                                for (int z = 0; z < voxels[0][0].length; z++) {
-                                    if(voxels[x][y][z] != 0 && (random.nextLong() & 62L) == 0L)
-                                        voxels[x][y][z] = (byte) (random.nextInt(256) & -random.nextInt(2) & -random.nextInt(2));
+                try {
+                    Pixmap pixmap;
+                    Array<Pixmap> pm = new Array<>(64);
+                    for (int i = 0; i < 64; i++) {
+                        // glitch mode
+                        if (GLITCH) {
+                            random.setSeed(s.hashCode() + i);
+                            renderer.saturation(random.nextFloat() - 0.5f);
+                            for (int x = 0; x < voxels.length; x++) {
+                                for (int y = 0; y < voxels[0].length; y++) {
+                                    for (int z = 0; z < voxels[0][0].length; z++) {
+                                        if (voxels[x][y][z] != 0 && (random.nextLong() & 62L) == 0L)
+                                            voxels[x][y][z] = (byte) (random.nextInt(256) & -random.nextInt(2) & -random.nextInt(2));
+                                    }
                                 }
                             }
+                            voxels = Tools3D.translateCopy(voxels,
+                                    (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)),
+                                    (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)),
+                                    (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)));
+                            pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f + (random.nextFloat() - random.nextFloat()) * 0x1p-5f, VoxIO.lastMaterials);
+                        } else {
+                            pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f, VoxIO.lastMaterials);
                         }
-                        voxels = Tools3D.translateCopy(voxels,
-                                (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)),
-                                (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)),
-                                (random.nextInt(3) & random.nextInt(3)) - (random.nextInt(3) & random.nextInt(3)));
-                        pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f + (random.nextFloat() - random.nextFloat()) * 0x1p-5f, VoxIO.lastMaterials);
-                    }
-                    else {
-                        pixmap = renderer.drawSplats(voxels, (i & 63) * 0x1p-6f, VoxIO.lastMaterials);
-                    }
-                    Pixmap p = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), pixmap.getFormat());
-                    p.drawPixmap(pixmap, 0, 0);
-                    pm.add(p);
-                    png.write(Gdx.files.local("out/" + name + '/' + name + "_angle" + i + ".png"), p);
+                        Pixmap p = new Pixmap(pixmap.getWidth(), pixmap.getHeight(), pixmap.getFormat());
+                        p.drawPixmap(pixmap, 0, 0);
+                        pm.add(p);
+                        png.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + "_angle" + i + ".png"), p);
 //                    for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
 //                        png8.palette.exact(Coloring.HALTONIC255, colorCount);
 //                        png8.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + "_angle" + i + ".png"), p, false);
 //                    }
 //                    VoxIO.writeVOX("out/vox/" + s.substring(4, s.length() - 4) + "_angle"+i+".vox", renderer.remade, VoxIO.lastPalette);
-                }
+                    }
 //                for (int colorCount : new int[]{3, 8, 32, 64, 86, 128, 256}) {
 //                    gif.palette.exact(Coloring.HALTONIC255, colorCount);
 //                    gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
 //                }
-                gif.palette.analyze(pm);
-                gif.write(Gdx.files.local("out/" + name + '/' + name + ".gif"), pm, 12);
-                gif.palette.setDefaultPalette();
-                gif.write(Gdx.files.local("out/" + name + '/' + name + "-256-color.gif"), pm, 12);
+                    gif.palette.analyze(pm);
+                    gif.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + ".gif"), pm, 12);
+                    gif.palette.setDefaultPalette();
+                    gif.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + "-256-color.gif"), pm, 12);
 //                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
-                for(Pixmap pix : pm) {
-                    pix.dispose();
+                    for (Pixmap pix : pm) {
+                        pix.dispose();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
         System.out.println("Finished in " + TimeUtils.timeSinceMillis(startTime) * 0.001 + " seconds.");

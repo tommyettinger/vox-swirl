@@ -237,8 +237,6 @@ target/
 *#*.*#
 /bin/
 
-GeneratedPalette.txt
-GeneratedPalette.png
 voxOutput/
 /assets/out/
 /out/

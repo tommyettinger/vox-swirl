@@ -7,8 +7,6 @@ import com.github.tommyettinger.anim8.PaletteReducer;
 import com.github.tommyettinger.colorful.oklab.ColorTools;
 import voxswirl.physical.VoxMaterial;
 
-import static com.github.tommyettinger.colorful.TrigTools.cos_;
-import static com.github.tommyettinger.colorful.TrigTools.sin_;
 import static voxswirl.meta.ArrayTools.fill;
 
 /**
@@ -24,9 +22,8 @@ public class SmudgeRenderer {
     public float[] paletteL, paletteA, paletteB;
     public boolean dither = false, outline = true;
     public int size;
-    public int shrink = 2;
-    public float neutral = 1f, bigUp = 1.1f, midUp = 1.04f, midDown = 0.9f,
-            smallUp = 1.02f, smallDown = 0.94f, tinyUp = 1.01f, tinyDown = 0.98f;
+    public int shrink = 1;
+    public float neutral = 1f;
     public IntMap<VoxMaterial> materialMap;
 //    public long seed;
 
@@ -59,8 +56,16 @@ public class SmudgeRenderer {
         return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 128) * 0x1p-8f;
     }
 
+    public static float sin_(float turns){
+        return MathUtils.sin(turns * MathUtils.PI2);
+    }
+
+    public static float cos_(float turns){
+        return MathUtils.cos(turns * MathUtils.PI2);
+    }
+
     /**
-     * Takes a modifier between -0.5f and 0.2f, and adjusts how this changes saturation accordingly.
+     * Takes a modifier between -1f and 0.5f, and adjusts how this changes saturation accordingly.
      * Negative modifiers will decrease saturation, while positive ones increase it. If positive, any
      * changes are incredibly sensitive, and 0.05 will seem very different from 0.0. If negative, changes
      * are not as sensitive, but most of the noticeable effect will happen close to -0.1.
@@ -68,15 +73,7 @@ public class SmudgeRenderer {
      * @return this, for chaining
      */
     public SmudgeRenderer saturation(float saturationModifier) {
-        saturationModifier = MathUtils.clamp(saturationModifier, -1f, 0.5f);
-        neutral = 1f + saturationModifier;
-        bigUp = 1.1f + saturationModifier;
-        midUp = 1.04f + saturationModifier;
-        midDown = 0.9f + saturationModifier;
-        smallUp = 1.02f + saturationModifier;
-        smallDown = 0.94f + saturationModifier;
-        tinyUp = 1.01f + saturationModifier;
-        tinyDown = 0.98f + saturationModifier;
+        neutral = 1f + MathUtils.clamp(saturationModifier, -1f, 0.5f);
         return this;
     }
 
@@ -85,15 +82,19 @@ public class SmudgeRenderer {
     }
 
     public SmudgeRenderer palette(PaletteReducer color) {
-        return palette(color.paletteArray);
+        return palette(color.paletteArray, color.colorCount);
     }
 
     public SmudgeRenderer palette(int[] color) {
+        return palette(color, 256);
+    }
+    public SmudgeRenderer palette(int[] color, int count) {
         this.palette = color;
+        count = Math.min(256, count);
         if(paletteL == null) paletteL = new float[256];
         if(paletteA == null) paletteA = new float[256];
         if(paletteB == null) paletteB = new float[256];
-        for (int i = 0; i < color.length; i++) {
+        for (int i = 0; i < color.length && i < count; i++) {
             if ((color[i] & 0x80) == 0) {
                 paletteL[i] = -1f;
                 paletteA[i] = -1f;
