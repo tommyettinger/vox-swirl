@@ -20,7 +20,7 @@ public class SmudgeRenderer {
     public PaletteReducer reducer = new PaletteReducer();
     public int[] palette;
     public float[] paletteL, paletteA, paletteB;
-    public boolean dither = false, outline = true;
+    public boolean dither = false, outline = false;
     public int size;
     public int shrink = 1;
     public float neutral = 1f;
@@ -57,11 +57,11 @@ public class SmudgeRenderer {
     }
 
     public static float sin_(float turns){
-        return MathUtils.sin(turns * MathUtils.PI2);
+        return MathUtils.sinDeg(turns * 360);
     }
 
     public static float cos_(float turns){
-        return MathUtils.cos(turns * MathUtils.PI2);
+        return MathUtils.cosDeg(turns * 360);
     }
 
     /**
@@ -124,7 +124,7 @@ public class SmudgeRenderer {
         final float hs = size * 0.5f;
         for (int x = 0, ax = xx; x < 4 && ax < render.length; x++, ax++) {
             for (int y = 0, ay = yy; y < 4 && ay < render[0].length; y++, ay++) {
-                if (depth >= depths[ax][ay] && (alpha == 0f || bn(ax, ay) >= alpha)) {
+                if ((depth > depths[ax][ay] || (depth == depths[ax][ay] && colorL[ax][ay] < paletteL[voxel & 255])) && (alpha == 0f || bn(ax, ay) >= alpha)) {
                     drawn = true;
                     colorL[ax][ay] = paletteL[voxel & 255];
                     colorA[ax][ay] = paletteA[voxel & 255];

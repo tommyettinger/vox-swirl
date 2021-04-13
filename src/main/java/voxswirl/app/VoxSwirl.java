@@ -57,7 +57,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/Lomuk.vox"};
 //            inputs = new String[]{"vox/teapot.vox"};
-//            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
+            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
             if(!new File(inputs[0]).exists()) 
