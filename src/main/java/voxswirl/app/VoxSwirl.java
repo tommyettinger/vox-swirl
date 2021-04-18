@@ -57,7 +57,9 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/Lomuk.vox"};
 //            inputs = new String[]{"vox/teapot.vox"};
-            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
+            inputs = new String[]{"vox/Castle.vox"};
+            inputs = new String[]{"vox/Grin.vox", "vox/BareBear.vox", "vox/Castle.vox"};
+//            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
             if(!new File(inputs[0]).exists()) 
@@ -128,7 +130,7 @@ public class VoxSwirl extends ApplicationAdapter {
 //                    gif.palette.exact(Coloring.HALTONIC255, colorCount);
 //                    gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
 //                }
-                    gif.palette.analyze(pm);
+                    gif.palette.analyze(pm, 50);
                     gif.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + ".gif"), pm, 12);
                     gif.palette.setDefaultPalette();
                     gif.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + "-256-color.gif"), pm, 12);
@@ -178,6 +180,7 @@ public class VoxSwirl extends ApplicationAdapter {
             renderer = new SmudgeRenderer(voxels.length);
             renderer.palette(VoxIO.lastPalette);
             renderer.saturation(0f);
+            renderer.outline = true;
             
         } catch (FileNotFoundException e) {
             voxels = new byte[][][]{{{1}}}; 
