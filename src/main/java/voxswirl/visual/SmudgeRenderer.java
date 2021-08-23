@@ -25,6 +25,7 @@ public class SmudgeRenderer {
     public int shrink = 1;
     public float neutral = 1f;
     public IntMap<VoxMaterial> materialMap;
+    public VoxMaterial defaultMaterial;
 //    public long seed;
 
     protected SmudgeRenderer() {
@@ -32,6 +33,7 @@ public class SmudgeRenderer {
     }
     public SmudgeRenderer(final int size) {
         this.size = size;
+        defaultMaterial = new VoxMaterial();
         final int w = size * 4 + 4, h = size * 5 + 4;
 //        pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
         pixmap = new Pixmap(w>>>shrink, h>>>shrink, Pixmap.Format.RGBA8888);
@@ -118,7 +120,7 @@ public class SmudgeRenderer {
                 yy = (int)(0.5f + Math.max(0, (zPos * 3 + size * 3 - xPos - yPos) + 1)),
                 depth = (int)(0.5f + (xPos + yPos) * 2 + zPos * 3);
         boolean drawn = false;
-        final VoxMaterial m = materialMap.get(voxel & 255);
+        final VoxMaterial m = materialMap.get(voxel & 255, defaultMaterial);
         final float emit = m.getTrait(VoxMaterial.MaterialTrait._emit) * 0.75f;
         final float alpha = m.getTrait(VoxMaterial.MaterialTrait._alpha);
         final float hs = size * 0.5f;

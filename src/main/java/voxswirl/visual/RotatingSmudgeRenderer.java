@@ -4,8 +4,6 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.utils.IntMap;
 import voxswirl.physical.VoxMaterial;
 
-import static com.github.tommyettinger.colorful.TrigTools.cos_;
-import static com.github.tommyettinger.colorful.TrigTools.sin_;
 import static voxswirl.meta.ArrayTools.fill;
 
 /**
@@ -38,9 +36,8 @@ public class RotatingSmudgeRenderer extends SmudgeRenderer {
 
     public Pixmap drawSplats(byte[][][] colors, float yaw, float pitch, float roll, IntMap<VoxMaterial> materialMap) {
         this.materialMap = materialMap;
-//        seed = Tools3D.hash64(colors) + NumberUtils.floatToRawIntBits(yaw) * 5L + NumberUtils.floatToRawIntBits(pitch) * 23L + NumberUtils.floatToRawIntBits(roll) * 119L;
         final int size = colors.length;
-        final float hs = (size) * 0.5f;
+        final float hs = size * 0.5f;
         float ox, oy, oz; // offset x,y,z
         final float cYaw = cos_(yaw), sYaw = sin_(yaw);
         final float cPitch = cos_(pitch), sPitch = sin_(pitch);

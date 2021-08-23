@@ -39,7 +39,7 @@ public class VoxSwirl extends ApplicationAdapter {
         else 
         {
             System.out.println("INVALID ARGUMENTS. Please supply space-separated absolute paths to .vox models, or use the .bat file.");
-            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox", "vox/Eye_Tyrant.vox", "vox/Bear.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox"};
+//            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox", "vox/Eye_Tyrant.vox", "vox/Bear.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant_Floor.vox", "vox/Eye_Tyrant.vox", "vox/Bear.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/Oklab.vox", "vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Bear.vox", "vox/Infantry_Firing.vox", "vox/Tree.vox"};
 //            inputs = new String[]{"vox/Eye_Tyrant.vox", "vox/Infantry_Firing.vox", "vox/Lomuk.vox", "vox/Tree.vox", "vox/LAB.vox"};
@@ -57,12 +57,13 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/Bear.vox"};
 //            inputs = new String[]{"vox/Lomuk.vox"};
 //            inputs = new String[]{"vox/teapot.vox"};
-            inputs = new String[]{"vox/Castle.vox"};
-            inputs = new String[]{"vox/Grin.vox", "vox/BareBear.vox", "vox/Castle.vox"};
+//            inputs = new String[]{"vox/Castle.vox"};
+//            inputs = new String[]{"vox/Grin.vox", "vox/BareBear.vox", "vox/Castle.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Half.vox"};
 //            inputs = new String[]{"vox/libGDX_BadLogic_Logo.vox"};
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
-            if(!new File(inputs[0]).exists()) 
+            inputs = new String[]{"vox/Sora.vox"};
+            if(!new File(inputs[0]).exists())
                 System.exit(0);
         }
     }
@@ -75,7 +76,7 @@ public class VoxSwirl extends ApplicationAdapter {
         png = new PixmapIO.PNG();
 //        png8 = new PNG8();
         gif = new AnimatedGif();
-//        apng = new AnimatedPNG();
+        apng = new AnimatedPNG();
         gif.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
 //        png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
         gif.palette = new PaletteReducer();
