@@ -58,7 +58,7 @@ public class ExperimentalRenderer {
     }
     
     protected float bn(int x, int y) {
-        return (PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 128) * 0x1p-8f;
+        return (x * 0xC13FA9A902A6328FL + y * 0x91E10DA5C79E7B1DL >>> 56) * 0x1p-8f;
     }
 
     /**
@@ -68,17 +68,7 @@ public class ExperimentalRenderer {
      * @return a float between -0.75f and 0.75f
      */
     protected float angle(int x, int y) {
-        return (PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) * 0x3p-9f;
-    }
-
-    /**
-     * Ranges between -0.75f and 0.75f, both exclusive. Blue-noise distributed and centrally biased.
-     * @param x x position, will wrap every 64
-     * @param y y position, will wrap every 64
-     * @return a float between -0.75f and 0.75f
-     */
-    protected float biasedAngle(int x, int y) {
-        return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6]) * 0x3p-10f;
+        return (PaletteReducer.TRI_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) * 0x3p-9f;
     }
 
     /**
@@ -90,7 +80,7 @@ public class ExperimentalRenderer {
      */
     protected float biasedAngle(int x, int y, int v) {
 //        return (PaletteReducer.TRI_BLUE_NOISE[(x + v * 5 & 63) | (y + v * 3 & 63) << 6] + 0.5f) * 0x3p-9f;
-        return (PaletteReducer.TRI_BLUE_NOISE[(x + v & 63) | (y & 63) << 6] - PaletteReducer.RAW_BLUE_NOISE[(x & 63) | (y + v & 63) << 6]) * 0x3p-10f;
+        return (PaletteReducer.TRI_BLUE_NOISE[(x + v & 63) | (y & 63) << 6] - (x * 0xC13FA9A902A6328FL + (y+v) * 0x91E10DA5C79E7B1DL >> 56)) * 0x3p-10f;
     }
 
     protected float random(){

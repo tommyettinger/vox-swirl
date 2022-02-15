@@ -68,8 +68,8 @@
         <jdk.version>1.8</jdk.version>
         <junit.version>4.13.2</junit.version>
         <gdx.version>1.10.0</gdx.version>
-        <anim8.version>0.2.11</anim8.version>
-        <colorful.version>0.6.1</colorful.version>
+        <anim8.version>0.3.5</anim8.version>
+        <colorful.version>0.7.0</colorful.version>
 <!--        <colorful.version>0.5.1</colorful.version>-->
     </properties>
 

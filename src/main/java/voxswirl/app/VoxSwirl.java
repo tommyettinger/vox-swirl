@@ -64,7 +64,8 @@ public class VoxSwirl extends ApplicationAdapter {
 //            inputs = new String[]{"vox/libGDX_Gray.vox"};
 //            inputs = new String[]{"vox/Sora.vox"};
 //            inputs = new String[]{"vox/Yamod.vox"};
-            inputs = new String[]{"vox/Yamoe.vox"};
+//            inputs = new String[]{"vox/Yamoe.vox"};
+            inputs = new String[]{"vox/Yamof.vox"};
             if(!new File(inputs[0]).exists())
                 System.exit(0);
         }
@@ -79,11 +80,10 @@ public class VoxSwirl extends ApplicationAdapter {
 //        png8 = new PNG8();
         gif = new AnimatedGif();
         apng = new AnimatedPNG();
-        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
+        gif.setDitherAlgorithm(Dithered.DitherAlgorithm.NEUE);
 //        png8.setDitherAlgorithm(Dithered.DitherAlgorithm.SCATTER);
-        gif.palette = new PaletteReducer();
 //        png8.palette = gif.palette;
-        gif.palette.setDitherStrength(0.625f);
+        gif.setDitherStrength(0.625f);
         Gdx.files.local("out/vox").mkdirs();
         for (String s : inputs) {
             System.out.println("Rendering " + s);
@@ -133,10 +133,9 @@ public class VoxSwirl extends ApplicationAdapter {
 //                    gif.palette.exact(Coloring.HALTONIC255, colorCount);
 //                    gif.write(Gdx.files.local("out/lowColor/" + colorCount + "/" + name + '/' + name + ".gif"), pm, 12);
 //                }
-                    gif.palette.analyze(pm, 50);
-                    gif.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + ".gif"), pm, 12);
-                    gif.palette.setDefaultPalette();
-                    gif.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + "-256-color.gif"), pm, 12);
+                    gif.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + ".gif"), pm, 9);
+//                    gif.palette.setDefaultPalette();
+//                    gif.write(Gdx.files.local("out/shrink" + shrink + "/" + name + '/' + name + "-256-color.gif"), pm, 12);
 //                apng.write(Gdx.files.local("out/" + name + '/' + name + ".png"), pm, 12);
                     for (Pixmap pix : pm) {
                         pix.dispose();
@@ -175,7 +174,8 @@ public class VoxSwirl extends ApplicationAdapter {
                 voxels = new byte[][][]{{{1}}};
                 return;
             }
-            voxels = Tools3D.scaleAndSoak(voxels);
+            voxels = Tools3D.blockyScale(voxels);
+            Tools3D.soakInPlace(voxels);
             int nameStart = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1;
             this.name = name.substring(nameStart, name.indexOf('.', nameStart));
 //            renderer = new NextRenderer(voxels.length, QUALITY);
